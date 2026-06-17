@@ -8,26 +8,26 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#f5f6fa;--surface:#ffffff;--surface2:#f0f2f8;--surface3:#e8eaf2;
-  --border:#dde1ef;--accent:#1a6fff;--accent-dim:rgba(26,111,255,0.10);
+  --bg:#ffffff;--surface:#ffffff;--surface2:#f2faf6;--surface3:#e8f5ee;
+  --border:#c3e6d3;--accent:#2d7a4f;--accent-dim:rgba(45,122,79,0.10);
   --red:#e03131;--red-dim:rgba(224,49,49,0.10);
   --yellow:#e67700;--yellow-dim:rgba(230,119,0,0.10);
-  --blue:#1971c2;--blue-dim:rgba(25,113,194,0.10);
-  --purple:#7048e8;--purple-dim:rgba(112,72,232,0.10);
-  --text:#1a1d2e;--text2:#5c6080;--text3:#9da3bf;
+  --blue:#2d7a4f;--blue-dim:rgba(45,122,79,0.10);
+  --purple:#1a5c38;--purple-dim:rgba(26,92,56,0.10);
+  --text:#1a2e24;--text2:#4a6358;--text3:#7a9e8e;
   --mono:'JetBrains Mono',monospace;--sans:'Inter',sans-serif;
   --sidebar:230px;--radius:10px;
 }
 body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
 #login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
 .login-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px;width:400px;max-width:100%}
-.login-box h1{font-size:24px;font-weight:700;color:var(--blue);margin-bottom:4px}
+.login-box h1{font-size:24px;font-weight:700;color:var(--accent);margin-bottom:4px}
 .login-box p{color:var(--text2);font-size:13px;margin-bottom:28px}
 .login-error{background:var(--red-dim);color:var(--red);border-radius:7px;padding:10px 14px;font-size:13px;margin-bottom:14px;display:none}
 #app{display:none;flex-direction:row}
 #sidebar{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto;box-shadow:2px 0 8px rgba(0,0,0,0.06)}
 .logo{padding:22px 20px 16px;border-bottom:1px solid var(--border)}
-.logo h1{font-size:17px;font-weight:700;color:var(--blue);letter-spacing:-0.5px}
+.logo h1{font-size:17px;font-weight:700;color:var(--accent);letter-spacing:-0.5px}
 .logo span{color:var(--text2);font-size:11px;display:block;margin-top:2px}
 nav{padding:14px 12px;flex:1}
 nav button{display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:var(--text2);padding:9px 12px;border-radius:8px;cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:500;text-align:left;transition:all 0.15s;margin-bottom:2px}
@@ -50,7 +50,7 @@ nav button.active{background:var(--accent-dim);color:var(--accent);font-weight:6
 .dolar-banner{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap}
 .dolar-pill{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 18px;display:flex;align-items:center;gap:10px;cursor:pointer}
 .dolar-pill .dl{font-size:11px;color:var(--text2);font-weight:500}
-.dolar-pill .dv{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--blue)}
+.dolar-pill .dv{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--accent)}
 .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px}
 .form-card h3{font-size:15px;font-weight:600;margin-bottom:18px}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:14px}
@@ -61,7 +61,7 @@ nav button.active{background:var(--accent-dim);color:var(--accent);font-weight:6
 .form-group select option{background:#ffffff;color:var(--text)}
 .form-actions{display:flex;gap:10px;margin-top:16px;justify-content:flex-end}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:7px;border:none;cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600;transition:all 0.15s}
-.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:#1558d6}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:#1a5c38}
 .btn-secondary{background:var(--surface3);color:var(--text);border:1px solid var(--border)}.btn-secondary:hover{background:var(--border)}
 .btn-danger{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,77,77,0.2)}
 .btn-sm{padding:5px 11px;font-size:12px}
@@ -92,7 +92,7 @@ tr:hover td{background:var(--surface2)}
 .cc-header{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;cursor:pointer}
 .cc-header:hover{background:var(--surface2)}
 .item-row{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:10px}
-.ars-hint{font-size:11px;color:var(--blue);font-family:var(--mono);margin-top:3px;min-height:14px}
+.ars-hint{font-size:11px;color:var(--accent);font-family:var(--mono);margin-top:3px;min-height:14px}
 
 /* Selector de categoría de producto */
 .cat-selector{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:18px}
@@ -118,7 +118,7 @@ td,th{vertical-align:middle;padding:10px 14px}
 .trial-banner.urgent{background:linear-gradient(135deg,#ffe0e0,#ffb3b3);border-color:#ff6b6b}
 .trial-banner .trial-text{font-size:13px;font-weight:600;color:#7c5700}
 .trial-banner.urgent .trial-text{color:#c0392b}
-.trial-banner .btn-subscribe{background:#25D366;color:#fff;border:none;border-radius:7px;padding:8px 16px;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap}
+.trial-banner .btn-subscribe{background:#fff;color:#2d7a4f;border:1px solid #2d7a4f;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
 .trial-expired{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;align-items:center;justify-content:center}
 .trial-expired-box{background:#fff;border-radius:16px;padding:40px;max-width:420px;width:90%;text-align:center}
 .trial-expired-box h2{font-size:22px;font-weight:700;color:#c0392b;margin-bottom:8px}
@@ -183,6 +183,7 @@ td,th{vertical-align:middle;padding:10px 14px}
       <input type="password" id="login-pass" placeholder="••••••••">
     </div>
     <button class="btn btn-primary" id="btn-login" style="width:100%;justify-content:center;padding:12px">Ingresar</button>
+    <div style="text-align:center;font-size:13px;color:var(--text2);margin-top:14px">¿No tenés cuenta? <a href="#" id="link-ir-registro" style="color:var(--blue);font-weight:600">Registrate gratis</a></div>
   </div>
 </div>
 
@@ -206,6 +207,12 @@ td,th{vertical-align:middle;padding:10px 14px}
     <button id="nav-caja" data-page="caja">💵 Caja</button>
     <button id="nav-costos" data-page="costos">📋 Costos</button>
   </nav>
+  <div style="padding:8px 16px">
+    <a href="https://wa.me/5491132133878?text=Hola!%20Necesito%20soporte%20con%20VexoPRO" target="_blank" style="display:flex;align-items:center;gap:8px;background:#25D366;color:#fff;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;text-decoration:none;justify-content:center">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Soporte
+    </a>
+  </div>
   <div class="sidebar-bottom">
     <div id="trial-banner-sidebar"></div>
     <div class="user-info" id="user-email-label"></div>
@@ -213,6 +220,7 @@ td,th{vertical-align:middle;padding:10px 14px}
   </div>
 </aside>
 <main id="main">
+<div id="trial-inicio-banner" style="margin-bottom:20px"></div>
 
 <div id="page-inicio" class="page active">
   <div class="page-header"><h2>🏠 Inicio</h2><p id="fecha-hoy"></p></div>
@@ -688,11 +696,7 @@ $('link-ir-login').addEventListener('click',e=>{
   $('login-screen').style.display='flex';
 });
 
-// Link en login para ir a registro
-const linkReg=document.createElement('div');
-linkReg.style.cssText='text-align:center;font-size:13px;color:var(--text2);margin-top:12px';
-linkReg.innerHTML='¿No tenés cuenta? <a href="#" id="link-ir-registro" style="color:var(--blue);font-weight:600">Registrate gratis</a>';
-$('btn-login').parentNode.appendChild(linkReg);
+// Link para ir a registro (ya está en HTML)
 document.addEventListener('click',e=>{
   if(e.target.id==='link-ir-registro'){
     e.preventDefault();
@@ -728,7 +732,7 @@ function checkTrial(userData){
   const bSide=$('trial-banner-sidebar');
   if(bSide) bSide.innerHTML='<div class="trial-banner'+(urgent?' urgent':'')+'" style="margin-bottom:10px;flex-direction:column;align-items:flex-start;gap:8px"><div class="trial-text">\u23f3 '+(diasRestantes===1?'\u00daltimo d\u00eda':'Quedan '+diasRestantes+' d\u00edas')+' de prueba gratuita</div><a href="'+wspUrl+'" target="_blank" class="btn-subscribe">\ud83d\udcac Suscribirme</a></div>';
   const bInicio=$('trial-inicio-banner');
-  if(bInicio) bInicio.innerHTML='<div style="background:'+(urgent?'#fff0f0':'#fffde7')+';border:1px solid '+(urgent?'#ffb3b3':'#ffe082')+';border-radius:12px;padding:16px 20px;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px"><div><div style="font-size:14px;font-weight:700;color:'+(urgent?'#c0392b':'#7c5700')+'">'+(diasRestantes===1?'\u26a0\ufe0f \u00daltimo d\u00eda de prueba gratuita':'\u23f3 Quedan '+diasRestantes+' d\u00edas de prueba gratuita')+'</div><div style="font-size:12px;color:'+(urgent?'#c0392b':'#7c5700')+';margin-top:3px;opacity:0.8">Suscrib\u00edte para continuar usando VexoPRO sin interrupciones</div></div><div style="display:flex;gap:8px;align-items:center"><a href="vexpro_suscripcion.html" target="_blank" style="background:#fff;color:#2d7a4f;border:1px solid #2d7a4f;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;text-decoration:none">Ver planes</a><a href="'+wspUrl+'" target="_blank" class="btn-subscribe">\ud83d\udcac Suscribirme</a></div></div>';
+  if(bInicio) bInicio.innerHTML='<div style="background:'+(urgent?'#fff0f0':'#fffde7')+';border:1px solid '+(urgent?'#ffb3b3':'#ffe082')+';border-radius:12px;padding:16px 20px;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px"><div><div style="font-size:14px;font-weight:700;color:'+(urgent?'#c0392b':'#7c5700')+'">'+(diasRestantes===1?'\u26a0\ufe0f \u00daltimo d\u00eda de prueba gratuita':'\u23f3 Quedan '+diasRestantes+' d\u00edas de prueba gratuita')+'</div><div style="font-size:12px;color:'+(urgent?'#c0392b':'#7c5700')+';margin-top:3px;opacity:0.8">Suscrib\u00edte para continuar usando VexoPRO sin interrupciones</div></div><div style="display:flex;gap:6px;align-items:center;margin-left:auto"><a href="vexpro_suscripcion.html" target="_blank" style="background:#fff;color:#2d7a4f;border:1px solid #2d7a4f;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap">Ver planes</a><a href="'+wspUrl+'" target="_blank" style="background:#2d7a4f;color:#fff;border:1px solid #2d7a4f;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:6px">\ud83d\udcac Suscribirme</a></div></div>';
   return true;
 }
 
