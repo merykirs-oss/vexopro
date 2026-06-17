@@ -444,7 +444,12 @@ td,th{vertical-align:middle;padding:10px 14px}
 </div>
 
 <div id="page-caja" class="page">
-  <div class="page-header"><h2>💵 Caja</h2><p>Control de ingresos y egresos en USD y ARS. Las ventas en contado se registran automáticamente.</p></div>
+  <div class="page-header"><h2>💵 Caja</h2><p>Control de ingresos y egresos. Las ventas en contado se registran automáticamente.</p></div>
+  <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+    <span style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px">Mostrar caja en:</span>
+    <button class="btn btn-secondary cajamon active-filter" data-moneda="USD" style="padding:10px 22px;font-size:14px">💵 Dólares (USD)</button>
+    <button class="btn btn-secondary cajamon" data-moneda="ARS" style="padding:10px 22px;font-size:14px">💲 Pesos (ARS)</button>
+  </div>
   <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
     <span style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px">Período:</span>
     <button class="btn btn-secondary btn-sm cajaf active-filter" data-filtro="hoy">Hoy</button>
@@ -617,6 +622,7 @@ signOut(auth).catch(()=>{});
 // ─── STATE ───────────────────────────────────────────────────
 let S = {compras:{},ventas:{},clientes:{},garantias:{},tecnicos:{},reparaciones:{},pagos:{},proveedores:{},caja:{},costos:{}};
 let cajaFiltro='hoy';
+let cajaMoneda='USD';
 let costosFiltro='actual';
 let metodoItems=[];
 let ventaCategoria='iphone';
@@ -905,7 +911,17 @@ function initApp(){
     btn.classList.add('active-filter');
     renderCaja();
   }));
+  document.querySelectorAll('.cajamon').forEach(btn=>btn.addEventListener('click',()=>{
+    cajaMoneda=btn.dataset.moneda;
+    document.querySelectorAll('.cajamon').forEach(b=>b.classList.remove('active-filter'));
+    btn.classList.add('active-filter');
+    // Sincronizar selector de moneda del formulario manual
+    const cjMonedaSel=$('cj-moneda');
+    if(cjMonedaSel) cjMonedaSel.value=cajaMoneda;
+    renderCaja();
+  }));
   $('btn-save-caja').addEventListener('click',saveCaja);
+  $('cj-moneda').value=cajaMoneda;
   $('btn-add-metodo').addEventListener('click',()=>addMetodoItem());
   // Delegación de eventos para caja (botones generados dinámicamente)
   $('tabla-caja').addEventListener('click',e=>{
@@ -1580,6 +1596,132 @@ function guardarEditCliente(){
   const k=$('edit-cl-key').value;
   update(dbRef('clientes/'+k),{nombre:$('edit-cl-nombre').value.trim(),tel:$('edit-cl-tel').value.trim(),email:$('edit-cl-email').value.trim(),tipo:$('edit-cl-tipo').value})
     .then(()=>closeModal('modal-edit-cliente'));
+}
+
+
+// ─── CAJA ────────────────────────────────────────────────────
+function getCajaRango(){
+  const now=new Date(),h=today();
+  if(cajaFiltro==='hoy')return{desde:h,hasta:h};
+  if(cajaFiltro==='semana'){const d=new Date(now);d.setDate(d.getDate()-7);return{desde:d.toISOString().slice(0,10),hasta:h};}
+  if(cajaFiltro==='mes')return{desde:now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01',hasta:h};
+  return{desde:null,hasta:null};
+}
+function saveCaja(){
+  const fecha=$('cj-fecha').value,tipo=$('cj-tipo').value,moneda=$('cj-moneda').value;
+  const monto=parseFloat($('cj-monto').value),categoria=$('cj-categoria').value,desc=$('cj-desc').value.trim();
+  if(!fecha||!monto||monto<=0){showAlert('cj-alert','Completá fecha y monto',false);return;}
+  push(dbRef('caja'),{fecha,tipo,moneda,monto,categoria,desc,auto:false})
+    .then(()=>{showAlert('cj-alert','✅ Movimiento registrado');$('cj-monto').value='';$('cj-desc').value='';})
+    .catch(()=>showAlert('cj-alert','Error',false));
+}
+function renderCaja(){
+  const el=$('tabla-caja');if(!el)return;
+  const{desde,hasta}=getCajaRango();
+  const movsTodos=Object.entries(S.caja).filter(([,m])=>!desde||m.fecha>=desde&&m.fecha<=hasta).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||''));
+  const movs=movsTodos.filter(([,m])=>m.moneda===cajaMoneda);
+  const ing=movs.filter(([,m])=>m.tipo==='ingreso').reduce((s,[,m])=>s+m.monto,0);
+  const egr=movs.filter(([,m])=>m.tipo==='egreso').reduce((s,[,m])=>s+m.monto,0);
+  const fmtFn=cajaMoneda==='USD'?fmt:fmtARS;
+  $('stats-caja').innerHTML=
+    '<div class="stat-card sc-green"><div class="lbl">Ingresos '+cajaMoneda+'</div><div class="val">'+fmtFn(ing)+'</div></div>'+
+    '<div class="stat-card sc-red"><div class="lbl">Egresos '+cajaMoneda+'</div><div class="val">'+fmtFn(egr)+'</div></div>'+
+    '<div class="stat-card sc-green"><div class="lbl">Saldo '+cajaMoneda+'</div><div class="val">'+fmtFn(ing-egr)+'</div></div>'+
+    '<div class="stat-card sc-blue"><div class="lbl">Movimientos</div><div class="val">'+movs.length+'</div></div>';
+  $('badge-caja').textContent=movs.length;
+  if(!movs.length){el.innerHTML='<div class="empty-state"><div class="big">💵</div><p>Sin movimientos en '+cajaMoneda+' en este período.</p></div>';return;}
+  let rows='';
+  movs.forEach(([k,m])=>{
+    const esIng=m.tipo==='ingreso';
+    const montoFmt=m.moneda==='USD'?fmt(m.monto):fmtARS(m.monto);
+    rows+='<tr><td class="mono" style="font-size:11px">'+fmtD(m.fecha)+'</td><td>'+(esIng?'<span class="tag tag-green" style="color:#0ca678">🟢 Ingreso</span>':'<span class="tag tag-red">🔴 Egreso</span>')+'</td><td class="mono" style="color:'+(esIng?'#0ca678':'var(--red)')+'">'+montoFmt+'</td><td style="font-size:12px;color:var(--text2)">'+(m.categoria||'—')+'</td><td style="font-size:12px">'+(m.desc||'—')+'</td><td>'+(m.auto?'<span class="tag tag-yellow" style="font-size:10px">Auto</span>':'')+'</td><td><button class="btn btn-danger btn-sm" data-del-cj="'+k+'">🗑</button></td></tr>';
+  });
+  el.innerHTML='<table><thead><tr><th>Fecha</th><th>Tipo</th><th>Monto</th><th>Categoría</th><th>Descripción</th><th></th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  // delete manejado por delegación
+}
+
+
+// ─── COSTOS ──────────────────────────────────────────────────
+function getCostosRango(){
+  const now=new Date();
+  const mesAct=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const d=new Date(now.getFullYear(),now.getMonth()-1,1);
+  const mesAnt=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  if(costosFiltro==='actual')return{mes:mesAct};
+  if(costosFiltro==='anterior')return{mes:mesAnt};
+  return{mes:null};
+}
+function saveCosto(){
+  const fecha=$('co-fecha').value,desc=$('co-desc').value.trim(),categoria=$('co-categoria').value;
+  const moneda=$('co-moneda').value,monto=parseFloat($('co-monto').value),frecuencia=$('co-frecuencia').value;
+  if(!fecha||!desc||!monto||monto<=0){showAlert('co-alert','Completá todos los campos',false);return;}
+  push(dbRef('costos'),{fecha,desc,categoria,moneda,monto,frecuencia})
+    .then(()=>{showAlert('co-alert','✅ Costo guardado');$('co-desc').value='';$('co-monto').value='';})
+    .catch(()=>showAlert('co-alert','Error',false));
+}
+function renderCostos(){
+  const el=$('tabla-costos');if(!el)return;
+  const{mes}=getCostosRango();
+  let costos=Object.entries(S.costos).filter(([,c])=>{
+    if(!mes)return true;
+    const cMes=c.fecha?c.fecha.slice(0,7):'';
+    return cMes===mes||(c.frecuencia==='mensual');
+  }).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||''));
+
+  const totalUSD=costos.filter(([,c])=>c.moneda==='USD').reduce((s,[,c])=>s+c.monto,0);
+  const totalARS=costos.filter(([,c])=>c.moneda==='ARS').reduce((s,[,c])=>s+c.monto,0);
+  const fijos=costos.filter(([,c])=>c.frecuencia==='mensual').length;
+  $('stats-costos').innerHTML=
+    '<div class="stat-card sc-red"><div class="lbl">Total USD</div><div class="val">'+fmt(totalUSD)+'</div></div>'+
+    '<div class="stat-card sc-red"><div class="lbl">Total ARS</div><div class="val" style="font-size:14px">'+fmtARS(totalARS)+'</div></div>'+
+    '<div class="stat-card sc-yellow"><div class="lbl">Costos fijos</div><div class="val">'+fijos+'</div><div class="sub">se repiten cada mes</div></div>'+
+    '<div class="stat-card sc-blue"><div class="lbl">Registros</div><div class="val">'+costos.length+'</div></div>';
+  $('badge-costos').textContent=costos.length;
+  if(!costos.length){el.innerHTML='<div class="empty-state"><div class="big">📋</div><p>Sin costos registrados.</p></div>';return;}
+  const catIcon={sueldo:'👤',alquiler:'🏠',impuesto:'📄',servicio:'⚡',marketing:'📢',otro:'📦'};
+  let rows='';
+  costos.forEach(([k,c])=>{
+    const montoFmt=c.moneda==='USD'?fmt(c.monto):fmtARS(c.monto);
+    rows+='<tr><td class="mono" style="font-size:11px">'+fmtD(c.fecha)+'</td><td>'+(catIcon[c.categoria]||'📦')+' '+c.desc+'</td><td><span class="tag tag-blue">'+c.categoria+'</span></td><td><span class="tag tag-blue">'+c.moneda+'</span></td><td class="mono" style="color:var(--red)">'+montoFmt+'</td><td>'+(c.frecuencia==='mensual'?'<span class="tag tag-yellow">🔁 Mensual</span>':'<span class="tag tag-blue">Una vez</span>')+'</td><td><button class="btn btn-danger btn-sm" data-del-co="'+k+'">🗑</button></td></tr>';
+  });
+  el.innerHTML='<table><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Moneda</th><th>Monto</th><th>Frecuencia</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+
+
+// ─── PROVEEDORES ─────────────────────────────────────────────
+function saveProveedor(){
+  const nombre=$('pv-nombre').value.trim();
+  if(!nombre){showAlert('pv-alert','Ingresá el nombre',false);return;}
+  push(dbRef('proveedores'),{nombre,contacto:$('pv-contacto').value.trim(),tel:$('pv-tel').value.trim(),email:$('pv-email').value.trim(),pais:$('pv-pais').value.trim(),categoria:$('pv-categoria').value,notas:$('pv-notas').value.trim()})
+    .then(()=>{showAlert('pv-alert','✅ "'+nombre+'" guardado');$('pv-nombre').value='';$('pv-contacto').value='';$('pv-tel').value='';$('pv-email').value='';$('pv-pais').value='';$('pv-notas').value='';})
+    .catch(()=>showAlert('pv-alert','Error',false));
+}
+function renderProveedores(){
+  $('badge-proveedores').textContent=Object.keys(S.proveedores).length;
+  const el=$('tabla-proveedores');if(!el)return;
+  const ent=Object.entries(S.proveedores).sort((a,b)=>(a[1].nombre||'').localeCompare(b[1].nombre||''));
+  if(!ent.length){el.innerHTML='<div class="empty-state"><div class="big">🏢</div><p>Sin proveedores registrados.</p></div>';return;}
+  const totalCompras=Object.values(S.compras).length;
+  $('stats-proveedores').innerHTML=
+    '<div class="stat-card sc-blue"><div class="lbl">Proveedores</div><div class="val">'+ent.length+'</div></div>'+
+    '<div class="stat-card sc-yellow"><div class="lbl">Pedidos realizados</div><div class="val">'+totalCompras+'</div></div>';
+  let rows='';
+  ent.forEach(([k,p])=>{
+    const comprasP=Object.values(S.compras).filter(c=>(c.proveedor||'').toLowerCase()===p.nombre.toLowerCase());
+    const totalC=comprasP.reduce((s,c)=>s+c.items.reduce((a,i)=>a+(i.precio*(i.cantidad||1)),0),0);
+    rows+='<tr><td><strong>'+p.nombre+'</strong></td><td>'+(p.contacto||'—')+'</td><td>'+(p.tel||'—')+'</td><td>'+(p.email||'—')+'</td><td>'+(p.pais||'—')+'</td><td><span class="tag tag-blue">'+p.categoria+'</span></td><td class="mono" style="color:var(--yellow)">'+fmt(totalC)+'</td><td style="font-size:12px;color:var(--text2);max-width:150px">'+(p.notas||'—')+'</td><td style="display:flex;gap:4px"><button class="btn btn-secondary btn-sm" data-edit-pv="'+k+'">✏️</button><button class="btn btn-danger btn-sm" data-del-pv="'+k+'">🗑</button></td></tr>';
+  });
+  el.innerHTML='<table><thead><tr><th>Nombre</th><th>Contacto</th><th>Teléfono</th><th>Email</th><th>País</th><th>Cat.</th><th>Total comprado</th><th>Notas</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  el.querySelectorAll('[data-edit-pv]').forEach(btn=>btn.addEventListener('click',()=>{
+    const k=btn.dataset.editPv,p=S.proveedores[k];if(!p)return;
+    $('edit-pv-key').value=k;$('edit-pv-nombre').value=p.nombre||'';$('edit-pv-contacto').value=p.contacto||'';$('edit-pv-tel').value=p.tel||'';$('edit-pv-email').value=p.email||'';$('edit-pv-pais').value=p.pais||'';$('edit-pv-categoria').value=p.categoria||'celulares';$('edit-pv-notas').value=p.notas||'';
+    openModal('modal-edit-prov');
+  }));
+}
+function guardarEditProv(){
+  const k=$('edit-pv-key').value;
+  update(dbRef('proveedores/'+k),{nombre:$('edit-pv-nombre').value.trim(),contacto:$('edit-pv-contacto').value.trim(),tel:$('edit-pv-tel').value.trim(),email:$('edit-pv-email').value.trim(),pais:$('edit-pv-pais').value.trim(),categoria:$('edit-pv-categoria').value,notas:$('edit-pv-notas').value.trim()})
+    .then(()=>closeModal('modal-edit-prov'));
 }
 
 // ─── CUENTA CORRIENTE ────────────────────────────────────────
