@@ -301,11 +301,6 @@ td,th{vertical-align:middle;padding:10px 14px}
         <div class="form-group"><label>Tipo</label><select id="v-nuevo-tipo"><option value="minorista">Minorista</option><option value="mayorista">Mayorista</option></select></div>
       </div>
     </div>
-    <div style="margin-bottom:14px">
-      <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">Métodos de pago</div>
-      <div id="v-metodos-container"></div>
-      <button class="btn btn-add" id="btn-add-metodo" style="margin-top:6px">＋ Agregar método de pago</button>
-    </div>
     <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px;margin-top:4px">Categoría de Producto</div>
     <div class="cat-selector" id="v-cat-selector">
       <button class="cat-btn selected" data-cat="iphone"><span class="cat-icon">📱</span>iPhone</button>
@@ -323,6 +318,11 @@ td,th{vertical-align:middle;padding:10px 14px}
       <div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Total USD</div><div id="v-total" style="font-family:var(--mono);font-size:18px;font-weight:700;color:#0ca678">—</div></div>
       <div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Pagado</div><div id="v-pagado" style="font-family:var(--mono);font-size:13px;color:var(--blue)">—</div><div id="v-pagado-diff" style="font-size:11px;margin-top:2px"></div></div>
       <div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Ganancia</div><div id="v-ganancia" style="font-family:var(--mono);font-size:16px;color:var(--accent)">—</div></div>
+    </div>
+    <div style="margin-top:18px">
+      <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">Métodos de pago</div>
+      <div id="v-metodos-container"></div>
+      <button class="btn btn-add" id="btn-add-metodo" style="margin-top:6px">＋ Agregar método de pago</button>
     </div>
     <div class="form-actions">
       <button class="btn btn-secondary" id="btn-reset-venta">Limpiar</button>
@@ -736,9 +736,9 @@ function checkTrial(userData){
   const urgent=diasRestantes<=2;
   const wspUrl='https://wa.me/5491132133878?text=Hola!%20Quiero%20suscribirme%20a%20VexoPRO';
   const bSide=$('trial-banner-sidebar');
-  if(bSide) bSide.innerHTML='<div class="trial-banner'+(urgent?' urgent':'')+'" style="margin-bottom:10px;flex-direction:column;align-items:flex-start;gap:8px"><div class="trial-text">\u23f3 '+(diasRestantes===1?'\u00daltimo d\u00eda':'Quedan '+diasRestantes+' d\u00edas')+' de prueba gratuita</div><a href="'+wspUrl+'" target="_blank" class="btn-subscribe">\ud83d\udcac Suscribirme</a></div>';
+  if(bSide) bSide.innerHTML='<div class="trial-banner'+(urgent?' urgent':'')+'" style="margin-bottom:10px;flex-direction:column;align-items:flex-start;gap:8px"><div class="trial-text">\u23f3 '+(diasRestantes===1?'\u00daltimo d\u00eda':'Quedan '+diasRestantes+' d\u00edas')+' de prueba gratuita</div><a href="'+wspUrl+'" target="_blank" class="btn-subscribe">SUSCRIBIRME</a></div>';
   const bInicio=$('trial-inicio-banner');
-  if(bInicio) bInicio.innerHTML='<div style="background:'+(urgent?'#fff0f0':'#fffde7')+';border:1px solid '+(urgent?'#ffb3b3':'#ffe082')+';border-radius:12px;padding:16px 20px;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px"><div><div style="font-size:14px;font-weight:700;color:'+(urgent?'#c0392b':'#7c5700')+'">'+(diasRestantes===1?'\u26a0\ufe0f \u00daltimo d\u00eda de prueba gratuita':'\u23f3 Quedan '+diasRestantes+' d\u00edas de prueba gratuita')+'</div><div style="font-size:12px;color:'+(urgent?'#c0392b':'#7c5700')+';margin-top:3px;opacity:0.8">Suscrib\u00edte para continuar usando VexoPRO sin interrupciones</div></div><div style="display:flex;gap:6px;align-items:center;margin-left:auto"><a href="vexpro_suscripcion.html" target="_blank" style="background:#fff;color:#2d7a4f;border:1px solid #2d7a4f;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap">Ver planes</a><a href="'+wspUrl+'" target="_blank" style="background:#2d7a4f;color:#fff;border:1px solid #2d7a4f;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:6px">\ud83d\udcac Suscribirme</a></div></div>';
+  if(bInicio) bInicio.innerHTML='<div style="background:'+(urgent?'#fff0f0':'#fffde7')+';border:1px solid '+(urgent?'#ffb3b3':'#ffe082')+';border-radius:12px;padding:16px 20px;margin-bottom:4px;display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;gap:24px"><div><div style="font-size:14px;font-weight:700;color:'+(urgent?'#c0392b':'#7c5700')+'">'+(diasRestantes===1?'\u26a0\ufe0f \u00daltimo d\u00eda de prueba gratuita':'\u23f3 Quedan '+diasRestantes+' d\u00edas de prueba gratuita')+'</div><div style="font-size:12px;color:'+(urgent?'#c0392b':'#7c5700')+';margin-top:3px;opacity:0.8">Suscrib\u00edte para continuar usando VexoPRO sin interrupciones</div></div><div style="display:flex;gap:6px;align-items:center"><a href="vexpro_suscripcion.html" target="_blank" style="background:#fff;color:#2d7a4f;border:1px solid #2d7a4f;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap">Ver planes</a><a href="'+wspUrl+'" target="_blank" style="background:#2d7a4f;color:#fff;border:1px solid #2d7a4f;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:6px">SUSCRIBIRME</a></div></div>';
   return true;
 }
 
@@ -836,7 +836,6 @@ function initApp(){
   $('v-cliente').addEventListener('change',()=>{
     $('v-nuevo-cliente-box').style.display=$('v-cliente').value==='__nuevo__'?'block':'none';
   });
-  $('v-metodo').addEventListener('change',calcTotalVenta);
   $('v-descuento').addEventListener('input',calcTotalVenta);
   $('v-comision').addEventListener('input',calcTotalVenta);
 
@@ -1413,7 +1412,7 @@ function calcTotalVenta(){
   ventaItems.forEach(id=>calcItem(id));
 }
 function resetVentaForm(){
-  $('v-fecha').value=today();$('v-cliente').value='';$('v-condicion').value='contado';$('v-canal').value='local';$('v-metodo').value='efectivo_usd';
+  $('v-fecha').value=today();$('v-cliente').value='';$('v-condicion').value='contado';$('v-canal').value='local';
   $('v-descuento').value='';$('v-comision').value='';$('v-total').textContent='—';$('v-ganancia').textContent='—';
   $('v-items-container').innerHTML='';$('v-nuevo-cliente-box').style.display='none';
   const ah=$('v-total-ars');if(ah)ah.textContent='';
@@ -1429,7 +1428,7 @@ function resetVentaForm(){
 async function saveVenta(){
   const fecha=$('v-fecha').value;
   let clienteId=$('v-cliente').value;
-  const condicion=$('v-condicion').value,canal=$('v-canal').value,metodo=$('v-metodo').value;
+  const condicion=$('v-condicion').value,canal=$('v-canal').value;
   const desc=parseFloat($('v-descuento').value)||0,com=parseFloat($('v-comision').value)||0;
   if(!fecha){showAlert('v-alert','Seleccioná una fecha',false);return;}
   if(clienteId==='__nuevo__'){
