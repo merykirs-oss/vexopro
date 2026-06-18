@@ -174,6 +174,27 @@ td,th{vertical-align:middle;padding:10px 14px}
   .login-box,.registro-box{padding:24px;width:100%}
   table{min-width:520px}
 }
+
+/* ─── WIZARD DE VENTA ─── */
+#modal-wizard-venta .modal{padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:92vh}
+.wiz-header{background:var(--accent);color:#fff;padding:20px 24px;position:relative;flex-shrink:0}
+.wiz-header h3{margin:0 0 4px;font-size:18px}
+.wiz-close{position:absolute;top:16px;right:18px;background:none;border:none;color:#fff;font-size:20px;cursor:pointer;opacity:0.8}
+.wiz-steps{display:flex;gap:6px;margin-top:14px}
+.wiz-step-dot{flex:1;height:4px;background:rgba(255,255,255,0.3);border-radius:2px;transition:background 0.2s}
+.wiz-step-dot.active{background:#fff}
+.wiz-step-dot.done{background:rgba(255,255,255,0.7)}
+.wiz-labels{display:flex;justify-content:space-between;margin-top:8px;font-size:11px;opacity:0.85}
+.wiz-body{padding:24px;overflow-y:auto;flex:1}
+.wiz-step-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.wiz-step-title .num{background:var(--accent);color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.wiz-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
+@media (max-width:600px){
+  #modal-wizard-venta .modal{max-width:96vw;max-height:94vh}
+  .wiz-body{padding:18px}
+  .wiz-footer{padding:12px 16px}
+  .wiz-labels{font-size:9px}
+}
 </style>
 
 <script>
@@ -353,70 +374,112 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 
 <div id="page-ventas" class="page">
   <div class="page-header"><h2>🛒 Ventas</h2></div>
-  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
-    <span style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px">Período:</span>
-    <button class="btn btn-secondary btn-sm vf active-filter" data-filtro="hoy">Hoy</button>
-    <button class="btn btn-secondary btn-sm vf" data-filtro="semana">Semana</button>
-    <button class="btn btn-secondary btn-sm vf" data-filtro="mes">Este mes</button>
-    <button class="btn btn-secondary btn-sm vf" data-filtro="todo">Todo</button>
+  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px">Período:</span>
+      <button class="btn btn-secondary btn-sm vf active-filter" data-filtro="hoy">Hoy</button>
+      <button class="btn btn-secondary btn-sm vf" data-filtro="semana">Semana</button>
+      <button class="btn btn-secondary btn-sm vf" data-filtro="mes">Este mes</button>
+      <button class="btn btn-secondary btn-sm vf" data-filtro="todo">Todo</button>
+    </div>
+    <button class="btn btn-primary" id="btn-abrir-wizard-venta">＋ Nueva venta</button>
   </div>
   <div id="stats-ventas" class="stats-row"></div>
-  <div class="form-card">
-    <h3>➕ Nueva Venta</h3>
-    <div class="form-grid">
-      <div class="form-group"><label>Fecha</label><input type="date" id="v-fecha"></div>
-      <div class="form-group">
-        <label>Cliente</label>
-        <select id="v-cliente">
-          <option value="">— Seleccionar —</option>
-          <option value="__nuevo__">➕ Cliente nuevo</option>
-        </select>
-      </div>
-      <div class="form-group"><label>Condición</label><select id="v-condicion"><option value="contado">Contado</option><option value="fiado">A pagar (cta cte)</option></select></div>
-      <div class="form-group"><label>Canal</label><select id="v-canal"><option value="local">🏪 Local</option><option value="online">🌐 Online</option><option value="mayorista">📦 Mayorista</option></select></div>
-      <div class="form-group"><label>Punto de venta</label><select id="v-local"></select></div>
-    </div>
-    <div id="v-nuevo-cliente-box" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:14px">
-      <div style="font-size:11px;color:var(--accent);font-weight:600;margin-bottom:10px">NUEVO CLIENTE</div>
-      <div class="form-grid">
-        <div class="form-group"><label>Nombre *</label><input type="text" id="v-nuevo-nombre" placeholder="Nombre completo"></div>
-        <div class="form-group"><label>DNI</label><input type="text" id="v-nuevo-dni" placeholder="Opcional"></div>
-        <div class="form-group"><label>Teléfono</label><input type="text" id="v-nuevo-tel" placeholder="Opcional"></div>
-        <div class="form-group"><label>Email</label><input type="email" id="v-nuevo-email" placeholder="Opcional"></div>
-        <div class="form-group"><label>Tipo</label><select id="v-nuevo-tipo"><option value="minorista">Minorista</option><option value="mayorista">Mayorista</option></select></div>
-      </div>
-    </div>
-    <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px;margin-top:4px">Categoría de Producto</div>
-    <div class="cat-selector" id="v-cat-selector">
-      <button class="cat-btn selected" data-cat="iphone"><span class="cat-icon">📱</span>iPhone</button>
-      <button class="cat-btn" data-cat="mac"><span class="cat-icon">💻</span>Mac</button>
-      <button class="cat-btn" data-cat="ipad"><span class="cat-icon">🖥️</span>iPad</button>
-      <button class="cat-btn" data-cat="watch"><span class="cat-icon">⌚</span>Apple Watch</button>
-      <button class="cat-btn" data-cat="audio"><span class="cat-icon">🎧</span>Audio</button>
-      <button class="cat-btn" data-cat="accesorio"><span class="cat-icon">🔌</span>Accesorios</button>
-      <button class="cat-btn" data-cat="otro"><span class="cat-icon">📦</span>Personalizado</button>
-    </div>
-    <div id="v-items-container"></div>
-    <button class="btn btn-add" id="btn-add-venta-item">＋ Agregar equipo</button>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-top:14px;padding:14px 16px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
-      <div class="form-group"><label>Descuento (%)</label><input type="number" id="v-descuento" placeholder="0" min="0" max="100"></div>
-      <div class="form-group"><label>Comisión vendedor (%)</label><input type="number" id="v-comision" placeholder="0" min="0"></div>
-      <div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Total USD</div><div id="v-total" style="font-family:var(--mono);font-size:18px;font-weight:700;color:#0ca678">—</div></div>
-      <div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Pagado</div><div id="v-pagado" style="font-family:var(--mono);font-size:13px;color:var(--blue)">—</div><div id="v-pagado-diff" style="font-size:11px;margin-top:2px"></div></div>
-      <div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Ganancia</div><div id="v-ganancia" style="font-family:var(--mono);font-size:16px;color:var(--accent)">—</div></div>
-    </div>
-    <div style="margin-top:18px">
-      <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">Métodos de pago</div>
-      <div id="v-metodos-container"></div>
-      <button class="btn btn-add" id="btn-add-metodo" style="margin-top:6px">＋ Agregar método de pago</button>
-    </div>
-    <div class="form-actions">
-      <button class="btn btn-secondary" id="btn-reset-venta">Limpiar</button>
-      <button class="btn btn-primary" id="btn-save-venta">Guardar venta</button>
-    </div>
-    <div id="v-alert"></div>
-  </div>
   <div class="table-card"><h3>Historial <span id="badge-ventas" class="tag tag-green"></span></h3><div id="tabla-ventas"></div></div>
+</div>
+
+<!-- ============ WIZARD MODAL: NUEVA VENTA ============ -->
+<div class="modal-overlay" id="modal-wizard-venta">
+  <div class="modal" style="max-width:560px;padding:0;overflow:visible">
+    <div class="wiz-header">
+      <button class="wiz-close" id="btn-cerrar-wizard-venta">✕</button>
+      <h3 style="margin:0;font-size:18px;color:#fff">🛒 Nueva Venta</h3>
+      <div class="wiz-steps">
+        <div class="wiz-step-dot" data-dot="1"></div>
+        <div class="wiz-step-dot" data-dot="2"></div>
+        <div class="wiz-step-dot" data-dot="3"></div>
+        <div class="wiz-step-dot" data-dot="4"></div>
+      </div>
+      <div class="wiz-labels"><span>Cliente</span><span>Equipo</span><span>Pago</span><span>Confirmar</span></div>
+    </div>
+    <div class="wiz-body">
+      <!-- PASO 1: CLIENTE -->
+      <div class="wiz-step" data-wiz-step="1">
+        <div class="wiz-step-title"><span class="num">1</span> ¿A quién le vendés?</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Fecha</label><input type="date" id="v-fecha"></div>
+          <div class="form-group">
+            <label>Cliente</label>
+            <select id="v-cliente">
+              <option value="">— Seleccionar —</option>
+              <option value="__nuevo__">➕ Cliente nuevo</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Condición</label><select id="v-condicion"><option value="contado">Contado</option><option value="fiado">A pagar (cta cte)</option></select></div>
+          <div class="form-group"><label>Canal</label><select id="v-canal"><option value="local">🏪 Local</option><option value="online">🌐 Online</option><option value="mayorista">📦 Mayorista</option></select></div>
+          <div class="form-group"><label>Punto de venta</label><select id="v-local"></select></div>
+        </div>
+        <div id="v-nuevo-cliente-box" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:14px">
+          <div style="font-size:11px;color:var(--accent);font-weight:600;margin-bottom:10px">NUEVO CLIENTE</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Nombre *</label><input type="text" id="v-nuevo-nombre" placeholder="Nombre completo"></div>
+            <div class="form-group"><label>DNI</label><input type="text" id="v-nuevo-dni" placeholder="Opcional"></div>
+            <div class="form-group"><label>Teléfono</label><input type="text" id="v-nuevo-tel" placeholder="Opcional"></div>
+            <div class="form-group"><label>Email</label><input type="email" id="v-nuevo-email" placeholder="Opcional"></div>
+            <div class="form-group"><label>Tipo</label><select id="v-nuevo-tipo"><option value="minorista">Minorista</option><option value="mayorista">Mayorista</option></select></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASO 2: EQUIPO -->
+      <div class="wiz-step" data-wiz-step="2" style="display:none">
+        <div class="wiz-step-title"><span class="num">2</span> ¿Qué le vendés?</div>
+        <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px">Categoría de Producto</div>
+        <div class="cat-selector" id="v-cat-selector">
+          <button class="cat-btn selected" data-cat="iphone"><span class="cat-icon">📱</span>iPhone</button>
+          <button class="cat-btn" data-cat="mac"><span class="cat-icon">💻</span>Mac</button>
+          <button class="cat-btn" data-cat="ipad"><span class="cat-icon">🖥️</span>iPad</button>
+          <button class="cat-btn" data-cat="watch"><span class="cat-icon">⌚</span>Apple Watch</button>
+          <button class="cat-btn" data-cat="audio"><span class="cat-icon">🎧</span>Audio</button>
+          <button class="cat-btn" data-cat="accesorio"><span class="cat-icon">🔌</span>Accesorios</button>
+          <button class="cat-btn" data-cat="otro"><span class="cat-icon">📦</span>Personalizado</button>
+        </div>
+        <div id="v-items-container"></div>
+        <button class="btn btn-add" id="btn-add-venta-item">＋ Agregar equipo</button>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-top:14px;padding:14px 16px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+          <div class="form-group"><label>Descuento (%)</label><input type="number" id="v-descuento" placeholder="0" min="0" max="100"></div>
+          <div class="form-group"><label>Comisión vendedor (%)</label><input type="number" id="v-comision" placeholder="0" min="0"></div>
+        </div>
+      </div>
+
+      <!-- PASO 3: PAGO -->
+      <div class="wiz-step" data-wiz-step="3" style="display:none">
+        <div class="wiz-step-title"><span class="num">3</span> ¿Cómo te paga?</div>
+        <div id="v-metodos-container"></div>
+        <button class="btn btn-add" id="btn-add-metodo" style="margin-top:6px">＋ Agregar método de pago</button>
+      </div>
+
+      <!-- PASO 4: CONFIRMAR -->
+      <div class="wiz-step" data-wiz-step="4" style="display:none">
+        <div class="wiz-step-title"><span class="num">4</span> Confirmá la venta</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;padding:14px 16px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+          <div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Total USD</div><div id="v-total" style="font-family:var(--mono);font-size:18px;font-weight:700;color:#0ca678">—</div></div>
+          <div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Pagado</div><div id="v-pagado" style="font-family:var(--mono);font-size:13px;color:var(--blue)">—</div><div id="v-pagado-diff" style="font-size:11px;margin-top:2px"></div></div>
+          <div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Ganancia</div><div id="v-ganancia" style="font-family:var(--mono);font-size:16px;color:var(--accent)">—</div></div>
+        </div>
+        <div id="v-alert" style="margin-top:14px"></div>
+        <div id="v-post-guardado" style="display:none;background:var(--surface2);border:1px solid var(--accent);border-radius:10px;padding:14px 16px;margin-top:10px;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div style="font-size:13px;color:var(--text2)">✅ Venta guardada. <span id="v-post-msg-garantia"></span></div>
+          <button class="btn btn-primary btn-sm" id="btn-emitir-garantia-postventa">📜 Emitir certificado de garantía</button>
+        </div>
+      </div>
+    </div>
+    <div class="wiz-footer">
+      <button class="btn btn-secondary" id="btn-reset-venta" style="margin-right:auto">Limpiar</button>
+      <button class="btn btn-secondary" id="wizVentaBack">← Atrás</button>
+      <button class="btn btn-primary" id="wizVentaNext">Siguiente →</button>
+    </div>
+  </div>
 </div>
 
 <div id="page-stock" class="page">
@@ -841,6 +904,8 @@ let currentUser = null;
 let ventaFiltro = 'mes';
 let compraItems = [];
 let ventaItems = [];
+let ventaRecienGuardadaId=null;
+let wizVentaPaso=1;
 let editCompraItems = [];
 
 // ─── UTILS ───────────────────────────────────────────────────
@@ -1074,7 +1139,10 @@ function initApp(){
     $('v-items-container').innerHTML='';ventaItems=[];addVentaItem();
   });
   $('btn-reset-venta').addEventListener('click',resetVentaForm);
-  $('btn-save-venta').addEventListener('click',saveVenta);
+  $('btn-abrir-wizard-venta').addEventListener('click',abrirWizardVenta);
+  $('btn-cerrar-wizard-venta').addEventListener('click',cerrarWizardVenta);
+  $('wizVentaBack').addEventListener('click',()=>wizVentaMove(-1));
+  $('wizVentaNext').addEventListener('click',()=>wizVentaMove(1));
   $('v-cliente').addEventListener('change',()=>{
     $('v-nuevo-cliente-box').style.display=$('v-cliente').value==='__nuevo__'?'block':'none';
   });
@@ -1087,7 +1155,10 @@ function initApp(){
   // Botones garantias
   $('btn-save-config-garantia').addEventListener('click',saveConfigGarantia);
   $('emg-venta').addEventListener('change',mostrarPreviewGarantia);
-  $('btn-emitir-garantia').addEventListener('click',emitirGarantia);
+  $('btn-emitir-garantia').addEventListener('click',()=>emitirGarantia());
+  $('btn-emitir-garantia-postventa').addEventListener('click',()=>{
+    if(ventaRecienGuardadaId)emitirGarantia(ventaRecienGuardadaId,'v-alert');
+  });
   $('btn-verificar-garantia').addEventListener('click',verificarGarantia);
   $('ver-codigo').addEventListener('keydown',e=>{if(e.key==='Enter')verificarGarantia();});
 
@@ -1948,6 +2019,56 @@ function calcTotalVenta(){
   gEl.style.color=gn>=0?'#0ca678':'var(--red)';
   ventaItems.forEach(id=>calcItem(id));
 }
+// ─── WIZARD DE VENTA ───────────────────────────────────────
+function abrirWizardVenta(){
+  $('v-post-guardado').style.display='none';
+  openModal('modal-wizard-venta');
+  wizVentaGoTo(1);
+}
+function cerrarWizardVenta(){
+  closeModal('modal-wizard-venta');
+}
+function wizVentaGoTo(n){
+  wizVentaPaso=n;
+  document.querySelectorAll('.wiz-step').forEach(s=>s.style.display=(+s.dataset.wizStep===n?'block':'none'));
+  document.querySelectorAll('.wiz-step-dot').forEach(d=>{
+    const dn=+d.dataset.dot;
+    d.classList.remove('active','done');
+    if(dn===n)d.classList.add('active');
+    else if(dn<n)d.classList.add('done');
+  });
+  const back=$('wizVentaBack'),next=$('wizVentaNext');
+  back.style.visibility=n===1?'hidden':'visible';
+  next.textContent=n===4?'✅ Guardar venta':'Siguiente →';
+  // Al llegar al paso de confirmación, recalcular los totales por si algo cambió en pasos anteriores
+  if(n===4)calcTotalVenta();
+}
+// Valida el paso actual antes de dejar avanzar; devuelve true si puede continuar
+function validarPasoWizardVenta(n){
+  if(n===1){
+    const clienteVal=$('v-cliente').value;
+    if(!clienteVal){showAlert('v-alert','Elegí un cliente para continuar',false);wizVentaGoTo(1);return false;}
+    if(clienteVal==='__nuevo__'&&!$('v-nuevo-nombre').value.trim()){showAlert('v-alert','Ingresá el nombre del cliente nuevo',false);return false;}
+  }
+  if(n===2){
+    const hayEquipoValido=ventaItems.some(id=>$('vi-eq-'+id)?.value);
+    if(!hayEquipoValido){showAlert('v-alert','Elegí al menos un equipo del stock',false);return false;}
+  }
+  if(n===3){
+    const hayMontoValido=metodoItems.some(id=>parseFloat($('mi-monto-'+id)?.value)>0);
+    if(!hayMontoValido){showAlert('v-alert','Ingresá al menos un método de pago con monto',false);return false;}
+  }
+  return true;
+}
+function wizVentaMove(dir){
+  if(dir>0){
+    if(!validarPasoWizardVenta(wizVentaPaso))return;
+  }
+  const next=wizVentaPaso+dir;
+  if(next<1)return;
+  if(next>4){saveVenta();return;} // último paso: el botón "Siguiente" guarda la venta
+  wizVentaGoTo(next);
+}
 function resetVentaForm(){
   $('v-fecha').value=today();$('v-cliente').value='';$('v-condicion').value='contado';$('v-canal').value='local';
   $('v-descuento').value='';$('v-comision').value='';$('v-total').textContent='—';$('v-ganancia').textContent='—';
@@ -2038,6 +2159,13 @@ async function saveVenta(){
       metodosUsados.filter(m=>m.comisionMontoUSD>0).forEach(m=>{
         push(dbRef('costos'),{fecha,desc:'Comisión '+m.label+' ('+m.comisionPct+'%) - Venta',categoria:'financiero',moneda:'USD',monto:m.comisionMontoUSD,frecuencia:'unica',auto:true,ventaId:ref.key});
       });
+      // Si la venta incluye un dispositivo con garantía, ofrecer emitir el certificado ahora mismo
+      const tieneDispositivo=items.some(i=>CATEGORIAS_CON_GARANTIA.includes(i.categoria||'iphone'));
+      if(tieneDispositivo){
+        ventaRecienGuardadaId=ref.key;
+        $('v-post-msg-garantia').textContent='Este equipo tiene garantía disponible.';
+        $('v-post-guardado').style.display='flex';
+      }
       resetVentaForm();
     })
     .catch(()=>showAlert('v-alert','Error al guardar',false));
@@ -2108,9 +2236,13 @@ function renderVentas(){
     const cl=S.clientes[v.clienteId];
     const mod=v.items.map(i=>'<span class="tag '+(i.estado==='Usado'?'tag-yellow':'tag-green')+'" style="margin:1px">'+i.modelo+(i.capacidad&&i.capacidad!=='N/A'?' '+i.capacidad:'')+(i.color?' · '+i.color:'')+(i.cantidad>1?' x'+i.cantidad:'')+'</span>').join(' ');
     const metStr=(v.metodos||[]).map(m=>'<span class="tag tag-blue" style="margin:1px;font-size:10px">'+m.label+'</span>').join(' ')||(v.metodo||'—');
-    rows+='<tr><td class="mono" style="font-size:11px">'+fmtD(v.fecha)+'</td><td>'+(cl?.nombre||'—')+'</td><td>'+mod+'</td><td class="mono" style="color:#0ca678">'+fmt(v.totalUSD)+'</td><td class="mono" style="color:#0ca678;font-size:11px">'+fmt(v.gananciaUSD)+'</td><td>'+(v.condicion==='fiado'?'<span class="tag tag-red">A pagar</span>':'<span class="tag tag-green">Contado</span>')+'</td><td>'+canalTag(v.canal)+'</td><td>'+metStr+'</td><td style="display:flex;gap:4px"><button class="btn btn-secondary btn-sm" data-edit-venta="'+k+'">✏️</button><button class="btn btn-danger btn-sm" data-del-venta="'+k+'">🗑</button></td></tr>';
+    const tieneDispositivo=v.items.some(i=>CATEGORIAS_CON_GARANTIA.includes(i.categoria||'iphone'));
+    const garantiaEmitida=tieneDispositivo?Object.values(S.garantias).find(g=>g.ventaId===k):null;
+    const btnGarantia=!tieneDispositivo?'':(garantiaEmitida?'<span class="tag tag-green" style="font-size:10px;white-space:nowrap">✅ CERTIFICADO EMITIDO</span>':'<button class="btn btn-secondary btn-sm" data-emitir-garantia-venta="'+k+'" style="white-space:nowrap;font-size:11px">📜 Emitir certificado</button>');
+    rows+='<tr><td class="mono" style="font-size:11px">'+fmtD(v.fecha)+'</td><td>'+(cl?.nombre||'—')+'</td><td>'+mod+'</td><td class="mono" style="color:#0ca678">'+fmt(v.totalUSD)+'</td><td class="mono" style="color:#0ca678;font-size:11px">'+fmt(v.gananciaUSD)+'</td><td>'+(v.condicion==='fiado'?'<span class="tag tag-red">A pagar</span>':'<span class="tag tag-green">Contado</span>')+'</td><td>'+canalTag(v.canal)+'</td><td>'+metStr+'</td><td>'+btnGarantia+'</td><td style="display:flex;gap:4px"><button class="btn btn-secondary btn-sm" data-edit-venta="'+k+'">✏️</button><button class="btn btn-danger btn-sm" data-del-venta="'+k+'">🗑</button></td></tr>';
   });
-  el.innerHTML='<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Equipos</th><th>Total USD</th><th>Ganancia</th><th>Cond.</th><th>Canal</th><th>Método</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  el.innerHTML='<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Equipos</th><th>Total USD</th><th>Ganancia</th><th>Cond.</th><th>Canal</th><th>Método</th><th>Garantía</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  el.querySelectorAll('[data-emitir-garantia-venta]').forEach(btn=>btn.addEventListener('click',()=>emitirGarantia(btn.dataset.emitirGarantiaVenta,'v-alert')));
   el.querySelectorAll('[data-edit-venta]').forEach(btn=>btn.addEventListener('click',()=>editVenta(btn.dataset.editVenta)));
   el.querySelectorAll('[data-del-venta]').forEach(btn=>btn.addEventListener('click',()=>{
     const vk=btn.dataset.delVenta;
@@ -2817,14 +2949,14 @@ function mostrarPreviewGarantia(){
     '<strong>Fecha de compra:</strong> '+fmtD(v.fecha)+'<br>'+
     '<strong>Vence el:</strong> '+fmtD(vencimiento)+' ('+dias+' días)';
 }
-async function emitirGarantia(){
-  const vk=$('emg-venta').value;
-  if(!vk){showAlert('emg-alert','Elegí una venta',false);return;}
-  const v=S.ventas[vk];if(!v){showAlert('emg-alert','Venta no encontrada',false);return;}
+async function emitirGarantia(ventaIdParam=null,alertId='emg-alert'){
+  const vk=ventaIdParam||$('emg-venta').value;
+  if(!vk){showAlert(alertId,'Elegí una venta',false);return;}
+  const v=S.ventas[vk];if(!v){showAlert(alertId,'Venta no encontrada',false);return;}
   const yaEmitida=Object.entries(S.garantias).find(([,g])=>g.ventaId===vk);
   const cl=S.clientes[v.clienteId];
   const item=v.items.find(i=>CATEGORIAS_CON_GARANTIA.includes(i.categoria||'iphone'));
-  if(!item){showAlert('emg-alert','Esta venta no incluye un dispositivo con garantía',false);return;}
+  if(!item){showAlert(alertId,'Esta venta no incluye un dispositivo con garantía',false);return;}
   const dias=diasGarantiaConfigurados();
   const vencimiento=sumarDias(v.fecha,dias);
 
@@ -2841,10 +2973,11 @@ async function emitirGarantia(){
     });
     key=ref.key;
   }
-  showAlert('emg-alert','✅ Garantía '+codigo+' lista. Generando PDF...');
+  showAlert(alertId,'✅ Garantía '+codigo+' lista. Generando PDF...');
   generarCertificadoPDF({codigo,cliente:cl,item,fechaCompra:v.fecha,vencimiento,dias});
   refreshEmitirGarantiaSelect();
   refreshRepSelects();
+  renderVentas(); // refresca el botón en el historial a "CERTIFICADO EMITIDO"
 }
 function verificarGarantia(){
   const codigo=$('ver-codigo').value.trim().toUpperCase();
