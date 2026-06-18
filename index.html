@@ -206,8 +206,11 @@ td,th{vertical-align:middle;padding:10px 14px}
     <button id="nav-tecnicos" data-page="tecnicos">👨‍🔧 Técnicos</button>
     <div class="nav-sep">Finanzas</div>
     <button id="nav-proveedores" data-page="proveedores">🏢 Proveedores</button>
+    <button id="nav-cc-proveedores" data-page="cc-proveedores">📑 Cta. Cte. Proveedores</button>
     <button id="nav-caja" data-page="caja">💵 Caja</button>
     <button id="nav-costos" data-page="costos">📋 Costos</button>
+    <div class="nav-sep">Análisis</div>
+    <button id="nav-informes" data-page="informes">📈 Informes</button>
   </nav>
   <div style="padding:8px 16px">
     <a href="https://wa.me/5491132133878?text=Hola!%20Necesito%20soporte%20con%20VexoPRO" target="_blank" style="display:flex;align-items:center;gap:8px;background:#25D366;color:#fff;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;text-decoration:none;justify-content:center">
@@ -245,9 +248,13 @@ td,th{vertical-align:middle;padding:10px 14px}
   <div class="form-card">
     <h3>➕ Nuevo Pedido</h3>
     <div class="form-grid">
-      <div class="form-group"><label>Fecha</label><input type="date" id="c-fecha"></div>
+      <div class="form-group"><label>Fecha de compra</label><input type="date" id="c-fecha"></div>
       <div class="form-group"><label>Proveedor</label><input type="text" id="c-proveedor" placeholder="Ej: Sunrise"></div>
       <div class="form-group"><label>Referencia</label><input type="text" id="c-ref" placeholder="Ej: PED-001"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Fecha de entrega (estimada)</label><input type="date" id="c-fecha-entrega"></div>
+      <div class="form-group"><label>Estado de la mercadería</label><select id="c-estado-entrega"><option value="en_camino">🚚 En camino</option><option value="recibido">✅ Recibido en local/depósito</option></select></div>
     </div>
     <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px">Categoría de Producto</div>
     <div class="cat-selector" id="c-cat-selector">
@@ -256,11 +263,20 @@ td,th{vertical-align:middle;padding:10px 14px}
       <button class="cat-btn" data-cat="ipad"><span class="cat-icon">🖥️</span>iPad</button>
       <button class="cat-btn" data-cat="watch"><span class="cat-icon">⌚</span>Apple Watch</button>
       <button class="cat-btn" data-cat="audio"><span class="cat-icon">🎧</span>Audio</button>
+      <button class="cat-btn" data-cat="accesorio"><span class="cat-icon">🔌</span>Accesorios</button>
       <button class="cat-btn" data-cat="otro"><span class="cat-icon">📦</span>Personalizado</button>
     </div>
     <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px" id="c-items-label">Equipos</div>
     <div id="c-items-container"></div>
     <button class="btn btn-add" id="btn-add-compra-item">＋ Agregar equipo</button>
+    <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
+      <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Total del pedido</div>
+      <div id="c-total" style="font-family:var(--mono);font-size:18px;font-weight:700;color:#0ca678;margin-bottom:14px">—</div>
+      <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">¿Cómo le pagás al proveedor?</div>
+      <div id="c-metodos-container"></div>
+      <button class="btn btn-add" id="btn-add-metodo-compra" style="margin-top:6px">＋ Agregar método de pago</button>
+      <div id="c-pagado-resumen" style="margin-top:8px;font-size:12px"></div>
+    </div>
     <div class="form-actions">
       <button class="btn btn-secondary" id="btn-reset-compra">Limpiar</button>
       <button class="btn btn-primary" id="btn-save-compra">Guardar pedido</button>
@@ -310,6 +326,7 @@ td,th{vertical-align:middle;padding:10px 14px}
       <button class="cat-btn" data-cat="ipad"><span class="cat-icon">🖥️</span>iPad</button>
       <button class="cat-btn" data-cat="watch"><span class="cat-icon">⌚</span>Apple Watch</button>
       <button class="cat-btn" data-cat="audio"><span class="cat-icon">🎧</span>Audio</button>
+      <button class="cat-btn" data-cat="accesorio"><span class="cat-icon">🔌</span>Accesorios</button>
       <button class="cat-btn" data-cat="otro"><span class="cat-icon">📦</span>Personalizado</button>
     </div>
     <div id="v-items-container"></div>
@@ -373,6 +390,12 @@ td,th{vertical-align:middle;padding:10px 14px}
   </div>
   <div id="stats-cc" class="stats-row"></div>
   <div id="lista-cc"></div>
+</div>
+
+<div id="page-cc-proveedores" class="page">
+  <div class="page-header"><h2>📑 Cuenta Corriente Proveedores</h2><p>Lo que le debés a cada proveedor por compras sin pagar completas.</p></div>
+  <div id="stats-ccp" class="stats-row"></div>
+  <div id="lista-ccp"></div>
 </div>
 
 <div id="page-garantias" class="page">
@@ -492,7 +515,7 @@ td,th{vertical-align:middle;padding:10px 14px}
     <div class="form-grid">
       <div class="form-group"><label>Fecha</label><input type="date" id="co-fecha"></div>
       <div class="form-group"><label>Descripción *</label><input type="text" id="co-desc" placeholder="Ej: Alquiler, Monotributo, Sueldo..."></div>
-      <div class="form-group"><label>Categoría</label><select id="co-categoria"><option value="sueldo">👤 Sueldo</option><option value="alquiler">🏠 Alquiler</option><option value="impuesto">📄 Impuesto/Monotributo</option><option value="servicio">⚡ Servicio (luz, internet...)</option><option value="marketing">📢 Marketing</option><option value="otro">📦 Otro</option></select></div>
+      <div class="form-group"><label>Categoría</label><select id="co-categoria"><option value="sueldo">👤 Sueldo</option><option value="alquiler">🏠 Alquiler</option><option value="impuesto">📄 Impuesto/Monotributo</option><option value="servicio">⚡ Servicio (luz, internet...)</option><option value="marketing">📢 Marketing</option><option value="financiero">💳 Costo financiero (comisiones, intereses)</option><option value="otro">📦 Otro</option></select></div>
       <div class="form-group"><label>Moneda</label><select id="co-moneda"><option value="ARS">ARS</option><option value="USD">USD</option></select></div>
       <div class="form-group"><label>Monto</label><input type="number" id="co-monto" placeholder="0.00" min="0" step="0.01"></div>
       <div class="form-group">
@@ -509,6 +532,45 @@ td,th{vertical-align:middle;padding:10px 14px}
     <div id="co-alert"></div>
   </div>
   <div class="table-card"><h3>Costos registrados <span id="badge-costos" class="tag tag-red"></span></h3><div id="tabla-costos"></div></div>
+</div>
+
+<div id="page-informes" class="page">
+  <div class="page-header"><h2>📈 Informes</h2><p>Panorama general del negocio y comparación entre meses.</p></div>
+
+  <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center">
+    <span style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px">Período:</span>
+    <button class="btn btn-secondary btn-sm inff active-filter" data-filtro="mes">Este mes</button>
+    <button class="btn btn-secondary btn-sm inff" data-filtro="trimestre">Últimos 3 meses</button>
+    <button class="btn btn-secondary btn-sm inff" data-filtro="anio">Este año</button>
+    <button class="btn btn-secondary btn-sm inff" data-filtro="todo">Todo</button>
+  </div>
+
+  <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px">Panorama general</div>
+  <div id="stats-informes" class="stats-row" style="margin-bottom:28px"></div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px">
+    <div class="table-card" style="padding:18px 20px">
+      <h3 style="border:none;padding:0 0 12px 0">💰 Ventas y ganancia (últimos 6 meses)</h3>
+      <div id="grafico-ventas-tendencia"></div>
+    </div>
+    <div class="table-card" style="padding:18px 20px">
+      <h3 style="border:none;padding:0 0 12px 0">📦 Stock e inventario</h3>
+      <div id="resumen-stock-informe"></div>
+    </div>
+  </div>
+
+  <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px;margin-top:8px">Comparar un mes con otro</div>
+  <div class="form-card">
+    <div class="form-grid">
+      <div class="form-group"><label>Métrica a comparar</label><select id="cmp-metrica"><option value="ventas">🛒 Ventas (total USD)</option><option value="ganancia">💰 Ganancia (USD)</option><option value="marketing">📢 Gastos de Marketing</option><option value="financiero">💳 Costos financieros</option><option value="costos">📋 Costos totales (todas las categorías)</option></select></div>
+      <div class="form-group"><label>Mes A</label><input type="month" id="cmp-mes-a"></div>
+      <div class="form-group"><label>Mes B</label><input type="month" id="cmp-mes-b"></div>
+    </div>
+    <div class="form-actions" style="justify-content:flex-start">
+      <button class="btn btn-primary" id="btn-comparar-meses">Comparar</button>
+    </div>
+    <div id="grafico-comparacion" style="margin-top:18px"></div>
+  </div>
 </div>
 
 </main>
@@ -529,14 +591,32 @@ td,th{vertical-align:middle;padding:10px 14px}
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-pago-prov">
+  <div class="modal">
+    <h3>💰 Registrar Pago a Proveedor</h3>
+    <input type="hidden" id="pagoprov-pid">
+    <div class="form-group" style="margin-bottom:14px"><label>Proveedor</label><input type="text" id="pagoprov-nombre" disabled style="opacity:0.6"></div>
+    <div class="form-group" style="margin-bottom:14px"><label>Monto (USD)</label><input type="number" id="pagoprov-monto" placeholder="0.00" min="0"></div>
+    <div class="form-group"><label>Nota</label><input type="text" id="pagoprov-nota" placeholder="Ej: transferencia"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="btn-cerrar-pago-prov">Cancelar</button>
+      <button class="btn btn-primary" id="btn-guardar-pago-prov">Registrar</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-edit-compra">
   <div class="modal" style="width:700px">
     <h3>✏️ Editar Compra</h3>
     <input type="hidden" id="edit-c-key">
     <div class="form-grid">
-      <div class="form-group"><label>Fecha</label><input type="date" id="edit-c-fecha"></div>
+      <div class="form-group"><label>Fecha de compra</label><input type="date" id="edit-c-fecha"></div>
       <div class="form-group"><label>Proveedor</label><input type="text" id="edit-c-proveedor"></div>
       <div class="form-group"><label>Referencia</label><input type="text" id="edit-c-ref"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Fecha de entrega</label><input type="date" id="edit-c-fecha-entrega"></div>
+      <div class="form-group"><label>Estado de la mercadería</label><select id="edit-c-estado-entrega"><option value="en_camino">🚚 En camino</option><option value="recibido">✅ Recibido</option></select></div>
     </div>
     <div id="edit-c-items"></div>
     <button class="btn btn-add" id="btn-add-edit-compra-item">＋ Agregar equipo</button>
@@ -645,7 +725,7 @@ const db = getDatabase(app);
 signOut(auth).catch(()=>{});
 
 // ─── STATE ───────────────────────────────────────────────────
-let S = {compras:{},ventas:{},clientes:{},garantias:{},tecnicos:{},reparaciones:{},pagos:{},proveedores:{},caja:{},costos:{}};
+let S = {compras:{},ventas:{},clientes:{},garantias:{},tecnicos:{},reparaciones:{},pagos:{},pagosProveedores:{},proveedores:{},caja:{},costos:{}};
 let cajaFiltro='hoy';
 let cajaMoneda='USD';
 let costosFiltro='actual';
@@ -814,14 +894,15 @@ onAuthStateChanged(auth, async user=>{
 
 // ─── INIT ─────────────────────────────────────────────────────
 function initApp(){
-  onValue(dbRef('compras'),s=>{S.compras=s.val()||{};renderCompras();renderStock();renderInicio();});
+  onValue(dbRef('compras'),s=>{S.compras=s.val()||{};renderCompras();renderStock();renderInicio();renderCCProveedores();});
   onValue(dbRef('ventas'),s=>{S.ventas=s.val()||{};renderVentas();renderStock();renderCC();renderInicio();});
   onValue(dbRef('clientes'),s=>{S.clientes=s.val()||{};renderClientes();refreshClienteSelects();});
   onValue(dbRef('garantias'),s=>{S.garantias=s.val()||{};renderGarantias();refreshRepSelects();});
   onValue(dbRef('tecnicos'),s=>{S.tecnicos=s.val()||{};renderTecnicos();refreshRepSelects();});
   onValue(dbRef('reparaciones'),s=>{S.reparaciones=s.val()||{};renderTecnicos();});
   onValue(dbRef('pagos'),s=>{S.pagos=s.val()||{};renderCC();});
-  onValue(dbRef('proveedores'),s=>{S.proveedores=s.val()||{};renderProveedores();});
+  onValue(dbRef('pagosProveedores'),s=>{S.pagosProveedores=s.val()||{};renderCCProveedores();});
+  onValue(dbRef('proveedores'),s=>{S.proveedores=s.val()||{};renderProveedores();renderCCProveedores();});
   onValue(dbRef('caja'),s=>{S.caja=s.val()||{};renderCaja();});
   onValue(dbRef('costos'),s=>{S.costos=s.val()||{};renderCostos();});
 
@@ -897,6 +978,8 @@ function initApp(){
   // Modal pago
   $('btn-cerrar-pago').addEventListener('click',()=>closeModal('modal-pago'));
   $('btn-guardar-pago').addEventListener('click',guardarPago);
+  $('btn-cerrar-pago-prov').addEventListener('click',()=>closeModal('modal-pago-prov'));
+  $('btn-guardar-pago-prov').addEventListener('click',guardarPagoProveedor);
 
   // Alerta cuenta corriente
   document.querySelectorAll('.cc-alerta').forEach(btn=>btn.addEventListener('click',()=>{
@@ -971,6 +1054,7 @@ function initApp(){
   $('btn-save-caja').addEventListener('click',saveCaja);
   $('cj-moneda').value=cajaMoneda;
   $('btn-add-metodo').addEventListener('click',()=>addMetodoItem());
+  $('btn-add-metodo-compra').addEventListener('click',()=>addMetodoCompraItem());
   // Delegación de eventos para caja (botones generados dinámicamente)
   $('tabla-caja').addEventListener('click',e=>{
     const btn=e.target.closest('[data-del-cj]');
@@ -986,8 +1070,16 @@ function initApp(){
   }));
   $('btn-save-costo').addEventListener('click',saveCosto);
 
+  // Informes
+  document.querySelectorAll('.inff').forEach(btn=>btn.addEventListener('click',()=>{
+    informesFiltro=btn.dataset.filtro;
+    document.querySelectorAll('.inff').forEach(b=>b.classList.remove('active-filter'));
+    btn.classList.add('active-filter');
+    renderInformes();
+  }));
+  $('btn-comparar-meses').addEventListener('click',compararMeses);
 
-  setTimeout(()=>{addCompraItem();addVentaItem();addMetodoItem();},400);
+  setTimeout(()=>{addCompraItem();addVentaItem();addMetodoItem();addMetodoCompraItem();calcTotalCompra();},400);
 }
 
 function showPage(name){
@@ -1001,8 +1093,10 @@ function showPage(name){
   if(name==='garantias'){renderGarantias();refreshClienteSelects();}
   if(name==='tecnicos'){renderTecnicos();refreshRepSelects();}
   if(name==='proveedores')renderProveedores();
+  if(name==='cc-proveedores')renderCCProveedores();
   if(name==='caja')renderCaja();
   if(name==='costos')renderCostos();
+  if(name==='informes')renderInformes();
 }
 
 // ─── DÓLAR ────────────────────────────────────────────────────
@@ -1054,6 +1148,7 @@ function canalTag(c){
 
 
 // ─── MÉTODOS DE PAGO COMBINADOS ──────────────────────────────
+const METODOS_CON_COMISION=['transferencia_ars','transferencia_usd','mercadopago'];
 function addMetodoItem(){
   const id=uid();metodoItems.push(id);
   const wrap=document.createElement('div');wrap.id='mi-'+id;
@@ -1062,7 +1157,7 @@ function addMetodoItem(){
   const lM=document.createElement('label');lM.textContent='Método';
   const sel=document.createElement('select');sel.id='mi-tipo-'+id;
   METODOS.forEach(m=>{const o=document.createElement('option');o.value=m.v;o.textContent=m.l;sel.appendChild(o);});
-  sel.addEventListener('change',()=>calcMetodos());
+  sel.addEventListener('change',()=>{toggleComisionMetodo(id);calcMetodos();});
   fgM.append(lM,sel);
   const fgA=document.createElement('div');fgA.className='form-group';
   const lA=document.createElement('label');lA.id='mi-lbl-'+id;lA.textContent='Monto';
@@ -1073,6 +1168,27 @@ function addMetodoItem(){
   btn.addEventListener('click',()=>{wrap.remove();metodoItems=metodoItems.filter(i=>i!==id);calcMetodos();});
   wrap.append(fgM,fgA,btn);
   $('v-metodos-container').appendChild(wrap);
+  // Fila opcional de % comisión, oculta salvo para transferencia/Mercado Pago
+  const comRow=document.createElement('div');comRow.id='mi-comrow-'+id;comRow.style.cssText='display:none;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;margin-top:-4px';
+  const fgCom=document.createElement('div');fgCom.className='form-group';
+  const lCom=document.createElement('label');lCom.textContent='% Comisión (opcional)';
+  const inpCom=document.createElement('input');inpCom.type='number';inpCom.id='mi-comision-'+id;inpCom.placeholder='Ej: 3';inpCom.min='0';inpCom.max='100';inpCom.step='0.01';
+  inpCom.addEventListener('input',calcMetodos);
+  fgCom.append(lCom,inpCom);
+  const fgComMonto=document.createElement('div');fgComMonto.className='form-group';
+  const lComMonto=document.createElement('label');lComMonto.textContent='Costo financiero';
+  const spanComMonto=document.createElement('div');spanComMonto.id='mi-comisionmonto-'+id;spanComMonto.style.cssText='font-family:var(--mono);font-size:13px;color:var(--red);padding:9px 0';spanComMonto.textContent='—';
+  fgComMonto.append(lComMonto,spanComMonto);
+  comRow.append(fgCom,fgComMonto);
+  wrap.insertAdjacentElement('afterend',comRow);
+}
+function toggleComisionMetodo(id){
+  const sel=$('mi-tipo-'+id);
+  const comRow=$('mi-comrow-'+id);
+  if(!sel||!comRow)return;
+  const muestra=METODOS_CON_COMISION.includes(sel.value);
+  comRow.style.display=muestra?'grid':'none';
+  if(!muestra){const c=$('mi-comision-'+id);if(c)c.value='';}
 }
 
 function calcMetodos(){
@@ -1085,6 +1201,18 @@ function calcMetodos(){
     if(!met)return;
     if(met.moneda==='USD')totalUSD+=monto;
     else totalARS+=monto;
+    // Mostrar el monto de comisión calculado (en la moneda del método) si corresponde
+    const comInp=$('mi-comision-'+id);
+    const comSpan=$('mi-comisionmonto-'+id);
+    if(comSpan){
+      const pct=parseFloat(comInp?.value)||0;
+      if(pct>0){
+        const montoCom=monto*(pct/100);
+        comSpan.textContent=met.moneda==='USD'?fmt(montoCom):fmtARS(montoCom);
+      }else{
+        comSpan.textContent='—';
+      }
+    }
   });
   const totalPagadoUSD=totalUSD+(dolar.venta>0?totalARS/dolar.venta:0);
   const vTotalEl=$('v-total');
@@ -1113,10 +1241,74 @@ function calcMetodos(){
     }
   }
 }
+
+// ─── MÉTODOS DE PAGO A PROVEEDOR (compras) ────────────────────
+let metodoCompraItems=[];
+function addMetodoCompraItem(){
+  const id=uid();metodoCompraItems.push(id);
+  const wrap=document.createElement('div');wrap.id='mc-'+id;
+  wrap.style.cssText='display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-bottom:8px';
+  const fgM=document.createElement('div');fgM.className='form-group';
+  const lM=document.createElement('label');lM.textContent='Método';
+  const sel=document.createElement('select');sel.id='mc-tipo-'+id;
+  METODOS.forEach(m=>{const o=document.createElement('option');o.value=m.v;o.textContent=m.l;sel.appendChild(o);});
+  sel.addEventListener('change',()=>calcMetodosCompra());
+  fgM.append(lM,sel);
+  const fgA=document.createElement('div');fgA.className='form-group';
+  const lA=document.createElement('label');lA.textContent='Monto';
+  const inp=document.createElement('input');inp.type='number';inp.id='mc-monto-'+id;inp.placeholder='0.00';inp.min='0';inp.step='0.01';
+  inp.addEventListener('input',calcMetodosCompra);
+  fgA.append(lA,inp);
+  const btn=document.createElement('button');btn.className='btn btn-danger btn-remove-row';btn.textContent='✕';
+  btn.addEventListener('click',()=>{wrap.remove();metodoCompraItems=metodoCompraItems.filter(i=>i!==id);calcMetodosCompra();});
+  wrap.append(fgM,fgA,btn);
+  $('c-metodos-container').appendChild(wrap);
+}
+function calcMetodosCompra(){
+  let totalUSD=0,totalARS=0;
+  metodoCompraItems.forEach(id=>{
+    const sel=$('mc-tipo-'+id);
+    const monto=parseFloat($('mc-monto-'+id)?.value)||0;
+    if(!sel||!monto)return;
+    const met=METODOS.find(m=>m.v===sel.value);
+    if(!met)return;
+    if(met.moneda==='USD')totalUSD+=monto;
+    else totalARS+=monto;
+  });
+  const totalPagadoUSD=totalUSD+(dolar.venta>0?totalARS/dolar.venta:0);
+  const cTotalEl=$('c-total');
+  const cTotal=cTotalEl?parseFloat(cTotalEl.dataset.valor||0):0;
+  const resumenEl=$('c-pagado-resumen');
+  if(resumenEl&&cTotal>0){
+    const diff=cTotal-totalPagadoUSD; // lo que queda pendiente de pagarle al proveedor
+    if(diff<=0.01){
+      resumenEl.innerHTML='✅ Pedido pagado en su totalidad';
+      resumenEl.style.cssText='color:#0ca678;font-weight:600;font-size:12px';
+    }else{
+      resumenEl.innerHTML='📑 Queda pendiente de pago al proveedor: '+fmt(diff);
+      resumenEl.style.cssText='color:#fff;background:var(--yellow);font-weight:700;padding:8px 12px;border-radius:6px;display:inline-block;font-size:12px';
+    }
+  }else if(resumenEl){
+    resumenEl.innerHTML='';
+  }
+}
+function calcTotalCompra(){
+  let total=0;
+  compraItems.forEach(id=>{
+    const cant=parseInt($('ci-cant-'+id)?.value)||1;
+    const precio=parseFloat($('ci-precio-'+id)?.value)||0;
+    total+=cant*precio;
+  });
+  const el=$('c-total');
+  if(el){el.textContent=total>0?fmt(total):'—';el.dataset.valor=total;}
+  calcMetodosCompra();
+}
 // ─── STOCK UTILS ─────────────────────────────────────────────
 // Devuelve disponible para un ítem específico de compra (por itemId si existe, sino por modelo+capacidad como fallback legacy)
 function getStockDisp(ck,modelo,cap,exclVK=null,itemId=null){
   const c=S.compras[ck];if(!c)return 0;
+  // Si la mercadería todavía no llegó al local/depósito, no está disponible para vender
+  if(c.estadoEntrega==='en_camino')return 0;
   let it;
   if(itemId) it=c.items.find(i=>i.itemId===itemId);
   if(!it) it=c.items.find(i=>i.modelo===modelo&&i.capacidad===cap&&!i.itemId); // legacy sin itemId
@@ -1143,15 +1335,18 @@ function getStockBajo(){
 function stockOptions(exclVK=null){
   let o='<option value="">— Seleccionar equipo —</option>';
   Object.entries(S.compras).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||'')).forEach(([ck,comp])=>{
+    const enCamino=comp.estadoEntrega==='en_camino';
     comp.items.forEach(it=>{
       const d=getStockDisp(ck,it.modelo,it.capacidad,exclVK,it.itemId);
       const capStr=it.capacidad&&it.capacidad!=='N/A'?' '+it.capacidad:'';
+      const tipoStr=it.tipo?' · '+it.tipo:'';
       const colorStr=it.color?' · '+it.color:'';
       const gradoStr=it.grado?' '+it.grado:'';
       const imeiStr=it.imei?' · IMEI '+it.imei.slice(-4):'';
       // Incluir itemData para autocomplete + itemId para distinguir unidad exacta
       const v=JSON.stringify({compraKey:ck,itemId:it.itemId||null,modelo:it.modelo,capacidad:it.capacidad,costo:it.precio,disp:d,itemData:it});
-      o+='<option value=\''+v+'\''+(d===0?' disabled style="color:#555"':'')+'>'+it.modelo+capStr+colorStr+gradoStr+imeiStr+' — '+(comp.ref||fmtD(comp.fecha))+'  Stock:'+d+'  Costo:'+fmt(it.precio)+(d===0?' ✗':'')+'</option>';
+      const etiqueta=enCamino?' 🚚 En camino (no disponible)':(d===0?'  Stock:'+d+' ✗':'  Stock:'+d);
+      o+='<option value=\''+v+'\''+(d===0?' disabled style="color:#555"':'')+'>'+it.modelo+capStr+tipoStr+colorStr+gradoStr+imeiStr+' — '+(comp.ref||fmtD(comp.fecha))+etiqueta+'  Costo:'+fmt(it.precio)+'</option>';
     });
   });
   return o;
@@ -1174,7 +1369,7 @@ function makeCompraItemEl(id,data=null,cat=null){
   btn.addEventListener('click',()=>{w.remove();compraItems=compraItems.filter(i=>i!==id);});
 
   const fields=[];
-  const ph={iphone:'Ej: iPhone 15 Pro',ipad:'Ej: iPad Pro M4',mac:'Ej: MacBook Air M3',watch:'Ej: Series 10',audio:'Ej: AirPods Pro 2',otro:'Nombre del producto'};
+  const ph={iphone:'Ej: iPhone 15 Pro',ipad:'Ej: iPad Pro M4',mac:'Ej: MacBook Air M3',watch:'Ej: Series 10',audio:'Ej: AirPods Pro 2',accesorio:'Ej: Funda MagSafe transparente',otro:'Nombre del producto'};
   fields.push(fg('Modelo',inp('text','ci-modelo-'+id,ph[categoria]||'Modelo',{value:data?.modelo||''})));
   fields.push(fg('Color',mkSel('ci-color-'+id,COLORES,data?.color||'Negro')));
   fields.push(fg('Estado',mkSel('ci-estado-'+id,['Sellado','Usado'],data?.estado||'Sellado')));
@@ -1189,19 +1384,27 @@ function makeCompraItemEl(id,data=null,cat=null){
     fields.push(fg('Ciclos batería',inp('number','ci-ciclos-'+id,'0',{value:data?.ciclos||'',min:0})));
   }else if(categoria==='watch'){
     fields.push(fg('Tamaño',mkSel('ci-cap-'+id,['40mm','41mm','42mm','44mm','45mm','46mm','49mm'],data?.capacidad||'41mm')));
+  }else if(categoria==='accesorio'){
+    fields.push(fg('Tipo',mkSel('ci-tipo-'+id,['Funda','Cable','Cargador','Vidrio templado','Otro'],data?.tipo||'Funda')));
+    hidden('ci-cap-'+id,data?.capacidad||'N/A');
   }else{
     hidden('ci-cap-'+id,data?.capacidad||'N/A');
   }
 
   if(categoria!=='mac'){hidden('ci-ram-'+id,'');hidden('ci-serie-'+id,'');hidden('ci-ciclos-'+id,'');}
   if(categoria!=='iphone'&&categoria!=='ipad'){hidden('ci-grado-'+id,'');}
+  if(categoria!=='accesorio'){hidden('ci-tipo-'+id,'');}
 
-  fields.push(fg('Cantidad',inp('number','ci-cant-'+id,'1',{value:data?.cantidad||1,min:1})));
-  fields.push(fg('Precio costo c/u (USD)',inp('number','ci-precio-'+id,'0',{value:data?.precio||'',min:0,step:0.01})));
+  const cantEl=inp('number','ci-cant-'+id,'1',{value:data?.cantidad||1,min:1});
+  fields.push(fg('Cantidad',cantEl));
+  const precEl=inp('number','ci-precio-'+id,'0',{value:data?.precio||'',min:0,step:0.01});
+  precEl.addEventListener('input',calcTotalCompra);
+  fields.push(fg('Precio costo c/u (USD)',precEl));
 
-  if(categoria==='iphone'||categoria==='ipad'){
-    fields.push(fg('IMEI',inp('text','ci-imei-'+id,'15 dígitos',{value:data?.imei||'',maxLength:20})));
-    fields.push(fg('% Batería',inp('number','ci-bat-'+id,'%',{value:data?.bateria||'',min:0,max:100})));
+  const usaUnidades=(categoria==='iphone'||categoria==='ipad');
+  if(usaUnidades){
+    fields.push(fg('IMEI (unidad 1)',inp('text','ci-imei-'+id,'15 dígitos',{value:data?.unidades?.[0]?.imei||data?.imei||'',maxLength:20})));
+    fields.push(fg('% Batería (unidad 1)',inp('number','ci-bat-'+id,'%',{value:data?.unidades?.[0]?.bateria||data?.bateria||'',min:0,max:100})));
   }else{
     hidden('ci-imei-'+id,'');hidden('ci-bat-'+id,'');
   }
@@ -1209,6 +1412,34 @@ function makeCompraItemEl(id,data=null,cat=null){
   fields.push(btn);
   fields.forEach(f=>grid.appendChild(f));
   w.appendChild(grid);
+
+  // Contenedor de unidades extra (cuando cantidad > 1, una fila de IMEI+batería por cada unidad adicional)
+  const unidadesBox=document.createElement('div');
+  unidadesBox.id='ci-unidades-'+id;
+  unidadesBox.style.cssText='margin-top:10px';
+  w.appendChild(unidadesBox);
+
+  function renderUnidadesExtra(){
+    const cant=parseInt(cantEl.value)||1;
+    unidadesBox.innerHTML='';
+    if(!usaUnidades||cant<=1)return;
+    const titulo=document.createElement('div');
+    titulo.style.cssText='font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px';
+    titulo.textContent='IMEI y batería de cada unidad adicional ('+(cant-1)+')';
+    unidadesBox.appendChild(titulo);
+    for(let u=1;u<cant;u++){
+      const row=document.createElement('div');
+      row.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px';
+      const dataU=data?.unidades?.[u];
+      const imeiU=inp('text','ci-imei-'+id+'-'+u,'IMEI unidad '+(u+1),{value:dataU?.imei||'',maxLength:20});
+      const batU=inp('number','ci-bat-'+id+'-'+u,'% Batería',{value:dataU?.bateria||'',min:0,max:100});
+      row.append(imeiU,batU);
+      unidadesBox.appendChild(row);
+    }
+  }
+  cantEl.addEventListener('input',()=>{calcTotalCompra();renderUnidadesExtra();});
+  setTimeout(renderUnidadesExtra,0);
+
   return w;
 }
 function addCompraItem(data=null,cat=null){
@@ -1217,15 +1448,23 @@ function addCompraItem(data=null,cat=null){
 }
 function resetCompraForm(){
   $('c-fecha').value=today();$('c-proveedor').value='';$('c-ref').value='';
+  $('c-fecha-entrega').value='';$('c-estado-entrega').value='en_camino';
   compraCategoria='iphone';
   document.querySelectorAll('#c-cat-selector .cat-btn').forEach(b=>b.classList.remove('selected'));
   document.querySelector('#c-cat-selector .cat-btn[data-cat="iphone"]')?.classList.add('selected');
   $('c-items-label').textContent='iPhones';
   $('c-items-container').innerHTML='';compraItems=[];addCompraItem();
+  metodoCompraItems=[];
+  const mcc=$('c-metodos-container');if(mcc)mcc.innerHTML='';
+  addMetodoCompraItem();
+  setTimeout(calcTotalCompra,50);
 }
 function saveCompra(){
   const fecha=$('c-fecha').value,proveedor=$('c-proveedor').value.trim(),refv=$('c-ref').value.trim();
+  const fechaEntrega=$('c-fecha-entrega').value||'';
+  const estadoEntrega=$('c-estado-entrega').value||'en_camino';
   if(!fecha){showAlert('c-alert','Seleccioná una fecha',false);return;}
+  if(!proveedor){showAlert('c-alert','Ingresá el nombre del proveedor (necesario para la cuenta corriente)',false);return;}
   const items=[];
   for(const id of compraItems){
     const el=document.getElementById('ci-'+id);
@@ -1238,17 +1477,48 @@ function saveCompra(){
     const ciclos=$('ci-ciclos-'+id)?.value||'';
     const cantidad=parseInt($('ci-cant-'+id)?.value)||1;
     const precio=parseFloat($('ci-precio-'+id)?.value);
-    const imei=$('ci-imei-'+id)?.value.trim()||'';
-    const bateria=$('ci-bat-'+id)?.value||'';
     const grado=$('ci-grado-'+id)?.value||'';
+    const tipo=$('ci-tipo-'+id)?.value||'';
     const categoria=el?.dataset.categoria||compraCategoria;
     if(!modelo){showAlert('c-alert','Completá todos los modelos',false);return;}
     if(!precio||precio<=0){showAlert('c-alert','Completá todos los precios',false);return;}
-    items.push({itemId:uid(),modelo,capacidad,color,estado,ram,serie,ciclos,cantidad,precio,imei,bateria,grado,categoria});
+    const usaUnidades=(categoria==='iphone'||categoria==='ipad');
+    if(usaUnidades&&cantidad>1){
+      // Una unidad de stock independiente por cada IMEI cargado
+      for(let u=0;u<cantidad;u++){
+        const imeiU=(u===0?$('ci-imei-'+id)?.value.trim():$('ci-imei-'+id+'-'+u)?.value.trim())||'';
+        const batU=(u===0?$('ci-bat-'+id)?.value:$('ci-bat-'+id+'-'+u)?.value)||'';
+        items.push({itemId:uid(),modelo,capacidad,color,estado,ram,serie,ciclos,cantidad:1,precio,imei:imeiU,bateria:batU,grado,tipo,categoria});
+      }
+    }else{
+      const imei=$('ci-imei-'+id)?.value.trim()||'';
+      const bateria=$('ci-bat-'+id)?.value||'';
+      items.push({itemId:uid(),modelo,capacidad,color,estado,ram,serie,ciclos,cantidad,precio,imei,bateria,grado,tipo,categoria});
+    }
   }
   if(!items.length){showAlert('c-alert','Agregá al menos un equipo',false);return;}
-  push(dbRef('compras'),{fecha,proveedor,ref:refv,items})
-    .then(()=>{showAlert('c-alert','✅ Pedido guardado');resetCompraForm();})
+  const totalUSD=items.reduce((s,i)=>s+i.precio*i.cantidad,0);
+  // Recolectar métodos de pago al proveedor
+  const metodosUsados=[];
+  for(const mid of metodoCompraItems){
+    const sel=$('mc-tipo-'+mid);
+    const monto=parseFloat($('mc-monto-'+mid)?.value)||0;
+    if(sel&&monto>0){
+      const met=METODOS.find(m=>m.v===sel.value);
+      if(met)metodosUsados.push({tipo:sel.value,label:met.l,moneda:met.moneda,monto});
+    }
+  }
+  const pagadoUSD=metodosUsados.reduce((s,m)=>s+(m.moneda==='USD'?m.monto:(dolar.venta>0?m.monto/dolar.venta:0)),0);
+  const condicion=pagadoUSD>=totalUSD-0.01?'pagado':(pagadoUSD>0?'parcial':'pendiente');
+  push(dbRef('compras'),{fecha,proveedor,ref:refv,items,totalUSD,metodos:metodosUsados,condicionPago:condicion,fechaEntrega,estadoEntrega})
+    .then((refC)=>{
+      showAlert('c-alert','✅ Pedido guardado');
+      // Movimientos de caja por lo efectivamente pagado en el momento (egreso)
+      metodosUsados.forEach(m=>{
+        push(dbRef('caja'),{fecha,tipo:'egreso',moneda:m.moneda,monto:m.monto,categoria:'compra',desc:'Compra a '+proveedor+' - '+m.label,auto:true,compraId:refC.key});
+      });
+      resetCompraForm();
+    })
     .catch(()=>showAlert('c-alert','Error al guardar',false));
 }
 function renderCompras(){
@@ -1258,18 +1528,31 @@ function renderCompras(){
   if(!ent.length){el.innerHTML='<div class="empty-state"><div class="big">📦</div><p>Sin compras.</p></div>';return;}
   let rows='';
   ent.forEach(([k,c])=>{
-    const total=c.items.reduce((s,i)=>s+(i.precio*(i.cantidad||1)),0);
+    const total=c.totalUSD!=null?c.totalUSD:c.items.reduce((s,i)=>s+(i.precio*(i.cantidad||1)),0);
     const unids=c.items.reduce((s,i)=>s+(i.cantidad||1),0);
     const mod=c.items.map(i=>'<span class="tag '+(i.estado==='Usado'?'tag-yellow':'tag-blue')+'" style="margin:1px">'+i.modelo+(i.capacidad&&i.capacidad!=='N/A'?' '+i.capacidad:'')+(i.color?' · '+i.color:'')+(i.estado?' · '+i.estado:'')+'</span>').join(' ');
-    rows+='<tr><td class="mono" style="font-size:11px">'+fmtD(c.fecha)+'</td><td>'+(c.ref||'—')+'</td><td>'+(c.proveedor||'—')+'</td><td>'+mod+'</td><td class="mono" style="color:var(--blue)">'+unids+'</td><td class="mono" style="color:var(--yellow)">'+fmt(total)+'</td><td style="display:flex;gap:4px"><button class="btn btn-secondary btn-sm" data-edit-compra="'+k+'">✏️</button><button class="btn btn-danger btn-sm" data-del-compra="'+k+'">🗑</button></td></tr>';
+    const pagoTag=c.condicionPago==='pagado'?'<span class="tag tag-green">Pagado</span>':c.condicionPago==='parcial'?'<span class="tag tag-yellow">Parcial</span>':c.condicionPago==='pendiente'?'<span class="tag tag-red">Pendiente</span>':'<span class="tag tag-blue">—</span>';
+    const estadoEnt=c.estadoEntrega||'en_camino';
+    const entregaSel='<select class="compra-entrega-sel" data-compra-key="'+k+'" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font-size:12px;font-family:var(--sans)"><option value="en_camino"'+(estadoEnt==='en_camino'?' selected':'')+'>🚚 En camino</option><option value="recibido"'+(estadoEnt==='recibido'?' selected':'')+'>✅ Recibido</option></select>';
+    const fechaEntTxt=c.fechaEntrega?fmtD(c.fechaEntrega):'—';
+    rows+='<tr><td class="mono" style="font-size:11px">'+fmtD(c.fecha)+'</td><td>'+(c.ref||'—')+'</td><td>'+(c.proveedor||'—')+'</td><td>'+mod+'</td><td class="mono" style="color:var(--blue)">'+unids+'</td><td class="mono" style="color:var(--yellow)">'+fmt(total)+'</td><td>'+pagoTag+'</td><td>'+entregaSel+'<div style="font-size:10px;color:var(--text3);margin-top:3px">Estim: '+fechaEntTxt+'</div></td><td style="display:flex;gap:4px"><button class="btn btn-secondary btn-sm" data-edit-compra="'+k+'">✏️</button><button class="btn btn-danger btn-sm" data-del-compra="'+k+'">🗑</button></td></tr>';
   });
-  el.innerHTML='<table><thead><tr><th>Fecha</th><th>Ref.</th><th>Proveedor</th><th>Equipos</th><th>Unid.</th><th>Total</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  el.innerHTML='<table><thead><tr><th>Fecha compra</th><th>Ref.</th><th>Proveedor</th><th>Equipos</th><th>Unid.</th><th>Total</th><th>Pago</th><th>Entrega</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  el.querySelectorAll('.compra-entrega-sel').forEach(sel=>sel.addEventListener('change',()=>update(dbRef('compras/'+sel.dataset.compraKey),{estadoEntrega:sel.value})));
   el.querySelectorAll('[data-edit-compra]').forEach(btn=>btn.addEventListener('click',()=>editCompra(btn.dataset.editCompra)));
-  el.querySelectorAll('[data-del-compra]').forEach(btn=>btn.addEventListener('click',()=>{if(confirm('¿Eliminar?'))remove(dbRef('compras/'+btn.dataset.delCompra));}));
+  el.querySelectorAll('[data-del-compra]').forEach(btn=>btn.addEventListener('click',()=>{
+    const ck=btn.dataset.delCompra;
+    if(!confirm('¿Eliminar esta compra? También se revertirán los movimientos de caja generados por ella.'))return;
+    const movsCaja=Object.entries(S.caja).filter(([,m])=>m.compraId===ck);
+    Promise.all(movsCaja.map(([mk])=>remove(dbRef('caja/'+mk))))
+      .then(()=>remove(dbRef('compras/'+ck)))
+      .catch(()=>remove(dbRef('compras/'+ck)));
+  }));
 }
 function editCompra(k){
   const c=S.compras[k];if(!c)return;
   $('edit-c-key').value=k;$('edit-c-fecha').value=c.fecha;$('edit-c-proveedor').value=c.proveedor||'';$('edit-c-ref').value=c.ref||'';
+  $('edit-c-fecha-entrega').value=c.fechaEntrega||'';$('edit-c-estado-entrega').value=c.estadoEntrega||'en_camino';
   $('edit-c-items').innerHTML='';editCompraItems=[];
   c.items.forEach(item=>addEditCompraItem(item));
   openModal('modal-edit-compra');
@@ -1303,11 +1586,15 @@ function makeEditCompraItemEl(id,data=null){
     fields.push(fg('Ciclos batería',inp('number','eci-ciclos-'+id,'0',{value:data?.ciclos||'',min:0})));
   }else if(categoria==='watch'){
     fields.push(fg('Tamaño',mkSel('eci-cap-'+id,['40mm','41mm','42mm','44mm','45mm','46mm','49mm'],data?.capacidad||'41mm')));
+  }else if(categoria==='accesorio'){
+    fields.push(fg('Tipo',mkSel('eci-tipo-'+id,['Funda','Cable','Cargador','Vidrio templado','Otro'],data?.tipo||'Funda')));
+    hidden('eci-cap-'+id,data?.capacidad||'N/A');
   }else{
     hidden('eci-cap-'+id,data?.capacidad||'N/A');
   }
   if(categoria!=='mac'){hidden('eci-ram-'+id,'');hidden('eci-serie-'+id,'');hidden('eci-ciclos-'+id,'');}
   if(categoria!=='iphone'&&categoria!=='ipad'){hidden('eci-grado-'+id,'');}
+  if(categoria!=='accesorio'){hidden('eci-tipo-'+id,'');}
   fields.push(fg('Cantidad',inp('number','eci-cant-'+id,'1',{value:data?.cantidad||1,min:1})));
   fields.push(fg('Precio c/u',inp('number','eci-precio-'+id,'0',{value:data?.precio||'',min:0,step:0.01})));
   if(categoria==='iphone'||categoria==='ipad'){
@@ -1328,6 +1615,8 @@ function addEditCompraItem(data=null){
 function guardarEditCompra(){
   const k=$('edit-c-key').value;
   const fecha=$('edit-c-fecha').value,proveedor=$('edit-c-proveedor').value.trim(),refv=$('edit-c-ref').value.trim();
+  const fechaEntrega=$('edit-c-fecha-entrega').value||'';
+  const estadoEntrega=$('edit-c-estado-entrega').value||'en_camino';
   if(!fecha){showAlert('edit-c-alert','Falta fecha',false);return;}
   const items=[];
   for(const id of editCompraItems){
@@ -1344,12 +1633,15 @@ function guardarEditCompra(){
     const imei=$('eci-imei-'+id)?.value.trim()||'';
     const bateria=$('eci-bat-'+id)?.value||'';
     const grado=$('eci-grado-'+id)?.value||'';
+    const tipo=$('eci-tipo-'+id)?.value||'';
     const categoria=elE?.dataset.categoria||'iphone';
     const itemId=$('eci-itemid-'+id)?.value||uid();
     if(!modelo||!precio){showAlert('edit-c-alert','Completá todos los campos',false);return;}
-    items.push({itemId,modelo,capacidad,color,estado,ram,serie,ciclos,cantidad,precio,imei,bateria,grado,categoria});
+    items.push({itemId,modelo,capacidad,color,estado,ram,serie,ciclos,cantidad,precio,imei,bateria,grado,tipo,categoria});
   }
-  update(dbRef('compras/'+k),{fecha,proveedor,ref:refv,items}).then(()=>closeModal('modal-edit-compra')).catch(()=>showAlert('edit-c-alert','Error',false));
+  if(!proveedor){showAlert('edit-c-alert','Ingresá el nombre del proveedor',false);return;}
+  const totalUSD=items.reduce((s,i)=>s+i.precio*i.cantidad,0);
+  update(dbRef('compras/'+k),{fecha,proveedor,ref:refv,items,totalUSD,fechaEntrega,estadoEntrega}).then(()=>closeModal('modal-edit-compra')).catch(()=>showAlert('edit-c-alert','Error',false));
 }
 
 // ─── VENTAS ──────────────────────────────────────────────────
@@ -1397,11 +1689,15 @@ function addVentaItem(){
   }else if(categoria==='watch'){
     extraFields.push(fg('Tamaño',mkSel('vi-cap-'+id,['40mm','41mm','42mm','44mm','45mm','46mm','49mm'],'41mm')));
     hidden('vi-imei-'+id);hidden('vi-bat-'+id);
+  }else if(categoria==='accesorio'){
+    extraFields.push(fg('Tipo',mkSel('vi-tipo-'+id,['Funda','Cable','Cargador','Vidrio templado','Otro'],'Funda')));
+    hidden('vi-cap-'+id,'N/A');hidden('vi-imei-'+id);hidden('vi-bat-'+id);
   }else{
     hidden('vi-cap-'+id,'N/A');hidden('vi-imei-'+id);hidden('vi-bat-'+id);
   }
   if(categoria!=='mac'){hidden('vi-ram-'+id);hidden('vi-serie-'+id);hidden('vi-ciclos-'+id);}
   if(categoria!=='iphone'&&categoria!=='ipad'){hidden('vi-grado-'+id,'');}
+  if(categoria!=='accesorio'){hidden('vi-tipo-'+id,'');}
 
   // Precio y ganancia
   const precEl=document.createElement('input');precEl.type='number';precEl.id='vi-prec-'+id;precEl.placeholder='0';precEl.min='0';precEl.step='0.01';
@@ -1446,6 +1742,7 @@ function calcItem(id){
       if($('vi-serie-'+id)&&id2.serie)$('vi-serie-'+id).value=id2.serie;
       if($('vi-ciclos-'+id)&&id2.ciclos)$('vi-ciclos-'+id).value=id2.ciclos;
       if($('vi-grado-'+id)&&id2.grado)$('vi-grado-'+id).value=id2.grado;
+      if($('vi-tipo-'+id)&&id2.tipo)$('vi-tipo-'+id).value=id2.tipo;
     }
     if(arsEl&&metodoARS(metodo)&&prec>0&&dolar.venta>0)
       arsEl.textContent='≈ '+fmtARS(usdToArs(prec))+' c/u  ·  TC: '+fmtARS(dolar.venta);
@@ -1521,13 +1818,14 @@ async function saveVenta(){
     const serie=$('vi-serie-'+id)?.value.trim()||'';
     const ciclos=$('vi-ciclos-'+id)?.value||'';
     const grado=$('vi-grado-'+id)?.value||'';
+    const tipo=$('vi-tipo-'+id)?.value||'';
     const catV=document.getElementById('vi-'+id)?.dataset.categoria||ventaCategoria;
     if(!sel?.value){showAlert('v-alert','Seleccioná equipo en todos los ítems',false);return;}
     if(!precioUSD||precioUSD<=0){showAlert('v-alert','Completá todos los precios de venta',false);return;}
     const data=JSON.parse(sel.value);
     const disp=getStockDisp(data.compraKey,data.modelo,data.capacidad,null,data.itemId);
     if(cant>disp){showAlert('v-alert','Stock insuficiente para '+data.modelo+' '+data.capacidad+'. Disponible: '+disp,false);return;}
-    items.push({compraKey:data.compraKey,itemId:data.itemId||null,modelo:data.modelo,capacidad:data.capacidad,cantidad:cant,costo:data.costo,precioUSD,ganancia:(precioUSD-data.costo)*cant,color,estado,cap:capV,imei,bateria,ram,serie,ciclos,grado,categoria:catV});
+    items.push({compraKey:data.compraKey,itemId:data.itemId||null,modelo:data.modelo,capacidad:data.capacidad,cantidad:cant,costo:data.costo,precioUSD,ganancia:(precioUSD-data.costo)*cant,color,estado,cap:capV,imei,bateria,ram,serie,ciclos,grado,tipo,categoria:catV});
   }
   if(!items.length){showAlert('v-alert','Agregá al menos un equipo',false);return;}
   const sub=items.reduce((s,i)=>s+i.precioUSD*i.cantidad,0);
@@ -1540,15 +1838,22 @@ async function saveVenta(){
     const monto=parseFloat($('mi-monto-'+mid)?.value)||0;
     if(sel&&monto>0){
       const met=METODOS.find(m=>m.v===sel.value);
-      if(met)metodosUsados.push({tipo:sel.value,label:met.l,moneda:met.moneda,monto});
+      if(met){
+        const comInp=$('mi-comision-'+mid);
+        const comisionPct=METODOS_CON_COMISION.includes(sel.value)?(parseFloat(comInp?.value)||0):0;
+        const comisionMontoOriginal=monto*(comisionPct/100);
+        const comisionMontoUSD=met.moneda==='USD'?comisionMontoOriginal:(dolar.venta>0?comisionMontoOriginal/dolar.venta:0);
+        metodosUsados.push({tipo:sel.value,label:met.l,moneda:met.moneda,monto,comisionPct,comisionMontoUSD});
+      }
     }
   }
   // Si no hay métodos cargados, usar efectivo USD por defecto
   if(!metodosUsados.length){
-    metodosUsados.push({tipo:'efectivo_usd',label:'Efectivo USD',moneda:'USD',monto:totalUSD});
+    metodosUsados.push({tipo:'efectivo_usd',label:'Efectivo USD',moneda:'USD',monto:totalUSD,comisionPct:0,comisionMontoUSD:0});
   }
+  const totalComisionUSD=metodosUsados.reduce((s,m)=>s+(m.comisionMontoUSD||0),0);
 
-  push(dbRef('ventas'),{fecha,clienteId,condicion,canal,metodos:metodosUsados,descuento:desc,comision:com,items,totalUSD,gananciaUSD,dolarDelDia:dolar.venta})
+  push(dbRef('ventas'),{fecha,clienteId,condicion,canal,metodos:metodosUsados,descuento:desc,comision:com,items,totalUSD,gananciaUSD,dolarDelDia:dolar.venta,costoFinancieroUSD:totalComisionUSD})
     .then((ref)=>{
       showAlert('v-alert','✅ Venta guardada. Total: '+fmt(totalUSD));
       // Alimentar caja con un movimiento por cada método, etiquetado con el id de la venta
@@ -1557,6 +1862,10 @@ async function saveVenta(){
           push(dbRef('caja'),{fecha,tipo:'ingreso',moneda:m.moneda,monto:m.monto,categoria:'venta',desc:'Venta - '+m.label,auto:true,ventaId:ref.key});
         });
       }
+      // Registrar automáticamente el costo financiero (comisiones) en el módulo Costos, si hubo
+      metodosUsados.filter(m=>m.comisionMontoUSD>0).forEach(m=>{
+        push(dbRef('costos'),{fecha,desc:'Comisión '+m.label+' ('+m.comisionPct+'%) - Venta',categoria:'financiero',moneda:'USD',monto:m.comisionMontoUSD,frecuencia:'unica',auto:true,ventaId:ref.key});
+      });
       resetVentaForm();
     })
     .catch(()=>showAlert('v-alert','Error al guardar',false));
@@ -1633,10 +1942,11 @@ function renderVentas(){
   el.querySelectorAll('[data-edit-venta]').forEach(btn=>btn.addEventListener('click',()=>editVenta(btn.dataset.editVenta)));
   el.querySelectorAll('[data-del-venta]').forEach(btn=>btn.addEventListener('click',()=>{
     const vk=btn.dataset.delVenta;
-    if(!confirm('¿Eliminar esta venta? También se revertirán los movimientos de caja generados por ella.'))return;
-    // Buscar y borrar los movimientos de caja vinculados a esta venta
+    if(!confirm('¿Eliminar esta venta? También se revertirán los movimientos de caja y costos financieros generados por ella.'))return;
+    // Buscar y borrar los movimientos de caja y costos financieros vinculados a esta venta
     const movsCaja=Object.entries(S.caja).filter(([,m])=>m.ventaId===vk);
-    Promise.all(movsCaja.map(([ck])=>remove(dbRef('caja/'+ck))))
+    const costosFin=Object.entries(S.costos).filter(([,c])=>c.ventaId===vk);
+    Promise.all([...movsCaja.map(([ck])=>remove(dbRef('caja/'+ck))),...costosFin.map(([ck])=>remove(dbRef('costos/'+ck)))])
       .then(()=>remove(dbRef('ventas/'+vk)))
       .catch(()=>remove(dbRef('ventas/'+vk)));
   }));
@@ -1649,23 +1959,25 @@ function renderStock(){
     // Cada itemId es una unidad o lote distinto — se muestra por separado si tiene color/IMEI/grado propios
     const key=it.itemId||(ck+'||'+it.modelo+'||'+it.capacidad+'||'+(it.color||'')+'||'+(it.imei||''));
     const d=getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId);
-    map[key]={modelo:it.modelo,cap:it.capacidad,color:it.color||'',estado:it.estado||'',grado:it.grado||'',imei:it.imei||'',ref:c.ref||fmtD(c.fecha),proveedor:c.proveedor||'',costo:it.precio,comprado:it.cantidad||1,disp:d,fecha:c.fecha};
+    map[key]={modelo:it.modelo,cap:it.capacidad,color:it.color||'',estado:it.estado||'',grado:it.grado||'',tipo:it.tipo||'',imei:it.imei||'',ref:c.ref||fmtD(c.fecha),proveedor:c.proveedor||'',costo:it.precio,comprado:it.cantidad||1,disp:d,fecha:c.fecha,enCamino:c.estadoEntrega==='en_camino'};
   }));
   const rows=Object.values(map).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
   const tc=rows.reduce((s,r)=>s+r.comprado,0),td=rows.reduce((s,r)=>s+r.disp,0),tv=rows.reduce((s,r)=>s+r.disp*r.costo,0);
+  const tEnCamino=rows.filter(r=>r.enCamino).reduce((s,r)=>s+r.comprado,0);
   $('stats-stock').innerHTML=
     '<div class="stat-card sc-blue"><div class="lbl">Unidades / lotes</div><div class="val">'+rows.length+'</div></div>'+
     '<div class="stat-card sc-blue"><div class="lbl">Total comprado</div><div class="val">'+tc+'</div></div>'+
     '<div class="stat-card sc-green"><div class="lbl">Disponible</div><div class="val">'+td+'</div></div>'+
-    '<div class="stat-card sc-yellow"><div class="lbl">Valor en stock</div><div class="val">'+fmt(tv)+'</div></div>';
+    '<div class="stat-card sc-yellow"><div class="lbl">Valor en stock</div><div class="val">'+fmt(tv)+'</div></div>'+
+    (tEnCamino?'<div class="stat-card sc-yellow"><div class="lbl">🚚 En camino</div><div class="val">'+tEnCamino+'</div></div>':'');
   const el=$('tabla-stock');
   if(!rows.length){el.innerHTML='<div class="empty-state"><div class="big">📊</div><p>Cargá compras para ver el stock.</p></div>';return;}
   let tr='';
   rows.forEach(r=>{
     const pct=r.comprado?Math.round(((r.comprado-r.disp)/r.comprado)*100):0;
-    const tag=r.disp===0?'<span class="tag tag-red">Sin stock</span>':r.disp<=2?'<span class="tag tag-yellow">'+r.disp+' u.</span>':'<span class="tag tag-green">'+r.disp+' u.</span>';
-    const bar='<div style="background:var(--surface3);border-radius:4px;height:5px;width:80px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:6px"><div style="background:'+(r.disp===0?'var(--red)':r.disp<=2?'var(--yellow)':'var(--accent)')+';height:100%;width:'+pct+'%"></div></div>';
-    const detalle=[r.color,r.grado,r.estado].filter(Boolean).join(' · ');
+    const tag=r.enCamino?'<span class="tag tag-yellow">🚚 En camino</span>':r.disp===0?'<span class="tag tag-red">Sin stock</span>':r.disp<=2?'<span class="tag tag-yellow">'+r.disp+' u.</span>':'<span class="tag tag-green">'+r.disp+' u.</span>';
+    const bar=r.enCamino?'':'<div style="background:var(--surface3);border-radius:4px;height:5px;width:80px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:6px"><div style="background:'+(r.disp===0?'var(--red)':r.disp<=2?'var(--yellow)':'var(--accent)')+';height:100%;width:'+pct+'%"></div></div>';
+    const detalle=[r.tipo,r.color,r.grado,r.estado].filter(Boolean).join(' · ');
     const imeiTag=r.imei?'<div style="font-size:10px;color:var(--text3);font-family:var(--mono)">IMEI '+r.imei+'</div>':'';
     tr+='<tr><td><strong>'+r.modelo+'</strong>'+(detalle?'<div style="font-size:11px;color:var(--text2)">'+detalle+'</div>':'')+imeiTag+'</td><td><span class="tag tag-blue">'+r.cap+'</span></td><td style="font-size:12px;color:var(--text2)">'+r.ref+'</td><td style="font-size:12px;color:var(--text2)">'+(r.proveedor||'—')+'</td><td class="mono" style="color:var(--yellow)">'+fmt(r.costo)+'</td><td class="mono" style="color:var(--blue)">'+r.comprado+'</td><td class="mono" style="color:var(--text2)">'+(r.comprado-r.disp)+'</td><td>'+tag+bar+'</td></tr>';
   });
@@ -1797,14 +2109,151 @@ function renderCostos(){
     '<div class="stat-card sc-blue"><div class="lbl">Registros</div><div class="val">'+costos.length+'</div></div>';
   $('badge-costos').textContent=costos.length;
   if(!costos.length){el.innerHTML='<div class="empty-state"><div class="big">📋</div><p>Sin costos registrados.</p></div>';return;}
-  const catIcon={sueldo:'👤',alquiler:'🏠',impuesto:'📄',servicio:'⚡',marketing:'📢',otro:'📦'};
+  const catIcon={sueldo:'👤',alquiler:'🏠',impuesto:'📄',servicio:'⚡',marketing:'📢',financiero:'💳',otro:'📦'};
   let rows='';
   costos.forEach(([k,c])=>{
     const montoFmt=c.moneda==='USD'?fmt(c.monto):fmtARS(c.monto);
-    rows+='<tr><td class="mono" style="font-size:11px">'+fmtD(c.fecha)+'</td><td>'+(catIcon[c.categoria]||'📦')+' '+c.desc+'</td><td><span class="tag tag-blue">'+c.categoria+'</span></td><td><span class="tag tag-blue">'+c.moneda+'</span></td><td class="mono" style="color:var(--red)">'+montoFmt+'</td><td>'+(c.frecuencia==='mensual'?'<span class="tag tag-yellow">🔁 Mensual</span>':'<span class="tag tag-blue">Una vez</span>')+'</td><td><button class="btn btn-danger btn-sm" data-del-co="'+k+'">🗑</button></td></tr>';
+    rows+='<tr><td class="mono" style="font-size:11px">'+fmtD(c.fecha)+'</td><td>'+(catIcon[c.categoria]||'📦')+' '+c.desc+(c.auto?' <span class="tag tag-yellow" style="font-size:10px">Auto</span>':'')+'</td><td><span class="tag tag-blue">'+c.categoria+'</span></td><td><span class="tag tag-blue">'+c.moneda+'</span></td><td class="mono" style="color:var(--red)">'+montoFmt+'</td><td>'+(c.frecuencia==='mensual'?'<span class="tag tag-yellow">🔁 Mensual</span>':'<span class="tag tag-blue">Una vez</span>')+'</td><td><button class="btn btn-danger btn-sm" data-del-co="'+k+'">🗑</button></td></tr>';
   });
   el.innerHTML='<table><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Moneda</th><th>Monto</th><th>Frecuencia</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
 }
+
+// ─── INFORMES ────────────────────────────────────────────────
+let informesFiltro='mes';
+function getInformesRango(){
+  const now=new Date(),h=today();
+  if(informesFiltro==='mes')return{desde:now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01',hasta:h};
+  if(informesFiltro==='trimestre'){const d=new Date(now);d.setMonth(d.getMonth()-3);return{desde:d.toISOString().slice(0,10),hasta:h};}
+  if(informesFiltro==='anio')return{desde:now.getFullYear()+'-01-01',hasta:h};
+  return{desde:null,hasta:null};
+}
+// Convierte un costo a USD usando el dólar del día actual como referencia (aproximación para comparar períodos)
+function costoEnUSD(c){
+  return c.moneda==='USD'?c.monto:(dolar.venta>0?c.monto/dolar.venta:0);
+}
+function renderInformes(){
+  const{desde,hasta}=getInformesRango();
+  const enRango=fecha=>!desde||(fecha>=desde&&fecha<=hasta);
+
+  const ventasR=Object.values(S.ventas).filter(v=>enRango(v.fecha));
+  const totalVentas=ventasR.reduce((s,v)=>s+(v.totalUSD||0),0);
+  const totalGanancia=ventasR.reduce((s,v)=>s+(v.gananciaUSD||0),0);
+  const unidadesVendidas=ventasR.reduce((s,v)=>s+v.items.reduce((a,i)=>a+(i.cantidad||1),0),0);
+
+  const costosR=Object.values(S.costos).filter(c=>enRango(c.fecha)||c.frecuencia==='mensual');
+  const totalGastos=costosR.reduce((s,c)=>s+costoEnUSD(c),0);
+  const totalMarketing=costosR.filter(c=>c.categoria==='marketing').reduce((s,c)=>s+costoEnUSD(c),0);
+  const totalFinanciero=costosR.filter(c=>c.categoria==='financiero').reduce((s,c)=>s+costoEnUSD(c),0);
+
+  const stockDisp=calcStockDisp();
+  const valorStock=Object.entries(S.compras).reduce((s,[ck,c])=>s+c.items.reduce((a,it)=>a+getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId)*it.precio,0),0);
+
+  const margenNeto=totalGanancia-totalGastos;
+
+  $('stats-informes').innerHTML=
+    '<div class="stat-card sc-green"><div class="lbl">Ventas totales</div><div class="val">'+fmt(totalVentas)+'</div></div>'+
+    '<div class="stat-card sc-green"><div class="lbl">Ganancia bruta</div><div class="val">'+fmt(totalGanancia)+'</div></div>'+
+    '<div class="stat-card sc-red"><div class="lbl">Gastos totales</div><div class="val">'+fmt(totalGastos)+'</div></div>'+
+    '<div class="stat-card '+(margenNeto>=0?'sc-green':'sc-red')+'"><div class="lbl">Margen neto</div><div class="val">'+fmt(margenNeto)+'</div></div>'+
+    '<div class="stat-card sc-blue"><div class="lbl">Unidades vendidas</div><div class="val">'+unidadesVendidas+'</div></div>'+
+    '<div class="stat-card sc-yellow"><div class="lbl">Marketing</div><div class="val">'+fmt(totalMarketing)+'</div></div>'+
+    '<div class="stat-card sc-yellow"><div class="lbl">Costos financieros</div><div class="val">'+fmt(totalFinanciero)+'</div></div>'+
+    '<div class="stat-card sc-blue"><div class="lbl">Stock disponible</div><div class="val">'+stockDisp+' u.</div><div class="sub">'+fmt(valorStock)+' en valor</div></div>';
+
+  renderTendenciaVentas();
+  renderResumenStockInforme();
+}
+// Gráfico de barras SVG simple para los últimos 6 meses: ventas vs ganancia
+function renderTendenciaVentas(){
+  const el=$('grafico-ventas-tendencia');if(!el)return;
+  const meses=[];
+  const now=new Date();
+  for(let i=5;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    meses.push({key:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),label:d.toLocaleDateString('es-AR',{month:'short'})});
+  }
+  const datos=meses.map(m=>{
+    const vs=Object.values(S.ventas).filter(v=>(v.fecha||'').slice(0,7)===m.key);
+    return{...m,ventas:vs.reduce((s,v)=>s+(v.totalUSD||0),0),ganancia:vs.reduce((s,v)=>s+(v.gananciaUSD||0),0)};
+  });
+  el.innerHTML=svgBarrasDoble(datos,'ventas','ganancia','Ventas','Ganancia','#2d7a4f','#7ab896');
+}
+function renderResumenStockInforme(){
+  const el=$('resumen-stock-informe');if(!el)return;
+  const bajo=getStockBajo();
+  const sinStock=bajo.filter(b=>b.disp===0).length;
+  const stockBajo=bajo.filter(b=>b.disp>0&&b.disp<=2).length;
+  let html='<div style="display:flex;flex-direction:column;gap:10px">';
+  html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--surface2);border-radius:8px"><span style="font-size:13px">📦 Modelos sin stock</span><span class="tag tag-red">'+sinStock+'</span></div>';
+  html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--surface2);border-radius:8px"><span style="font-size:13px">⚠️ Stock bajo (≤2 unidades)</span><span class="tag tag-yellow">'+stockBajo+'</span></div>';
+  html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--surface2);border-radius:8px"><span style="font-size:13px">🏢 Proveedores con deuda</span><span class="tag tag-yellow">'+[...new Set(Object.values(S.compras).map(c=>c.proveedor).filter(Boolean))].filter(n=>getSaldoProveedor(n)>0.01).length+'</span></div>';
+  html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--surface2);border-radius:8px"><span style="font-size:13px">👥 Clientes con deuda</span><span class="tag tag-red">'+Object.keys(S.clientes).filter(k=>getSaldo(k)>0.01).length+'</span></div>';
+  html+='</div>';
+  el.innerHTML=html;
+}
+// Genera un SVG de barras dobles (dos series) a partir de un array de {label, campoA, campoB}
+function svgBarrasDoble(datos,campoA,campoB,labelA,labelB,colorA,colorB){
+  const max=Math.max(1,...datos.map(d=>Math.max(d[campoA],d[campoB])));
+  const w=560,h=220,padBottom=30,padTop=10,barW=28,gap=18,groupW=barW*2+8;
+  const startX=(w-datos.length*(groupW+gap))/2;
+  let bars='';
+  datos.forEach((d,i)=>{
+    const x=startX+i*(groupW+gap);
+    const hA=Math.max(2,(d[campoA]/max)*(h-padBottom-padTop));
+    const hB=Math.max(2,(d[campoB]/max)*(h-padBottom-padTop));
+    const yA=h-padBottom-hA,yB=h-padBottom-hB;
+    bars+='<rect x="'+x+'" y="'+yA+'" width="'+barW+'" height="'+hA+'" fill="'+colorA+'" rx="3"/>';
+    bars+='<rect x="'+(x+barW+8)+'" y="'+yB+'" width="'+barW+'" height="'+hB+'" fill="'+colorB+'" rx="3"/>';
+    bars+='<text x="'+(x+groupW/2)+'" y="'+(h-10)+'" font-size="11" fill="#4a6358" text-anchor="middle">'+d.label+'</text>';
+  });
+  let svg='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:auto;max-height:240px">';
+  svg+=bars;
+  svg+='</svg>';
+  svg+='<div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:12px">'+
+    '<span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:'+colorA+';border-radius:2px;display:inline-block"></span>'+labelA+'</span>'+
+    '<span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:'+colorB+';border-radius:2px;display:inline-block"></span>'+labelB+'</span></div>';
+  return svg;
+}
+// Comparación de un mes A vs un mes B para la métrica elegida
+function compararMeses(){
+  const metrica=$('cmp-metrica').value;
+  const mesA=$('cmp-mes-a').value,mesB=$('cmp-mes-b').value;
+  const el=$('grafico-comparacion');
+  if(!mesA||!mesB){el.innerHTML='<p style="color:var(--text3);font-size:13px">Elegí los dos meses a comparar.</p>';return;}
+  function valorMes(mes){
+    if(metrica==='ventas')return Object.values(S.ventas).filter(v=>(v.fecha||'').slice(0,7)===mes).reduce((s,v)=>s+(v.totalUSD||0),0);
+    if(metrica==='ganancia')return Object.values(S.ventas).filter(v=>(v.fecha||'').slice(0,7)===mes).reduce((s,v)=>s+(v.gananciaUSD||0),0);
+    if(metrica==='marketing')return Object.values(S.costos).filter(c=>(c.fecha||'').slice(0,7)===mes&&c.categoria==='marketing').reduce((s,c)=>s+costoEnUSD(c),0);
+    if(metrica==='financiero')return Object.values(S.costos).filter(c=>(c.fecha||'').slice(0,7)===mes&&c.categoria==='financiero').reduce((s,c)=>s+costoEnUSD(c),0);
+    if(metrica==='costos')return Object.values(S.costos).filter(c=>(c.fecha||'').slice(0,7)===mes).reduce((s,c)=>s+costoEnUSD(c),0);
+    return 0;
+  }
+  const valA=valorMes(mesA),valB=valorMes(mesB);
+  const labelA=new Date(mesA+'-02').toLocaleDateString('es-AR',{month:'long',year:'numeric'});
+  const labelB=new Date(mesB+'-02').toLocaleDateString('es-AR',{month:'long',year:'numeric'});
+  const diff=valB-valA;
+  const diffPct=valA>0?((diff/valA)*100):0;
+  const datos=[{label:labelA.slice(0,3),v1:valA,v2:0},{label:labelB.slice(0,3),v1:0,v2:valB}];
+  // Usamos un solo gráfico de barras simple comparando los dos valores lado a lado
+  const max=Math.max(1,valA,valB);
+  const w=420,h=180,padBottom=30,barW=80,gapBar=50;
+  const startX=(w-2*barW-gapBar)/2;
+  const hA=Math.max(2,(valA/max)*(h-padBottom-20)),hB=Math.max(2,(valB/max)*(h-padBottom-20));
+  const yA=h-padBottom-hA,yB=h-padBottom-hB;
+  let svg='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;max-width:420px;height:auto">';
+  svg+='<rect x="'+startX+'" y="'+yA+'" width="'+barW+'" height="'+hA+'" fill="#2d7a4f" rx="4"/>';
+  svg+='<rect x="'+(startX+barW+gapBar)+'" y="'+yB+'" width="'+barW+'" height="'+hB+'" fill="#7ab896" rx="4"/>';
+  svg+='<text x="'+(startX+barW/2)+'" y="'+(yA-8)+'" font-size="12" fill="#1a2e24" text-anchor="middle" font-weight="700">'+fmt(valA)+'</text>';
+  svg+='<text x="'+(startX+barW+gapBar+barW/2)+'" y="'+(yB-8)+'" font-size="12" fill="#1a2e24" text-anchor="middle" font-weight="700">'+fmt(valB)+'</text>';
+  svg+='<text x="'+(startX+barW/2)+'" y="'+(h-10)+'" font-size="11" fill="#4a6358" text-anchor="middle">'+labelA+'</text>';
+  svg+='<text x="'+(startX+barW+gapBar+barW/2)+'" y="'+(h-10)+'" font-size="11" fill="#4a6358" text-anchor="middle">'+labelB+'</text>';
+  svg+='</svg>';
+  const diffColor=diff>=0?'#0ca678':'var(--red)';
+  const diffTxt=(diff>=0?'+':'')+fmt(diff)+' ('+(diffPct>=0?'+':'')+diffPct.toFixed(1)+'%)';
+  svg+='<div style="text-align:center;margin-top:10px;font-size:14px;font-weight:700;color:'+diffColor+'">Variación: '+diffTxt+'</div>';
+  el.innerHTML=svg;
+}
+
 
 
 // ─── PROVEEDORES ─────────────────────────────────────────────
@@ -1841,6 +2290,57 @@ function guardarEditProv(){
   const k=$('edit-pv-key').value;
   update(dbRef('proveedores/'+k),{nombre:$('edit-pv-nombre').value.trim(),contacto:$('edit-pv-contacto').value.trim(),tel:$('edit-pv-tel').value.trim(),email:$('edit-pv-email').value.trim(),pais:$('edit-pv-pais').value.trim(),categoria:$('edit-pv-categoria').value,notas:$('edit-pv-notas').value.trim()})
     .then(()=>closeModal('modal-edit-prov'));
+}
+
+// ─── CUENTA CORRIENTE PROVEEDORES ──────────────────────────────
+// Se agrupa por nombre de proveedor (texto libre en compras), igual criterio que usa Proveedores/Stock para cruzar datos.
+function getComprasConSaldoProv(nombreProv){
+  const compras=Object.entries(S.compras).filter(([,c])=>(c.proveedor||'').toLowerCase()===nombreProv.toLowerCase()).sort((a,b)=>(a[1].fecha||'').localeCompare(b[1].fecha||''));
+  let pagosDisponibles=Object.values(S.pagosProveedores).filter(p=>(p.proveedor||'').toLowerCase()===nombreProv.toLowerCase()).reduce((s,p)=>s+(p.monto||0),0);
+  return compras.map(([k,c])=>{
+    const total=c.totalUSD!=null?c.totalUSD:c.items.reduce((s,i)=>s+i.precio*(i.cantidad||1),0);
+    // Lo ya pagado en el momento de la compra (métodos cargados al crearla)
+    const pagadoEnCompra=(c.metodos||[]).reduce((s,m)=>s+(m.moneda==='USD'?m.monto:(dolar.venta>0?m.monto/dolar.venta:0)),0);
+    let restante=Math.max(0,total-pagadoEnCompra);
+    const aplicadoExtra=Math.min(pagosDisponibles,restante);
+    pagosDisponibles-=aplicadoExtra;
+    restante-=aplicadoExtra;
+    return{key:k,...c,total,pagadoEnCompra,pagadoExtra:aplicadoExtra,pendiente:restante};
+  });
+}
+function getSaldoProveedor(nombreProv){
+  return getComprasConSaldoProv(nombreProv).reduce((s,c)=>s+c.pendiente,0);
+}
+function renderCCProveedores(){
+  const elS=$('stats-ccp'),elL=$('lista-ccp');
+  if(!elS||!elL)return;
+  const nombres=[...new Set(Object.values(S.compras).map(c=>c.proveedor).filter(Boolean))];
+  const provsConDeuda=nombres.map(n=>({nombre:n,saldo:getSaldoProveedor(n)})).filter(p=>p.saldo>0.01).sort((a,b)=>b.saldo-a.saldo);
+  const td=provsConDeuda.reduce((s,p)=>s+p.saldo,0);
+  elS.innerHTML='<div class="stat-card sc-yellow"><div class="lbl">Deuda total a proveedores</div><div class="val">'+fmt(td)+'</div></div><div class="stat-card sc-blue"><div class="lbl">Proveedores con deuda</div><div class="val">'+provsConDeuda.length+'</div></div>';
+  if(!provsConDeuda.length){elL.innerHTML='<div class="empty-state"><div class="big">✅</div><p>No le debés a ningún proveedor.</p></div>';return;}
+  elL.innerHTML='';
+  provsConDeuda.forEach(p=>{
+    const compras=getComprasConSaldoProv(p.nombre);
+    const block=document.createElement('div');block.className='cc-block';
+    const hdr=document.createElement('div');hdr.className='cc-header';
+    hdr.innerHTML='<div><div style="font-size:14px;font-weight:600">'+p.nombre+'</div></div><div style="display:flex;align-items:center;gap:14px"><div style="text-align:right"><div style="font-size:10px;color:var(--text3)">Le debés</div><div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--yellow)">'+fmt(p.saldo)+'</div></div><button class="btn btn-primary btn-sm" data-open-pago-prov="'+p.nombre+'">Registrar pago</button><span id="arrp-'+btoa(encodeURIComponent(p.nombre))+'" style="color:var(--text3);font-size:12px">▼</span></div>';
+    const body=document.createElement('div');const safeId=btoa(encodeURIComponent(p.nombre));body.id='ccpb-'+safeId;body.style.cssText='display:none;border-top:1px solid var(--border);padding:14px 20px';
+    const movs=compras.map(c=>({fecha:c.fecha,tipo:'compra',monto:c.total,detalle:c.items.map(i=>i.modelo+' '+i.capacidad).join(', ')+(c.pendiente<=0.01?' ✅ Pagada':' (falta '+fmt(c.pendiente)+')')}))
+      .concat(Object.values(S.pagosProveedores).filter(pg=>(pg.proveedor||'').toLowerCase()===p.nombre.toLowerCase()).map(pg=>({fecha:pg.fecha,tipo:'pago',monto:pg.monto,detalle:pg.nota||''})))
+      .sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+    body.innerHTML=movs.length?'<table style="width:100%"><thead><tr><th>Fecha</th><th>Tipo</th><th>Detalle</th><th>Monto</th></tr></thead><tbody>'+movs.map(m=>'<tr><td class="mono" style="font-size:11px">'+fmtD(m.fecha)+'</td><td>'+(m.tipo==='pago'?'💰 Pago':'📦 Compra')+'</td><td style="font-size:12px">'+m.detalle+'</td><td class="mono" style="color:'+(m.tipo==='pago'?'var(--accent)':'var(--yellow)')+'">'+(m.tipo==='pago'?'-':'+')+fmt(m.monto)+'</td></tr>').join('')+'</tbody></table>':'<p style="color:var(--text3);font-size:13px">Sin movimientos.</p>';
+    hdr.addEventListener('click',e=>{if(e.target.dataset.openPagoProv)return;const o=body.style.display!=='none';body.style.display=o?'none':'block';$('arrp-'+safeId).style.transform=o?'':'rotate(180deg)';});
+    block.append(hdr,body);elL.appendChild(block);
+  });
+  elL.querySelectorAll('[data-open-pago-prov]').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();$('pagoprov-pid').value=btn.dataset.openPagoProv;$('pagoprov-nombre').value=btn.dataset.openPagoProv;$('pagoprov-monto').value='';$('pagoprov-nota').value='';openModal('modal-pago-prov');}));
+}
+function guardarPagoProveedor(){
+  const proveedor=$('pagoprov-pid').value;
+  const monto=parseFloat($('pagoprov-monto').value);
+  const nota=$('pagoprov-nota').value.trim();
+  if(!monto||monto<=0){alert('Ingresá un monto válido');return;}
+  push(dbRef('pagosProveedores'),{proveedor,monto,fecha:today(),nota}).then(()=>closeModal('modal-pago-prov'));
 }
 
 // ─── CUENTA CORRIENTE ────────────────────────────────────────
