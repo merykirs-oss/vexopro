@@ -367,7 +367,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
           <option value="__nuevo__">➕ Cliente nuevo</option>
         </select>
       </div>
-      <div class="form-group"><label>Condición</label><select id="v-condicion"><option value="contado">Contado</option><option value="fiado">Fiado (cta cte)</option></select></div>
+      <div class="form-group"><label>Condición</label><select id="v-condicion"><option value="contado">Contado</option><option value="fiado">A pagar (cta cte)</option></select></div>
       <div class="form-group"><label>Canal</label><select id="v-canal"><option value="local">🏪 Local</option><option value="online">🌐 Online</option><option value="mayorista">📦 Mayorista</option></select></div>
     </div>
     <div id="v-nuevo-cliente-box" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:14px">
@@ -695,7 +695,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     <input type="hidden" id="edit-v-key">
     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px" id="edit-v-items-preview"></div>
     <div class="form-grid">
-      <div class="form-group"><label>Condición</label><select id="edit-v-condicion"><option value="contado">Contado</option><option value="fiado">Fiado (cta cte)</option></select></div>
+      <div class="form-group"><label>Condición</label><select id="edit-v-condicion"><option value="contado">Contado</option><option value="fiado">A pagar (cta cte)</option></select></div>
       <div class="form-group"><label>Descuento (%)</label><input type="number" id="edit-v-descuento" min="0" max="100"></div>
       <div class="form-group"><label>Comisión vendedor (%)</label><input type="number" id="edit-v-comision" min="0"></div>
     </div>
@@ -1000,7 +1000,7 @@ function initApp(){
       document.querySelectorAll('#c-cat-selector .cat-btn').forEach(b=>b.classList.remove('selected'));
       btn.classList.add('selected');
       compraCategoria=btn.dataset.cat;
-      const labels={iphone:'iPhones',mac:'Macs',ipad:'iPads',watch:'Apple Watches',audio:'Accesorios de Audio',otro:'Productos'};
+      const labels={iphone:'iPhones',mac:'Macs',ipad:'iPads',watch:'Apple Watches',audio:'Accesorios de Audio',accesorio:'ACCESORIOS',otro:'Productos'};
       $('c-items-label').textContent=labels[compraCategoria]||'Equipos';
       $('c-items-container').innerHTML='';
       compraItems=[];
@@ -1440,10 +1440,21 @@ function makeCompraItemEl(id,data=null,cat=null){
   btn.addEventListener('click',()=>{w.remove();compraItems=compraItems.filter(i=>i!==id);});
 
   const fields=[];
-  const ph={iphone:'Ej: iPhone 15 Pro',ipad:'Ej: iPad Pro M4',mac:'Ej: MacBook Air M3',watch:'Ej: Series 10',audio:'Ej: AirPods Pro 2',accesorio:'Ej: Funda MagSafe transparente',otro:'Nombre del producto'};
-  fields.push(fg('Modelo',inp('text','ci-modelo-'+id,ph[categoria]||'Modelo',{value:data?.modelo||''})));
-  fields.push(fg('Color',mkSel('ci-color-'+id,COLORES,data?.color||'Negro')));
-  fields.push(fg('Estado',mkSel('ci-estado-'+id,['Sellado','Usado'],data?.estado||'Sellado')));
+  const ph={iphone:'Ej: iPhone 15 Pro',ipad:'Ej: iPad Pro M4',mac:'Ej: MacBook Air M3',watch:'Ej: Series 10',audio:'Ej: AirPods Pro 2',accesorio:'Ej: Funda transparente con MagSafe',otro:'Nombre del producto'};
+
+  if(categoria==='accesorio'){
+    // Para accesorios: Tipo, Color, Descripción (sin Modelo ni Estado)
+    fields.push(fg('Tipo',mkSel('ci-tipo-'+id,['Funda','Cable','Cargador','Vidrio templado','Otro'],data?.tipo||'Funda')));
+    fields.push(fg('Color',mkSel('ci-color-'+id,COLORES,data?.color||'Negro')));
+    fields.push(fg('Descripción',inp('text','ci-modelo-'+id,ph.accesorio,{value:data?.modelo||''})));
+    hidden('ci-estado-'+id,'Sellado');
+    hidden('ci-cap-'+id,data?.capacidad||'N/A');
+  }else{
+    fields.push(fg('Modelo',inp('text','ci-modelo-'+id,ph[categoria]||'Modelo',{value:data?.modelo||''})));
+    fields.push(fg('Color',mkSel('ci-color-'+id,COLORES,data?.color||'Negro')));
+    fields.push(fg('Estado',mkSel('ci-estado-'+id,['Sellado','Usado'],data?.estado||'Sellado')));
+    hidden('ci-tipo-'+id,'');
+  }
 
   if(categoria==='iphone'||categoria==='ipad'){
     fields.push(fg('Capacidad',mkSel('ci-cap-'+id,['64GB','128GB','256GB','512GB','1TB'],data?.capacidad||'128GB')));
@@ -1456,15 +1467,13 @@ function makeCompraItemEl(id,data=null,cat=null){
   }else if(categoria==='watch'){
     fields.push(fg('Tamaño',mkSel('ci-cap-'+id,['40mm','41mm','42mm','44mm','45mm','46mm','49mm'],data?.capacidad||'41mm')));
   }else if(categoria==='accesorio'){
-    fields.push(fg('Tipo',mkSel('ci-tipo-'+id,['Funda','Cable','Cargador','Vidrio templado','Otro'],data?.tipo||'Funda')));
-    hidden('ci-cap-'+id,data?.capacidad||'N/A');
+    // ya manejado arriba
   }else{
     hidden('ci-cap-'+id,data?.capacidad||'N/A');
   }
 
   if(categoria!=='mac'){hidden('ci-ram-'+id,'');hidden('ci-serie-'+id,'');hidden('ci-ciclos-'+id,'');}
   if(categoria!=='iphone'&&categoria!=='ipad'){hidden('ci-grado-'+id,'');}
-  if(categoria!=='accesorio'){hidden('ci-tipo-'+id,'');}
 
   const cantEl=inp('number','ci-cant-'+id,'1',{value:data?.cantidad||1,min:1});
   fields.push(fg('Cantidad',cantEl));
@@ -1642,11 +1651,18 @@ function makeEditCompraItemEl(id,data=null){
   hidden('eci-itemid-'+id,data?.itemId||uid());
   const btn=document.createElement('button');btn.className='btn btn-danger btn-remove-row';btn.textContent='✕';
   btn.addEventListener('click',()=>{w.remove();editCompraItems=editCompraItems.filter(i=>i!==id);});
-  const fields=[
-    fg('Modelo',inp('text','eci-modelo-'+id,'Modelo',{value:data?.modelo||''})),
-    fg('Color',mkSel('eci-color-'+id,COLORES,data?.color||'Negro')),
-    fg('Estado',mkSel('eci-estado-'+id,['Sellado','Usado'],data?.estado||'Sellado'))
-  ];
+  const fields=[];
+  if(categoria==='accesorio'){
+    fields.push(fg('Tipo',mkSel('eci-tipo-'+id,['Funda','Cable','Cargador','Vidrio templado','Otro'],data?.tipo||'Funda')));
+    fields.push(fg('Color',mkSel('eci-color-'+id,COLORES,data?.color||'Negro')));
+    fields.push(fg('Descripción',inp('text','eci-modelo-'+id,'Descripción',{value:data?.modelo||''})));
+    hidden('eci-estado-'+id,'Sellado');
+  }else{
+    fields.push(fg('Modelo',inp('text','eci-modelo-'+id,'Modelo',{value:data?.modelo||''})));
+    fields.push(fg('Color',mkSel('eci-color-'+id,COLORES,data?.color||'Negro')));
+    fields.push(fg('Estado',mkSel('eci-estado-'+id,['Sellado','Usado'],data?.estado||'Sellado')));
+    hidden('eci-tipo-'+id,'');
+  }
   if(categoria==='iphone'||categoria==='ipad'){
     fields.push(fg('Capacidad',mkSel('eci-cap-'+id,['64GB','128GB','256GB','512GB','1TB'],data?.capacidad||'128GB')));
     fields.push(fg('Grado',mkSel('eci-grado-'+id,['A+','A','A-','AB','B+'],data?.grado||'A')));
@@ -1658,14 +1674,12 @@ function makeEditCompraItemEl(id,data=null){
   }else if(categoria==='watch'){
     fields.push(fg('Tamaño',mkSel('eci-cap-'+id,['40mm','41mm','42mm','44mm','45mm','46mm','49mm'],data?.capacidad||'41mm')));
   }else if(categoria==='accesorio'){
-    fields.push(fg('Tipo',mkSel('eci-tipo-'+id,['Funda','Cable','Cargador','Vidrio templado','Otro'],data?.tipo||'Funda')));
     hidden('eci-cap-'+id,data?.capacidad||'N/A');
   }else{
     hidden('eci-cap-'+id,data?.capacidad||'N/A');
   }
   if(categoria!=='mac'){hidden('eci-ram-'+id,'');hidden('eci-serie-'+id,'');hidden('eci-ciclos-'+id,'');}
   if(categoria!=='iphone'&&categoria!=='ipad'){hidden('eci-grado-'+id,'');}
-  if(categoria!=='accesorio'){hidden('eci-tipo-'+id,'');}
   fields.push(fg('Cantidad',inp('number','eci-cant-'+id,'1',{value:data?.cantidad||1,min:1})));
   fields.push(fg('Precio c/u',inp('number','eci-precio-'+id,'0',{value:data?.precio||'',min:0,step:0.01})));
   if(categoria==='iphone'||categoria==='ipad'){
@@ -1741,8 +1755,11 @@ function addVentaItem(){
   // Color
   const fgColor=fg('Color',mkSel('vi-color-'+id,COLORES,'Negro'));
 
-  // Estado
-  const fgEstado=fg('Estado',mkSel('vi-estado-'+id,['Sellado','Usado'],'Sellado'));
+  // Estado (no aplica a accesorios)
+  let fgEstado=null;
+  if(categoria!=='accesorio'){
+    fgEstado=fg('Estado',mkSel('vi-estado-'+id,['Sellado','Usado'],'Sellado'));
+  }
 
   // Campos específicos por categoría
   const extraFields=[];
@@ -1762,7 +1779,7 @@ function addVentaItem(){
     hidden('vi-imei-'+id);hidden('vi-bat-'+id);
   }else if(categoria==='accesorio'){
     extraFields.push(fg('Tipo',mkSel('vi-tipo-'+id,['Funda','Cable','Cargador','Vidrio templado','Otro'],'Funda')));
-    hidden('vi-cap-'+id,'N/A');hidden('vi-imei-'+id);hidden('vi-bat-'+id);
+    hidden('vi-cap-'+id,'N/A');hidden('vi-imei-'+id);hidden('vi-bat-'+id);hidden('vi-estado-'+id,'Sellado');
   }else{
     hidden('vi-cap-'+id,'N/A');hidden('vi-imei-'+id);hidden('vi-bat-'+id);
   }
@@ -1785,7 +1802,14 @@ function addVentaItem(){
 
   const grid=document.createElement('div');
   grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;align-items:start';
-  [fg('Equipo (desde stock)',selEq),fgCant,fgColor,fgEstado,...extraFields,fgPrec,fg('Ganancia',ganEl),btn].forEach(f=>grid.appendChild(f));
+  let camposGrid;
+  if(categoria==='accesorio'){
+    // Para accesorios no se muestra Estado; Tipo (en extraFields) va antes de Color
+    camposGrid=[fg('Equipo (desde stock)',selEq),fgCant,...extraFields,fgColor,fgPrec,fg('Ganancia',ganEl),btn];
+  }else{
+    camposGrid=[fg('Equipo (desde stock)',selEq),fgCant,fgColor,fgEstado,...extraFields,fgPrec,fg('Ganancia',ganEl),btn];
+  }
+  camposGrid.forEach(f=>grid.appendChild(f));
   wrap.appendChild(grid);
   $('v-items-container').appendChild(wrap);
 }
@@ -2007,7 +2031,7 @@ function renderVentas(){
     const cl=S.clientes[v.clienteId];
     const mod=v.items.map(i=>'<span class="tag '+(i.estado==='Usado'?'tag-yellow':'tag-green')+'" style="margin:1px">'+i.modelo+(i.capacidad&&i.capacidad!=='N/A'?' '+i.capacidad:'')+(i.color?' · '+i.color:'')+(i.cantidad>1?' x'+i.cantidad:'')+'</span>').join(' ');
     const metStr=(v.metodos||[]).map(m=>'<span class="tag tag-blue" style="margin:1px;font-size:10px">'+m.label+'</span>').join(' ')||(v.metodo||'—');
-    rows+='<tr><td class="mono" style="font-size:11px">'+fmtD(v.fecha)+'</td><td>'+(cl?.nombre||'—')+'</td><td>'+mod+'</td><td class="mono" style="color:#0ca678">'+fmt(v.totalUSD)+'</td><td class="mono" style="color:#0ca678;font-size:11px">'+fmt(v.gananciaUSD)+'</td><td>'+(v.condicion==='fiado'?'<span class="tag tag-red">Fiado</span>':'<span class="tag tag-green">Contado</span>')+'</td><td>'+canalTag(v.canal)+'</td><td>'+metStr+'</td><td style="display:flex;gap:4px"><button class="btn btn-secondary btn-sm" data-edit-venta="'+k+'">✏️</button><button class="btn btn-danger btn-sm" data-del-venta="'+k+'">🗑</button></td></tr>';
+    rows+='<tr><td class="mono" style="font-size:11px">'+fmtD(v.fecha)+'</td><td>'+(cl?.nombre||'—')+'</td><td>'+mod+'</td><td class="mono" style="color:#0ca678">'+fmt(v.totalUSD)+'</td><td class="mono" style="color:#0ca678;font-size:11px">'+fmt(v.gananciaUSD)+'</td><td>'+(v.condicion==='fiado'?'<span class="tag tag-red">A pagar</span>':'<span class="tag tag-green">Contado</span>')+'</td><td>'+canalTag(v.canal)+'</td><td>'+metStr+'</td><td style="display:flex;gap:4px"><button class="btn btn-secondary btn-sm" data-edit-venta="'+k+'">✏️</button><button class="btn btn-danger btn-sm" data-del-venta="'+k+'">🗑</button></td></tr>';
   });
   el.innerHTML='<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Equipos</th><th>Total USD</th><th>Ganancia</th><th>Cond.</th><th>Canal</th><th>Método</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
   el.querySelectorAll('[data-edit-venta]').forEach(btn=>btn.addEventListener('click',()=>editVenta(btn.dataset.editVenta)));
