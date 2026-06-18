@@ -958,7 +958,7 @@ function checkTrial(userData){
   const start=new Date(userData.trialStart);
   const now=new Date();
   const diffHoras=(now-start)/(1000*60*60);
-  const diasRestantes=Math.ceil(5-(diffHoras/24));
+  const diasRestantes=Math.max(0,5-Math.floor(diffHoras/24));
   if(diffHoras>=5*24){
     // Trial expirado
     $('trial-expired').style.display='flex';
