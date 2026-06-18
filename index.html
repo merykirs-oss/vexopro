@@ -180,6 +180,7 @@ td,th{vertical-align:middle;padding:10px 14px}
 // Evitar zoom accidental por doble-tap en iOS Safari dentro de la app (no afecta inputs)
 document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDefault();});
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -466,23 +467,35 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 </div>
 
 <div id="page-garantias" class="page">
-  <div class="page-header"><h2>🔧 Garantías</h2></div>
-  <div id="stats-garantias" class="stats-row"></div>
-  <div class="form-card">
-    <h3>➕ Registrar Garantía</h3>
+  <div class="page-header"><h2>🛡️ Garantías</h2><p>Emití certificados de garantía al vender, y verificá su vigencia cuando un cliente reclama.</p></div>
+
+  <div class="form-card" style="background:var(--surface2)">
+    <h3 style="margin-bottom:10px">⚙️ Configuración</h3>
     <div class="form-grid">
-      <div class="form-group"><label>Fecha</label><input type="date" id="g-fecha"></div>
-      <div class="form-group"><label>Cliente</label><select id="g-cliente"><option value="">— Seleccionar —</option></select></div>
-      <div class="form-group"><label>Modelo</label><input type="text" id="g-modelo" placeholder="Ej: iPhone 14 Pro"></div>
-      <div class="form-group"><label>Capacidad</label><select id="g-cap"><option>128GB</option><option>256GB</option><option>512GB</option><option>1TB</option><option>64GB</option></select></div>
-      <div class="form-group"><label>Color</label><input type="text" id="g-color" placeholder="Ej: Negro"></div>
-      <div class="form-group"><label>IMEI</label><input type="text" id="g-imei" placeholder="15 dígitos"></div>
+      <div class="form-group"><label>Días de garantía (todas las ventas)</label><input type="number" id="gconf-dias" min="1" placeholder="Ej: 30"></div>
+      <div class="form-group" style="align-self:end"><button class="btn btn-secondary" id="btn-save-config-garantia" style="margin-bottom:2px">Guardar configuración</button></div>
     </div>
-    <div class="form-group"><label>Falla</label><input type="text" id="g-falla" placeholder="Descripción de la falla"></div>
-    <div class="form-actions"><button class="btn btn-primary" id="btn-save-garantia">Registrar</button></div>
-    <div id="g-alert"></div>
+    <div id="gconf-alert"></div>
   </div>
-  <div class="table-card"><h3>Garantías <span id="badge-garantias" class="tag tag-yellow"></span></h3><div id="tabla-garantias"></div></div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+    <div class="form-card" style="margin-bottom:0">
+      <h3>📜 Emitir Garantía</h3>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Elegí una venta de celular/dispositivo ya registrada para generar su certificado.</p>
+      <div class="form-group"><label>Venta</label><select id="emg-venta"><option value="">— Seleccionar venta —</option></select></div>
+      <div id="emg-preview" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin:10px 0;font-size:13px"></div>
+      <div class="form-actions"><button class="btn btn-primary" id="btn-emitir-garantia">📄 Emitir y descargar certificado</button></div>
+      <div id="emg-alert"></div>
+    </div>
+
+    <div class="form-card" style="margin-bottom:0">
+      <h3>🔍 Verificar Garantía</h3>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Ingresá el código del certificado para chequear su vigencia.</p>
+      <div class="form-group"><label>Código de garantía</label><input type="text" id="ver-codigo" placeholder="Ej: G0001" style="text-transform:uppercase"></div>
+      <div class="form-actions"><button class="btn btn-primary" id="btn-verificar-garantia">Verificar</button></div>
+      <div id="ver-resultado" style="margin-top:14px"></div>
+    </div>
+  </div>
 </div>
 
 <div id="page-tecnicos" class="page">
@@ -778,26 +791,6 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
   </div>
 </div>
 
-<div class="modal-overlay" id="modal-edit-garantia">
-  <div class="modal">
-    <h3>✏️ Editar Garantía</h3>
-    <input type="hidden" id="edit-g-key">
-    <div class="form-grid">
-      <div class="form-group"><label>Fecha</label><input type="date" id="edit-g-fecha"></div>
-      <div class="form-group"><label>Cliente</label><select id="edit-g-cliente"></select></div>
-      <div class="form-group"><label>Modelo</label><input type="text" id="edit-g-modelo"></div>
-      <div class="form-group"><label>Capacidad</label><select id="edit-g-cap"><option>128GB</option><option>256GB</option><option>512GB</option><option>1TB</option><option>64GB</option></select></div>
-      <div class="form-group"><label>Color</label><input type="text" id="edit-g-color"></div>
-      <div class="form-group"><label>IMEI</label><input type="text" id="edit-g-imei"></div>
-    </div>
-    <div class="form-group"><label>Falla</label><input type="text" id="edit-g-falla"></div>
-    <div class="modal-actions">
-      <button class="btn btn-secondary" id="btn-cerrar-edit-garantia">Cancelar</button>
-      <button class="btn btn-primary" id="btn-guardar-edit-garantia">Guardar</button>
-    </div>
-  </div>
-</div>
-
 <div class="modal-overlay" id="modal-edit-tecnico">
   <div class="modal">
     <h3>✏️ Editar Técnico</h3>
@@ -835,7 +828,7 @@ const db = getDatabase(app);
 signOut(auth).catch(()=>{});
 
 // ─── STATE ───────────────────────────────────────────────────
-let S = {compras:{},ventas:{},clientes:{},garantias:{},tecnicos:{},reparaciones:{},pagos:{},pagosProveedores:{},proveedores:{},caja:{},costos:{},locales:{}};
+let S = {compras:{},ventas:{},clientes:{},garantias:{},tecnicos:{},reparaciones:{},pagos:{},pagosProveedores:{},proveedores:{},caja:{},costos:{},locales:{},config:{}};
 let cajaFiltro='hoy';
 let cajaMoneda='USD';
 let costosFiltro='actual';
@@ -1007,7 +1000,8 @@ function initApp(){
   onValue(dbRef('compras'),s=>{S.compras=s.val()||{};renderCompras();renderStock();renderInicio();renderCCProveedores();});
   onValue(dbRef('ventas'),s=>{S.ventas=s.val()||{};renderVentas();renderStock();renderCC();renderInicio();renderClientes();});
   onValue(dbRef('clientes'),s=>{S.clientes=s.val()||{};renderClientes();refreshClienteSelects();});
-  onValue(dbRef('garantias'),s=>{S.garantias=s.val()||{};renderGarantias();refreshRepSelects();migrarCodigosGarantias();});
+  onValue(dbRef('garantias'),s=>{S.garantias=s.val()||{};refreshRepSelects();refreshEmitirGarantiaSelect();});
+  onValue(dbRef('config'),s=>{S.config=s.val()||{};if($('gconf-dias'))$('gconf-dias').value=diasGarantiaConfigurados();});
   onValue(dbRef('tecnicos'),s=>{S.tecnicos=s.val()||{};renderTecnicos();refreshRepSelects();});
   onValue(dbRef('reparaciones'),s=>{S.reparaciones=s.val()||{};renderTecnicos();});
   onValue(dbRef('pagos'),s=>{S.pagos=s.val()||{};renderCC();});
@@ -1020,7 +1014,7 @@ function initApp(){
   fetchDolar();
   setInterval(fetchDolar,5*60*1000);
   $('fecha-hoy').textContent=new Date().toLocaleDateString('es-AR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  $('c-fecha').value=today();$('v-fecha').value=today();$('g-fecha').value=today();$('rep-fecha').value=today();
+  $('c-fecha').value=today();$('v-fecha').value=today();$('rep-fecha').value=today();
 
   // Nav
   document.querySelectorAll('nav button[data-page]').forEach(btn=>{
@@ -1091,7 +1085,11 @@ function initApp(){
   $('btn-save-cliente').addEventListener('click',saveCliente);
 
   // Botones garantias
-  $('btn-save-garantia').addEventListener('click',saveGarantia);
+  $('btn-save-config-garantia').addEventListener('click',saveConfigGarantia);
+  $('emg-venta').addEventListener('change',mostrarPreviewGarantia);
+  $('btn-emitir-garantia').addEventListener('click',emitirGarantia);
+  $('btn-verificar-garantia').addEventListener('click',verificarGarantia);
+  $('ver-codigo').addEventListener('keydown',e=>{if(e.key==='Enter')verificarGarantia();});
 
   // Botones tecnicos
   $('btn-save-tecnico').addEventListener('click',saveTecnico);
@@ -1131,10 +1129,6 @@ function initApp(){
   // Modal editar cliente
   $('btn-cerrar-edit-cliente').addEventListener('click',()=>closeModal('modal-edit-cliente'));
   $('btn-guardar-edit-cliente').addEventListener('click',guardarEditCliente);
-
-  // Modal editar garantia
-  $('btn-cerrar-edit-garantia').addEventListener('click',()=>closeModal('modal-edit-garantia'));
-  $('btn-guardar-edit-garantia').addEventListener('click',guardarEditGarantia);
 
   // Modal editar tecnico
   $('btn-cerrar-edit-tecnico').addEventListener('click',()=>closeModal('modal-edit-tecnico'));
@@ -1237,7 +1231,7 @@ function showPage(name){
   if(name==='ventas'){renderVentas();refreshClienteSelects();}
   if(name==='stock')renderStock();
   if(name==='cuentacorriente')renderCC();
-  if(name==='garantias'){renderGarantias();refreshClienteSelects();}
+  if(name==='garantias'){refreshEmitirGarantiaSelect();$('gconf-dias').value=diasGarantiaConfigurados();}
   if(name==='tecnicos'){renderTecnicos();refreshRepSelects();}
   if(name==='proveedores')renderProveedores();
   if(name==='cc-proveedores')renderCCProveedores();
@@ -1273,14 +1267,14 @@ function renderInicio(){
   const um=vm.reduce((s,v)=>s+v.items.reduce((a,i)=>a+(i.cantidad||1),0),0);
   const tp=vm.length?tv/vm.length:0;
   const sd=calcStockDisp();
-  const gp=Object.values(S.garantias).filter(g=>g.estado==='pendiente').length;
+  const gp=Object.values(S.garantias).filter(g=>g.fechaVencimiento>=today()).length;
   $('stats-inicio').innerHTML=
     '<div class="stat-card sc-green"><div class="lbl">Ventas del mes</div><div class="val">'+fmt(tv)+'</div><div class="sub">'+vm.length+' transacciones</div></div>'+
     '<div class="stat-card sc-green"><div class="lbl">Ganancia del mes</div><div class="val">'+fmt(gm)+'</div></div>'+
     '<div class="stat-card sc-blue"><div class="lbl">Unidades vendidas</div><div class="val">'+um+'</div><div class="sub">este mes</div></div>'+
     '<div class="stat-card sc-yellow"><div class="lbl">Ticket promedio</div><div class="val">'+fmt(tp)+'</div></div>'+
     '<div class="stat-card sc-purple"><div class="lbl">Stock disponible</div><div class="val">'+sd+'</div></div>'+
-    '<div class="stat-card sc-red"><div class="lbl">Garantías pend.</div><div class="val">'+gp+'</div></div>';
+    '<div class="stat-card sc-blue"><div class="lbl">Garantías vigentes</div><div class="val">'+gp+'</div></div>';
   const uv=Object.entries(S.ventas).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||'')).slice(0,5);
   const elUV=$('tabla-ultimas-ventas');
   if(!uv.length){elUV.innerHTML='<div class="empty-state"><div class="big">🛒</div><p>Sin ventas.</p></div>';}
@@ -2164,7 +2158,7 @@ function renderStock(){
 
 // ─── CLIENTES ────────────────────────────────────────────────
 function refreshClienteSelects(){
-  const ids=['v-cliente','g-cliente','edit-g-cliente'];
+  const ids=['v-cliente'];
   ids.forEach(id=>{
     const sel=$(id);if(!sel)return;
     const cur=sel.value;
@@ -2764,29 +2758,11 @@ function guardarPago(){
 }
 
 // ─── GARANTIAS ───────────────────────────────────────────────
-// Asigna códigos retroactivamente a garantías viejas que no tienen (una sola vez, en orden cronológico)
-let migracionGarantiasEnCurso=false;
-function migrarCodigosGarantias(){
-  if(migracionGarantiasEnCurso)return;
-  const sinCodigo=Object.entries(S.garantias).filter(([,g])=>!g.codigo);
-  if(!sinCodigo.length)return;
-  migracionGarantiasEnCurso=true;
-  // Ordenar por fecha cronológica para que los códigos respeten el orden real en que se cargaron
-  sinCodigo.sort((a,b)=>(a[1].fecha||'').localeCompare(b[1].fecha||''));
-  let siguiente=generarCodigoGarantia();
-  const promesas=sinCodigo.map(([k])=>{
-    const codigoAsignado=siguiente;
-    const letra=siguiente.charAt(0),num=parseInt(siguiente.slice(1),10);
-    siguiente=num>=9999?String.fromCharCode(letra.charCodeAt(0)+1)+'0001':letra+String(num+1).padStart(4,'0');
-    return update(dbRef('garantias/'+k),{codigo:codigoAsignado});
-  });
-  Promise.all(promesas).finally(()=>{migracionGarantiasEnCurso=false;});
-}
-// Genera el siguiente código alfanumérico para garantías: A0001, A0002... A9999, B0001...
+const CATEGORIAS_CON_GARANTIA=['iphone','ipad','mac','watch']; // solo dispositivos, no accesorios ni "otro"
+// Genera el siguiente código alfanumérico para garantías: G0001, G0002... G9999, H0001...
 function generarCodigoGarantia(){
   const codigos=Object.values(S.garantias).map(g=>g.codigo).filter(Boolean);
-  if(!codigos.length)return'A0001';
-  // Tomar el código más alto (orden alfabético-numérico funciona porque la letra pesa más que los dígitos)
+  if(!codigos.length)return'G0001';
   const max=codigos.sort().at(-1);
   const letra=max.charAt(0);
   const num=parseInt(max.slice(1),10);
@@ -2796,65 +2772,235 @@ function generarCodigoGarantia(){
   }
   return letra+String(num+1).padStart(4,'0');
 }
-function saveGarantia(){
-  const fecha=$('g-fecha').value,clienteId=$('g-cliente').value,modelo=$('g-modelo').value.trim();
-  const capacidad=$('g-cap').value,color=$('g-color').value.trim(),imei=$('g-imei').value.trim(),falla=$('g-falla').value.trim();
-  if(!fecha||!clienteId||!modelo||!falla){showAlert('g-alert','Completá todos los campos obligatorios',false);return;}
-  const codigo=generarCodigoGarantia();
-  push(dbRef('garantias'),{fecha,clienteId,modelo,capacidad,color,imei,falla,estado:'pendiente',codigo})
-    .then(()=>{showAlert('g-alert','✅ Registrada con código '+codigo);$('g-modelo').value='';$('g-color').value='';$('g-imei').value='';$('g-falla').value='';})
-    .catch(()=>showAlert('g-alert','Error',false));
+function sumarDias(fechaISO,dias){
+  const d=new Date(fechaISO+'T00:00:00');
+  d.setDate(d.getDate()+dias);
+  return d.toISOString().slice(0,10);
 }
-function renderGarantias(){
-  const vals=Object.values(S.garantias);
-  $('stats-garantias').innerHTML=
-    '<div class="stat-card sc-red"><div class="lbl">Pendientes</div><div class="val">'+vals.filter(g=>g.estado==='pendiente').length+'</div></div>'+
-    '<div class="stat-card sc-yellow"><div class="lbl">En reparación</div><div class="val">'+vals.filter(g=>g.estado==='en_reparacion').length+'</div></div>'+
-    '<div class="stat-card sc-green"><div class="lbl">Resueltos</div><div class="val">'+vals.filter(g=>g.estado==='resuelto').length+'</div></div>';
-  $('badge-garantias').textContent=vals.length;
-  const el=$('tabla-garantias');
-  const ent=Object.entries(S.garantias).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||''));
-  if(!ent.length){el.innerHTML='<div class="empty-state"><div class="big">🔧</div><p>Sin garantías.</p></div>';return;}
-  let rows='';
-  ent.forEach(([k,g])=>{
-    const cl=S.clientes[g.clienteId];
-    rows+='<tr><td><span class="tag tag-purple" style="font-family:var(--mono);font-weight:700">'+(g.codigo||'—')+'</span></td><td class="mono" style="font-size:11px">'+fmtD(g.fecha)+'</td><td>'+(cl?.nombre||'—')+'</td><td><strong>'+g.modelo+'</strong> <span class="tag tag-blue">'+g.capacidad+'</span></td><td>'+(g.color||'—')+'</td><td style="font-family:var(--mono);font-size:11px;color:var(--text2)">'+(g.imei||'—')+'</td><td style="font-size:12px;color:var(--red);max-width:160px">'+g.falla+'</td><td data-toggle-garantia="'+k+'" style="cursor:pointer">'+estadoGTag(g.estado)+'</td><td style="display:flex;gap:4px"><button class="btn btn-secondary btn-sm" data-edit-g="'+k+'">✏️</button><button class="btn btn-danger btn-sm" data-del-g="'+k+'">🗑</button></td></tr>';
+function diasGarantiaConfigurados(){
+  return (S.config&&S.config.diasGarantia)?S.config.diasGarantia:30;
+}
+function saveConfigGarantia(){
+  const dias=parseInt($('gconf-dias').value);
+  if(!dias||dias<=0){showAlert('gconf-alert','Ingresá una cantidad de días válida',false);return;}
+  update(dbRef('config'),{diasGarantia:dias})
+    .then(()=>showAlert('gconf-alert','✅ Configuración guardada: '+dias+' días de garantía'))
+    .catch(()=>showAlert('gconf-alert','Error al guardar',false));
+}
+// Llena el selector de ventas elegibles para emitir garantía (solo ventas con categoría de dispositivo)
+function refreshEmitirGarantiaSelect(){
+  const sel=$('emg-venta');if(!sel)return;
+  const actual=sel.value;
+  sel.innerHTML='<option value="">— Seleccionar venta —</option>';
+  Object.entries(S.ventas).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||'')).forEach(([k,v])=>{
+    const itemsConGarantia=v.items.filter(i=>CATEGORIAS_CON_GARANTIA.includes(i.categoria||'iphone'));
+    if(!itemsConGarantia.length)return;
+    const cl=S.clientes[v.clienteId];
+    const yaEmitida=Object.values(S.garantias).some(g=>g.ventaId===k);
+    const mod=itemsConGarantia.map(i=>i.modelo).join(', ');
+    sel.innerHTML+='<option value="'+k+'"'+(k===actual?' selected':'')+(yaEmitida?' disabled':'')+'>'+fmtD(v.fecha)+' — '+(cl?.nombre||'?')+' — '+mod+(yaEmitida?' (ya tiene garantía)':'')+'</option>';
   });
-  el.innerHTML='<table><thead><tr><th>Código</th><th>Fecha</th><th>Cliente</th><th>Equipo</th><th>Color</th><th>IMEI</th><th>Falla</th><th>Estado</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
-  el.querySelectorAll('[data-toggle-garantia]').forEach(td=>td.addEventListener('click',()=>{
-    const k=td.dataset.toggleGarantia;const g=S.garantias[k];if(!g)return;
-    const est=['pendiente','en_reparacion','resuelto'];
-    update(dbRef('garantias/'+k),{estado:est[(est.indexOf(g.estado)+1)%est.length]});
-  }));
-  el.querySelectorAll('[data-edit-g]').forEach(btn=>btn.addEventListener('click',()=>editGarantia(btn.dataset.editG)));
-  el.querySelectorAll('[data-del-g]').forEach(btn=>btn.addEventListener('click',()=>{if(confirm('¿Eliminar?'))remove(dbRef('garantias/'+btn.dataset.delG));}));
 }
-function estadoGTag(e){
-  if(e==='pendiente')return'<span class="tag tag-red">Pendiente</span>';
-  if(e==='en_reparacion')return'<span class="tag tag-yellow">En reparación</span>';
-  return'<span class="tag tag-green">Resuelto</span>';
+function mostrarPreviewGarantia(){
+  const vk=$('emg-venta').value;
+  const box=$('emg-preview');
+  if(!vk){box.style.display='none';return;}
+  const v=S.ventas[vk];if(!v){box.style.display='none';return;}
+  const cl=S.clientes[v.clienteId];
+  const item=v.items.find(i=>CATEGORIAS_CON_GARANTIA.includes(i.categoria||'iphone'));
+  const dias=diasGarantiaConfigurados();
+  const vencimiento=sumarDias(v.fecha,dias);
+  box.style.display='block';
+  box.innerHTML='<strong>Cliente:</strong> '+(cl?.nombre||'—')+'<br>'+
+    '<strong>Equipo:</strong> '+(item?item.modelo+(item.capacidad&&item.capacidad!=='N/A'?' '+item.capacidad:'')+(item.color?' · '+item.color:''):'—')+'<br>'+
+    (item?.imei?'<strong>IMEI:</strong> '+item.imei+'<br>':'')+
+    '<strong>Fecha de compra:</strong> '+fmtD(v.fecha)+'<br>'+
+    '<strong>Vence el:</strong> '+fmtD(vencimiento)+' ('+dias+' días)';
 }
-function editGarantia(k){
-  const g=S.garantias[k];if(!g)return;
-  $('edit-g-key').value=k;$('edit-g-fecha').value=g.fecha;$('edit-g-modelo').value=g.modelo||'';
-  $('edit-g-cap').value=g.capacidad||'128GB';$('edit-g-color').value=g.color||'';$('edit-g-imei').value=g.imei||'';$('edit-g-falla').value=g.falla||'';
-  const sel=$('edit-g-cliente');sel.innerHTML='<option value="">— Seleccionar —</option>';
-  Object.entries(S.clientes).forEach(([k2,cl])=>sel.innerHTML+='<option value="'+k2+'"'+(k2===g.clienteId?' selected':'')+'>'+cl.nombre+'</option>');
-  openModal('modal-edit-garantia');
+async function emitirGarantia(){
+  const vk=$('emg-venta').value;
+  if(!vk){showAlert('emg-alert','Elegí una venta',false);return;}
+  const v=S.ventas[vk];if(!v){showAlert('emg-alert','Venta no encontrada',false);return;}
+  const yaEmitida=Object.entries(S.garantias).find(([,g])=>g.ventaId===vk);
+  const cl=S.clientes[v.clienteId];
+  const item=v.items.find(i=>CATEGORIAS_CON_GARANTIA.includes(i.categoria||'iphone'));
+  if(!item){showAlert('emg-alert','Esta venta no incluye un dispositivo con garantía',false);return;}
+  const dias=diasGarantiaConfigurados();
+  const vencimiento=sumarDias(v.fecha,dias);
+
+  let codigo,key;
+  if(yaEmitida){
+    // Ya existe: re-descargar el mismo certificado sin duplicar
+    key=yaEmitida[0];codigo=yaEmitida[1].codigo;
+  }else{
+    codigo=generarCodigoGarantia();
+    const ref=await push(dbRef('garantias'),{
+      codigo,ventaId:vk,clienteId:v.clienteId,
+      modelo:item.modelo,capacidad:item.capacidad||'',color:item.color||'',imei:item.imei||'',
+      fechaCompra:v.fecha,fechaVencimiento:vencimiento,dias
+    });
+    key=ref.key;
+  }
+  showAlert('emg-alert','✅ Garantía '+codigo+' lista. Generando PDF...');
+  generarCertificadoPDF({codigo,cliente:cl,item,fechaCompra:v.fecha,vencimiento,dias});
+  refreshEmitirGarantiaSelect();
+  refreshRepSelects();
 }
-function guardarEditGarantia(){
-  const k=$('edit-g-key').value;
-  update(dbRef('garantias/'+k),{fecha:$('edit-g-fecha').value,clienteId:$('edit-g-cliente').value,modelo:$('edit-g-modelo').value.trim(),capacidad:$('edit-g-cap').value,color:$('edit-g-color').value.trim(),imei:$('edit-g-imei').value.trim(),falla:$('edit-g-falla').value.trim()})
-    .then(()=>closeModal('modal-edit-garantia'));
+function verificarGarantia(){
+  const codigo=$('ver-codigo').value.trim().toUpperCase();
+  const el=$('ver-resultado');
+  if(!codigo){el.innerHTML='';return;}
+  const entry=Object.entries(S.garantias).find(([,g])=>(g.codigo||'').toUpperCase()===codigo);
+  if(!entry){
+    el.innerHTML='<div style="background:#fdf2f2;border:1px solid #f5c6c6;border-radius:10px;padding:16px;text-align:center"><div style="font-size:28px;margin-bottom:4px">⚠️</div><div style="font-weight:700;color:#b13c3c;font-size:15px">La garantía no existe</div><div style="font-size:12px;color:#b13c3c;opacity:0.8;margin-top:4px">Revisá que el código esté bien escrito.</div></div>';
+    return;
+  }
+  const [,g]=entry;
+  const cl=S.clientes[g.clienteId];
+  const hoy=today();
+  const vigente=hoy<=g.fechaVencimiento;
+  const diasRest=Math.ceil((new Date(g.fechaVencimiento+'T00:00:00')-new Date(hoy+'T00:00:00'))/(1000*60*60*24));
+  if(vigente){
+    el.innerHTML='<div style="background:#f0faf5;border:1px solid #2d7a4f;border-radius:10px;padding:16px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:24px">✅</span><span style="font-weight:700;color:#2d7a4f;font-size:15px">Garantía VIGENTE</span></div>'+
+      '<div style="font-size:13px;color:var(--text2);line-height:1.6">'+
+      '<strong>Código:</strong> '+g.codigo+'<br>'+
+      '<strong>Cliente:</strong> '+(cl?.nombre||'—')+'<br>'+
+      '<strong>Equipo:</strong> '+g.modelo+(g.capacidad&&g.capacidad!=='N/A'?' '+g.capacidad:'')+(g.color?' · '+g.color:'')+'<br>'+
+      (g.imei?'<strong>IMEI:</strong> '+g.imei+'<br>':'')+
+      '<strong>Comprado:</strong> '+fmtD(g.fechaCompra)+' · <strong>Vence:</strong> '+fmtD(g.fechaVencimiento)+'<br>'+
+      '<span style="color:#2d7a4f;font-weight:600">Quedan '+diasRest+' día'+(diasRest===1?'':'s')+'</span></div></div>';
+  }else{
+    el.innerHTML='<div style="background:#fdf2f2;border:1px solid #f5c6c6;border-radius:10px;padding:16px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:24px">❌</span><span style="font-weight:700;color:#b13c3c;font-size:15px">Garantía VENCIDA</span></div>'+
+      '<div style="font-size:13px;color:var(--text2);line-height:1.6">'+
+      '<strong>Código:</strong> '+g.codigo+'<br>'+
+      '<strong>Cliente:</strong> '+(cl?.nombre||'—')+'<br>'+
+      '<strong>Equipo:</strong> '+g.modelo+(g.capacidad&&g.capacidad!=='N/A'?' '+g.capacidad:'')+'<br>'+
+      '<strong>Venció el:</strong> '+fmtD(g.fechaVencimiento)+'</div></div>';
+  }
+}
+// Genera y descarga el certificado de garantía en PDF con diseño prolijo, usando jsPDF
+function generarCertificadoPDF({codigo,cliente,item,fechaCompra,vencimiento,dias}){
+  if(typeof jspdf==='undefined'){alert('No se pudo cargar el generador de PDF. Revisá tu conexión a internet e intentá de nuevo.');return;}
+  const{jsPDF}=jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const verde=[45,122,79],verdeClaro=[240,250,245],gris=[90,100,95],negro=[26,46,36];
+  const pageW=210;
+
+  // Encabezado con franja verde
+  doc.setFillColor(...verde);
+  doc.rect(0,0,pageW,38,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(22);
+  doc.text('VexoPRO',20,20);
+  doc.setFontSize(11);
+  doc.setFont('helvetica','normal');
+  doc.text('Certificado de Garantía',20,29);
+
+  // Título central
+  doc.setTextColor(...negro);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(18);
+  doc.text('CERTIFICADO DE GARANTÍA',pageW/2,55,{align:'center'});
+
+  // Código destacado en caja
+  doc.setFillColor(...verdeClaro);
+  doc.roundedRect(70,62,70,16,3,3,'F');
+  doc.setTextColor(...verde);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(20);
+  doc.text(codigo,pageW/2,72.5,{align:'center'});
+
+  // Datos del cliente
+  let y=92;
+  doc.setTextColor(...negro);
+  doc.setFontSize(12);
+  doc.setFont('helvetica','bold');
+  doc.text('Datos del cliente',20,y);
+  doc.setDrawColor(...verde);
+  doc.line(20,y+2,190,y+2);
+  y+=10;
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(11);
+  doc.setTextColor(...gris);
+  doc.text('Nombre:',20,y);
+  doc.setTextColor(...negro);
+  doc.text(cliente?.nombre||'—',55,y);
+  y+=8;
+  if(cliente?.dni){
+    doc.setTextColor(...gris);doc.text('DNI:',20,y);
+    doc.setTextColor(...negro);doc.text(cliente.dni,55,y);
+    y+=8;
+  }
+  if(cliente?.tel){
+    doc.setTextColor(...gris);doc.text('Teléfono:',20,y);
+    doc.setTextColor(...negro);doc.text(cliente.tel,55,y);
+    y+=8;
+  }
+
+  // Datos del equipo
+  y+=6;
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(12);
+  doc.setTextColor(...negro);
+  doc.text('Datos del equipo',20,y);
+  doc.setDrawColor(...verde);
+  doc.line(20,y+2,190,y+2);
+  y+=10;
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(11);
+  const det=[
+    ['Modelo:',item.modelo+(item.capacidad&&item.capacidad!=='N/A'?' '+item.capacidad:'')],
+    item.color?['Color:',item.color]:null,
+    item.imei?['IMEI:',item.imei]:null,
+    item.grado?['Grado:',item.grado]:null,
+  ].filter(Boolean);
+  det.forEach(([label,val])=>{
+    doc.setTextColor(...gris);doc.text(label,20,y);
+    doc.setTextColor(...negro);doc.text(String(val),55,y);
+    y+=8;
+  });
+
+  // Vigencia
+  y+=6;
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(12);
+  doc.setTextColor(...negro);
+  doc.text('Vigencia',20,y);
+  doc.setDrawColor(...verde);
+  doc.line(20,y+2,190,y+2);
+  y+=10;
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(11);
+  doc.setTextColor(...gris);doc.text('Fecha de compra:',20,y);
+  doc.setTextColor(...negro);doc.text(fmtD(fechaCompra),65,y);
+  y+=8;
+  doc.setTextColor(...gris);doc.text('Días de garantía:',20,y);
+  doc.setTextColor(...negro);doc.text(dias+' días',65,y);
+  y+=8;
+  doc.setTextColor(...gris);doc.text('Válida hasta:',20,y);
+  doc.setFont('helvetica','bold');
+  doc.setTextColor(...verde);
+  doc.text(fmtD(vencimiento),65,y);
+
+  // Pie de página
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(9);
+  doc.setTextColor(...gris);
+  doc.text('Para verificar la vigencia de esta garantía, comunicate con nosotros indicando el código '+codigo+'.',20,270);
+  doc.text('Este certificado es válido únicamente junto con el comprobante de compra original.',20,276);
+
+  doc.save('Garantia_'+codigo+'.pdf');
 }
 
 // ─── TÉCNICOS ────────────────────────────────────────────────
 function refreshRepSelects(){
   const sG=$('rep-garantia');if(!sG)return;
   const cG=sG.value;sG.innerHTML='<option value="">— Seleccionar equipo —</option>';
-  Object.entries(S.garantias).filter(([,g])=>g.estado!=='resuelto').forEach(([k,g])=>{
+  const hoy=today();
+  Object.entries(S.garantias).filter(([,g])=>g.fechaVencimiento>=hoy).forEach(([k,g])=>{
     const cl=S.clientes[g.clienteId];
-    sG.innerHTML+='<option value="'+k+'"'+(k===cG?' selected':'')+'>'+g.modelo+' '+g.capacidad+' — '+(cl?.nombre||'?')+' ('+((g.falla||'').slice(0,20))+')</option>';
+    sG.innerHTML+='<option value="'+k+'"'+(k===cG?' selected':'')+'>'+(g.codigo||'?')+' — '+g.modelo+' '+(g.capacidad||'')+' — '+(cl?.nombre||'?')+'</option>';
   });
   const sT=$('rep-tecnico');if(!sT)return;
   const cT=sT.value;sT.innerHTML='<option value="">— Seleccionar técnico —</option>';
@@ -2896,7 +3042,7 @@ function renderTecnicos(){
       const g=S.garantias[r.garantiaId],t=S.tecnicos[r.tecnicoId],cl=g?S.clientes[g.clienteId]:null;
       const est=r.estado||'enviado';
       const estOpts=Object.entries(REP_ESTADOS).map(([v,lbl])=>'<option value="'+v+'"'+(v===est?' selected':'')+'>'+lbl+'</option>').join('');
-      rows+='<tr><td class="mono" style="font-size:11px">'+fmtD(r.fecha)+'</td><td>'+(g?'<strong>'+g.modelo+'</strong> <span class="tag tag-blue">'+g.capacidad+'</span>':'—')+'</td><td>'+(cl?.nombre||'—')+'</td><td>'+(t?.nombre||'—')+'</td><td class="mono" style="color:var(--red)">'+fmt(r.costo)+'</td><td><select class="rep-estado-sel" data-rep-key="'+k+'" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font-size:12px;font-family:var(--sans)">'+estOpts+'</select></td><td style="font-size:12px;color:var(--text2)">'+( r.notas||'—')+'</td><td><button class="btn btn-danger btn-sm" data-del-rep="'+k+'">🗑</button></td></tr>';
+      rows+='<tr><td class="mono" style="font-size:11px">'+fmtD(r.fecha)+'</td><td>'+(g?'<span class="tag tag-purple" style="font-size:10px">'+g.codigo+'</span> <strong>'+g.modelo+'</strong> <span class="tag tag-blue">'+g.capacidad+'</span>':'—')+'</td><td>'+(cl?.nombre||'—')+'</td><td>'+(t?.nombre||'—')+'</td><td class="mono" style="color:var(--red)">'+fmt(r.costo)+'</td><td><select class="rep-estado-sel" data-rep-key="'+k+'" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font-size:12px;font-family:var(--sans)">'+estOpts+'</select></td><td style="font-size:12px;color:var(--text2)">'+( r.notas||'—')+'</td><td><button class="btn btn-danger btn-sm" data-del-rep="'+k+'">🗑</button></td></tr>';
     });
     elR.innerHTML='<table><thead><tr><th>Fecha</th><th>Equipo</th><th>Cliente</th><th>Técnico</th><th>Costo</th><th>Estado</th><th>Notas</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
     elR.querySelectorAll('.rep-estado-sel').forEach(sel=>sel.addEventListener('change',()=>update(dbRef('reparaciones/'+sel.dataset.repKey),{estado:sel.value})));
