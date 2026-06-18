@@ -269,6 +269,9 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     <button id="nav-cc-proveedores" data-page="cc-proveedores">📑 Cta. Cte. Proveedores</button>
     <button id="nav-caja" data-page="caja">💵 Caja</button>
     <button id="nav-costos" data-page="costos">📋 Costos</button>
+    <div class="nav-sep">Puntos de Venta</div>
+    <div id="nav-locales-container"></div>
+    <button id="nav-gestion-locales" data-page="gestion-locales">⚙️ Gestionar locales</button>
     <div class="nav-sep">Análisis</div>
     <button id="nav-informes" data-page="informes">📈 Informes</button>
   </nav>
@@ -315,6 +318,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     <div class="form-grid">
       <div class="form-group"><label>Fecha de entrega (estimada)</label><input type="date" id="c-fecha-entrega"></div>
       <div class="form-group"><label>Estado de la mercadería</label><select id="c-estado-entrega"><option value="en_camino">🚚 En camino</option><option value="recibido">✅ Recibido en local/depósito</option></select></div>
+      <div class="form-group"><label>Punto de venta</label><select id="c-local"></select></div>
     </div>
     <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px">Categoría de Producto</div>
     <div class="cat-selector" id="c-cat-selector">
@@ -369,11 +373,13 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
       </div>
       <div class="form-group"><label>Condición</label><select id="v-condicion"><option value="contado">Contado</option><option value="fiado">A pagar (cta cte)</option></select></div>
       <div class="form-group"><label>Canal</label><select id="v-canal"><option value="local">🏪 Local</option><option value="online">🌐 Online</option><option value="mayorista">📦 Mayorista</option></select></div>
+      <div class="form-group"><label>Punto de venta</label><select id="v-local"></select></div>
     </div>
     <div id="v-nuevo-cliente-box" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:14px">
       <div style="font-size:11px;color:var(--accent);font-weight:600;margin-bottom:10px">NUEVO CLIENTE</div>
       <div class="form-grid">
         <div class="form-group"><label>Nombre *</label><input type="text" id="v-nuevo-nombre" placeholder="Nombre completo"></div>
+        <div class="form-group"><label>DNI</label><input type="text" id="v-nuevo-dni" placeholder="Opcional"></div>
         <div class="form-group"><label>Teléfono</label><input type="text" id="v-nuevo-tel" placeholder="Opcional"></div>
         <div class="form-group"><label>Email</label><input type="email" id="v-nuevo-email" placeholder="Opcional"></div>
         <div class="form-group"><label>Tipo</label><select id="v-nuevo-tipo"><option value="minorista">Minorista</option><option value="mayorista">Mayorista</option></select></div>
@@ -424,6 +430,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     <h3>➕ Nuevo Cliente</h3>
     <div class="form-grid">
       <div class="form-group"><label>Nombre *</label><input type="text" id="cl-nombre" placeholder="Nombre completo"></div>
+      <div class="form-group"><label>DNI</label><input type="text" id="cl-dni" placeholder="Opcional"></div>
       <div class="form-group"><label>Teléfono</label><input type="text" id="cl-tel"></div>
       <div class="form-group"><label>Email</label><input type="email" id="cl-email"></div>
       <div class="form-group"><label>Tipo</label><select id="cl-tipo"><option value="minorista">Minorista</option><option value="mayorista">Mayorista</option></select></div>
@@ -594,6 +601,42 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
   <div class="table-card"><h3>Costos registrados <span id="badge-costos" class="tag tag-red"></span></h3><div id="tabla-costos"></div></div>
 </div>
 
+<div id="page-gestion-locales" class="page">
+  <div class="page-header"><h2>⚙️ Gestionar Puntos de Venta</h2><p>Creá tus locales (físicos u online) para organizar ventas, compras y stock de cada uno por separado.</p></div>
+  <div class="form-card">
+    <div class="form-grid">
+      <div class="form-group"><label>Nombre del local</label><input type="text" id="loc-nombre" placeholder="Ej: Local Devoto, Local Palermo, Online..."></div>
+      <div class="form-group"><label>Ícono</label><select id="loc-icono">
+        <option value="🏬">🏬 Local / Sucursal</option>
+        <option value="🛍️">🛍️ Tienda</option>
+        <option value="💻">💻 Online</option>
+        <option value="📦">📦 Depósito</option>
+        <option value="🚚">🚚 Móvil / Delivery</option>
+        <option value="🏠">🏠 Casa / Oficina</option>
+      </select></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" id="btn-save-local">＋ Crear punto de venta</button>
+    </div>
+    <div id="loc-alert"></div>
+  </div>
+  <div class="table-card"><h3>Tus puntos de venta <span id="badge-locales" class="tag tag-blue"></span></h3><div id="tabla-locales"></div></div>
+</div>
+
+<div id="page-plantilla-local" class="page page-local">
+  <div class="page-header">
+    <h2 id="pl-titulo">🏬 Local</h2>
+    <p>Ventas, compras y stock de este punto de venta.</p>
+  </div>
+  <div id="stats-local" class="stats-row" style="margin-bottom:24px"></div>
+  <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap">
+    <button class="btn btn-secondary btn-sm pl-tab active-filter" data-tab="ventas">🛒 Ventas</button>
+    <button class="btn btn-secondary btn-sm pl-tab" data-tab="compras">📦 Compras</button>
+    <button class="btn btn-secondary btn-sm pl-tab" data-tab="stock">📊 Stock</button>
+  </div>
+  <div id="pl-contenido"></div>
+</div>
+
 <div id="page-informes" class="page">
   <div class="page-header"><h2>📈 Informes</h2><p>Panorama general del negocio y comparación entre meses.</p></div>
 
@@ -723,6 +766,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     <input type="hidden" id="edit-cl-key">
     <div class="form-grid">
       <div class="form-group"><label>Nombre</label><input type="text" id="edit-cl-nombre"></div>
+      <div class="form-group"><label>DNI</label><input type="text" id="edit-cl-dni"></div>
       <div class="form-group"><label>Teléfono</label><input type="text" id="edit-cl-tel"></div>
       <div class="form-group"><label>Email</label><input type="email" id="edit-cl-email"></div>
       <div class="form-group"><label>Tipo</label><select id="edit-cl-tipo"><option value="minorista">Minorista</option><option value="mayorista">Mayorista</option></select></div>
@@ -791,7 +835,7 @@ const db = getDatabase(app);
 signOut(auth).catch(()=>{});
 
 // ─── STATE ───────────────────────────────────────────────────
-let S = {compras:{},ventas:{},clientes:{},garantias:{},tecnicos:{},reparaciones:{},pagos:{},pagosProveedores:{},proveedores:{},caja:{},costos:{}};
+let S = {compras:{},ventas:{},clientes:{},garantias:{},tecnicos:{},reparaciones:{},pagos:{},pagosProveedores:{},proveedores:{},caja:{},costos:{},locales:{}};
 let cajaFiltro='hoy';
 let cajaMoneda='USD';
 let costosFiltro='actual';
@@ -963,12 +1007,13 @@ function initApp(){
   onValue(dbRef('compras'),s=>{S.compras=s.val()||{};renderCompras();renderStock();renderInicio();renderCCProveedores();});
   onValue(dbRef('ventas'),s=>{S.ventas=s.val()||{};renderVentas();renderStock();renderCC();renderInicio();renderClientes();});
   onValue(dbRef('clientes'),s=>{S.clientes=s.val()||{};renderClientes();refreshClienteSelects();});
-  onValue(dbRef('garantias'),s=>{S.garantias=s.val()||{};renderGarantias();refreshRepSelects();});
+  onValue(dbRef('garantias'),s=>{S.garantias=s.val()||{};renderGarantias();refreshRepSelects();migrarCodigosGarantias();});
   onValue(dbRef('tecnicos'),s=>{S.tecnicos=s.val()||{};renderTecnicos();refreshRepSelects();});
   onValue(dbRef('reparaciones'),s=>{S.reparaciones=s.val()||{};renderTecnicos();});
   onValue(dbRef('pagos'),s=>{S.pagos=s.val()||{};renderCC();});
   onValue(dbRef('pagosProveedores'),s=>{S.pagosProveedores=s.val()||{};renderCCProveedores();});
   onValue(dbRef('proveedores'),s=>{S.proveedores=s.val()||{};renderProveedores();renderCCProveedores();});
+  onValue(dbRef('locales'),s=>{S.locales=s.val()||{};renderNavLocales();renderGestionLocales();refreshLocalSelects();if(document.querySelector('.page-local.active'))renderPaginaLocal(document.querySelector('.page-local.active').dataset.localKey);});
   onValue(dbRef('caja'),s=>{S.caja=s.val()||{};renderCaja();});
   onValue(dbRef('costos'),s=>{S.costos=s.val()||{};renderCostos();});
 
@@ -1030,6 +1075,10 @@ function initApp(){
     });
   });
   $('btn-add-venta-item').addEventListener('click',()=>addVentaItem());
+  $('v-local')?.addEventListener('change',()=>{
+    // Al cambiar el punto de venta, regenerar las filas de equipo para que el stock filtre por ese local
+    $('v-items-container').innerHTML='';ventaItems=[];addVentaItem();
+  });
   $('btn-reset-venta').addEventListener('click',resetVentaForm);
   $('btn-save-venta').addEventListener('click',saveVenta);
   $('v-cliente').addEventListener('change',()=>{
@@ -1166,6 +1215,15 @@ function initApp(){
   });
   $('btn-comparar-meses').addEventListener('click',compararMeses);
 
+  // Puntos de Venta
+  $('btn-save-local').addEventListener('click',saveLocal);
+  document.querySelectorAll('.pl-tab').forEach(btn=>btn.addEventListener('click',()=>{
+    localTabActiva=btn.dataset.tab;
+    document.querySelectorAll('.pl-tab').forEach(b=>b.classList.remove('active-filter'));
+    btn.classList.add('active-filter');
+    if(localActivo)renderPaginaLocal(localActivo);
+  }));
+
   setTimeout(()=>{addCompraItem();addVentaItem();addMetodoItem();addMetodoCompraItem();calcTotalCompra();},400);
 }
 
@@ -1186,6 +1244,7 @@ function showPage(name){
   if(name==='caja')renderCaja();
   if(name==='costos')renderCostos();
   if(name==='informes')renderInformes();
+  if(name==='gestion-locales')renderGestionLocales();
 }
 function openSidebarMobile(){$('sidebar')?.classList.add('open');$('sidebar-overlay')?.classList.add('open');}
 function closeSidebarMobile(){$('sidebar')?.classList.remove('open');$('sidebar-overlay')?.classList.remove('open');}
@@ -1423,10 +1482,11 @@ function getStockBajo(){
   Object.entries(S.compras).forEach(([ck,c])=>c.items.forEach(it=>{const d=getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId);if(d<=2)r.push({modelo:it.modelo,cap:it.capacidad,disp:d});}));
   return r.sort((a,b)=>a.disp-b.disp);
 }
-function stockOptions(exclVK=null,categoriaFiltro=null){
+function stockOptions(exclVK=null,categoriaFiltro=null,localFiltro=null){
   let o='<option value="">— Seleccionar equipo —</option>';
   Object.entries(S.compras).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||'')).forEach(([ck,comp])=>{
     const enCamino=comp.estadoEntrega==='en_camino';
+    if(localFiltro&&(comp.localId||'')!==localFiltro)return; // solo mostrar stock que ingresó a este punto de venta
     comp.items.forEach(it=>{
       if(categoriaFiltro&&(it.categoria||'iphone')!==categoriaFiltro)return; // solo mostrar equipos de la categoría elegida
       const d=getStockDisp(ck,it.modelo,it.capacidad,exclVK,it.itemId);
@@ -1564,6 +1624,7 @@ function saveCompra(){
   const fecha=$('c-fecha').value,proveedor=$('c-proveedor').value.trim(),refv=$('c-ref').value.trim();
   const fechaEntrega=$('c-fecha-entrega').value||'';
   const estadoEntrega=$('c-estado-entrega').value||'en_camino';
+  const localId=$('c-local').value||'';
   if(!fecha){showAlert('c-alert','Seleccioná una fecha',false);return;}
   if(!proveedor){showAlert('c-alert','Ingresá el nombre del proveedor (necesario para la cuenta corriente)',false);return;}
   const items=[];
@@ -1611,7 +1672,7 @@ function saveCompra(){
   }
   const pagadoUSD=metodosUsados.reduce((s,m)=>s+(m.moneda==='USD'?m.monto:(dolar.venta>0?m.monto/dolar.venta:0)),0);
   const condicion=pagadoUSD>=totalUSD-0.01?'pagado':(pagadoUSD>0?'parcial':'pendiente');
-  push(dbRef('compras'),{fecha,proveedor,ref:refv,items,totalUSD,metodos:metodosUsados,condicionPago:condicion,fechaEntrega,estadoEntrega})
+  push(dbRef('compras'),{fecha,proveedor,ref:refv,items,totalUSD,metodos:metodosUsados,condicionPago:condicion,fechaEntrega,estadoEntrega,localId})
     .then((refC)=>{
       showAlert('c-alert','✅ Pedido guardado');
       // Movimientos de caja por lo efectivamente pagado en el momento (egreso)
@@ -1763,7 +1824,7 @@ function addVentaItem(){
   const COLORES=['Negro','Blanco','Azul','Verde','Rojo','Amarillo','Violeta','Rosa','Naranja','Gris','Plata','Natural','Titanio','Starlight','Midnight','Gold','Desert Titanium'];
 
   // Selector de equipo desde stock
-  const selEq=document.createElement('select');selEq.id='vi-eq-'+id;selEq.innerHTML=stockOptions(null,categoria);
+  const selEq=document.createElement('select');selEq.id='vi-eq-'+id;selEq.innerHTML=stockOptions(null,categoria,$('v-local')?.value||null);
   selEq.addEventListener('change',()=>calcItem(id));
 
   // Cantidad con stock hint
@@ -1911,12 +1972,13 @@ async function saveVenta(){
   const fecha=$('v-fecha').value;
   let clienteId=$('v-cliente').value;
   const condicion=$('v-condicion').value,canal=$('v-canal').value;
+  const localId=$('v-local').value||'';
   const desc=parseFloat($('v-descuento').value)||0,com=parseFloat($('v-comision').value)||0;
   if(!fecha){showAlert('v-alert','Seleccioná una fecha',false);return;}
   if(clienteId==='__nuevo__'){
     const nombre=$('v-nuevo-nombre').value.trim();
     if(!nombre){showAlert('v-alert','Ingresá el nombre del cliente',false);return;}
-    const nr=await push(dbRef('clientes'),{nombre,tel:$('v-nuevo-tel').value.trim(),email:$('v-nuevo-email').value.trim(),tipo:$('v-nuevo-tipo').value});
+    const nr=await push(dbRef('clientes'),{nombre,dni:$('v-nuevo-dni').value.trim(),tel:$('v-nuevo-tel').value.trim(),email:$('v-nuevo-email').value.trim(),tipo:$('v-nuevo-tipo').value});
     clienteId=nr.key;
   }
   if(!clienteId){showAlert('v-alert','Seleccioná un cliente',false);return;}
@@ -1969,7 +2031,7 @@ async function saveVenta(){
   }
   const totalComisionUSD=metodosUsados.reduce((s,m)=>s+(m.comisionMontoUSD||0),0);
 
-  push(dbRef('ventas'),{fecha,clienteId,condicion,canal,metodos:metodosUsados,descuento:desc,comision:com,items,totalUSD,gananciaUSD,dolarDelDia:dolar.venta,costoFinancieroUSD:totalComisionUSD})
+  push(dbRef('ventas'),{fecha,clienteId,condicion,canal,localId,metodos:metodosUsados,descuento:desc,comision:com,items,totalUSD,gananciaUSD,dolarDelDia:dolar.venta,costoFinancieroUSD:totalComisionUSD})
     .then((ref)=>{
       showAlert('v-alert','✅ Venta guardada. Total: '+fmt(totalUSD));
       // Alimentar caja con un movimiento por cada método, etiquetado con el id de la venta
@@ -2116,8 +2178,8 @@ function refreshClienteSelects(){
 function saveCliente(){
   const nombre=$('cl-nombre').value.trim();
   if(!nombre){showAlert('cl-alert','Ingresá el nombre',false);return;}
-  push(dbRef('clientes'),{nombre,tel:$('cl-tel').value.trim(),email:$('cl-email').value.trim(),tipo:$('cl-tipo').value})
-    .then(()=>{showAlert('cl-alert','✅ "'+nombre+'" guardado');$('cl-nombre').value='';$('cl-tel').value='';$('cl-email').value='';})
+  push(dbRef('clientes'),{nombre,dni:$('cl-dni').value.trim(),tel:$('cl-tel').value.trim(),email:$('cl-email').value.trim(),tipo:$('cl-tipo').value})
+    .then(()=>{showAlert('cl-alert','✅ "'+nombre+'" guardado');$('cl-nombre').value='';$('cl-dni').value='';$('cl-tel').value='';$('cl-email').value='';})
     .catch(()=>showAlert('cl-alert','Error',false));
 }
 function renderClientes(){
@@ -2136,7 +2198,7 @@ function renderClientes(){
     const hdr=document.createElement('div');hdr.className='cc-header';
     hdr.innerHTML=
       '<div><div style="font-size:14px;font-weight:600">'+cl.nombre+'</div>'+
-      '<div style="font-size:11px;color:var(--text3);margin-top:2px">'+(cl.tel||'—')+' · '+(cl.email||'—')+' · <span class="tag '+(cl.tipo==='mayorista'?'tag-purple':'tag-blue')+'" style="font-size:9px">'+(cl.tipo||'minorista')+'</span></div></div>'+
+      '<div style="font-size:11px;color:var(--text3);margin-top:2px">'+(cl.dni?'DNI '+cl.dni+' · ':'')+(cl.tel||'—')+' · '+(cl.email||'—')+' · <span class="tag '+(cl.tipo==='mayorista'?'tag-purple':'tag-blue')+'" style="font-size:9px">'+(cl.tipo||'minorista')+'</span></div></div>'+
       '<div style="display:flex;align-items:center;gap:14px">'+
         '<div style="text-align:right"><div style="font-size:10px;color:var(--text3)">Total comprado</div><div style="font-family:var(--mono);font-size:14px;font-weight:600">'+fmt(totalComprado)+'</div></div>'+
         '<div style="text-align:right"><div style="font-size:10px;color:var(--text3)">'+(s>0?'Debe':'Saldo')+'</div><div style="font-family:var(--mono);font-size:16px;font-weight:700;color:'+(s>0?'var(--red)':'var(--accent)')+'">'+fmt(s)+'</div></div>'+
@@ -2175,17 +2237,150 @@ function renderClientes(){
 }
 function editCliente(k){
   const cl=S.clientes[k];if(!cl)return;
-  $('edit-cl-key').value=k;$('edit-cl-nombre').value=cl.nombre||'';$('edit-cl-tel').value=cl.tel||'';$('edit-cl-email').value=cl.email||'';$('edit-cl-tipo').value=cl.tipo||'minorista';
+  $('edit-cl-key').value=k;$('edit-cl-nombre').value=cl.nombre||'';$('edit-cl-dni').value=cl.dni||'';$('edit-cl-tel').value=cl.tel||'';$('edit-cl-email').value=cl.email||'';$('edit-cl-tipo').value=cl.tipo||'minorista';
   openModal('modal-edit-cliente');
 }
 function guardarEditCliente(){
   const k=$('edit-cl-key').value;
-  update(dbRef('clientes/'+k),{nombre:$('edit-cl-nombre').value.trim(),tel:$('edit-cl-tel').value.trim(),email:$('edit-cl-email').value.trim(),tipo:$('edit-cl-tipo').value})
+  update(dbRef('clientes/'+k),{nombre:$('edit-cl-nombre').value.trim(),dni:$('edit-cl-dni').value.trim(),tel:$('edit-cl-tel').value.trim(),email:$('edit-cl-email').value.trim(),tipo:$('edit-cl-tipo').value})
     .then(()=>closeModal('modal-edit-cliente'));
 }
 // Historial completo de compras de un cliente (todas las ventas, contado y fiado), más reciente primero
 function getHistorialCliente(cid){
   return Object.entries(S.ventas).filter(([,v])=>v.clienteId===cid).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||''));
+}
+
+// ─── PUNTOS DE VENTA ────────────────────────────────────────
+const LOCAL_GENERAL_ID='__general__'; // bucket virtual para compras/ventas viejas sin local asignado
+function nombreLocal(localId){
+  if(!localId||localId===LOCAL_GENERAL_ID)return'General (sin asignar)';
+  return S.locales[localId]?(S.locales[localId].icono+' '+S.locales[localId].nombre):'General (sin asignar)';
+}
+function saveLocal(){
+  const nombre=$('loc-nombre').value.trim();
+  const icono=$('loc-icono').value;
+  if(!nombre){showAlert('loc-alert','Ingresá un nombre para el punto de venta',false);return;}
+  push(dbRef('locales'),{nombre,icono})
+    .then(()=>{showAlert('loc-alert','✅ Punto de venta creado');$('loc-nombre').value='';})
+    .catch(()=>showAlert('loc-alert','Error al guardar',false));
+}
+function renderGestionLocales(){
+  const elT=$('badge-locales'),elTab=$('tabla-locales');
+  if(!elT||!elTab)return;
+  const ent=Object.entries(S.locales);
+  elT.textContent=ent.length;
+  if(!ent.length){elTab.innerHTML='<div class="empty-state"><div class="big">🏬</div><p>Todavía no creaste ningún punto de venta. Agregá el primero arriba (ej: "Local Devoto", "Online").</p></div>';return;}
+  let rows='';
+  ent.forEach(([k,l])=>{
+    const ventasLocal=Object.values(S.ventas).filter(v=>(v.localId||LOCAL_GENERAL_ID)===k).length;
+    rows+='<tr><td>'+l.icono+' <strong>'+l.nombre+'</strong></td><td class="mono" style="color:var(--blue)">'+ventasLocal+' ventas</td><td><button class="btn btn-secondary btn-sm" data-edit-local="'+k+'">✏️</button> <button class="btn btn-danger btn-sm" data-del-local="'+k+'">🗑</button></td></tr>';
+  });
+  elTab.innerHTML='<table><thead><tr><th>Punto de venta</th><th>Actividad</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  elTab.querySelectorAll('[data-edit-local]').forEach(btn=>btn.addEventListener('click',()=>{
+    const k=btn.dataset.editLocal,l=S.locales[k];if(!l)return;
+    const nuevoNombre=prompt('Nombre del punto de venta:',l.nombre);
+    if(nuevoNombre&&nuevoNombre.trim())update(dbRef('locales/'+k),{nombre:nuevoNombre.trim()});
+  }));
+  elTab.querySelectorAll('[data-del-local]').forEach(btn=>btn.addEventListener('click',()=>{
+    const k=btn.dataset.delLocal;
+    if(confirm('¿Eliminar este punto de venta? Las ventas y compras ya registradas no se borran, solo quedan sin ese local asignado.')){
+      remove(dbRef('locales/'+k));
+    }
+  }));
+}
+// Genera los botones de navegación dinámicos en el sidebar, uno por cada local creado
+function renderNavLocales(){
+  const cont=$('nav-locales-container');
+  if(!cont)return;
+  const ent=Object.entries(S.locales).sort((a,b)=>(a[1].nombre||'').localeCompare(b[1].nombre||''));
+  cont.innerHTML='';
+  ent.forEach(([k,l])=>{
+    const btn=document.createElement('button');
+    btn.dataset.page='local-'+k;
+    btn.dataset.localKey=k;
+    btn.textContent=l.icono+' '+l.nombre;
+    btn.addEventListener('click',()=>showPaginaLocal(k));
+    cont.appendChild(btn);
+  });
+}
+// Llena los <select> de punto de venta en los formularios de Compras y Ventas
+function refreshLocalSelects(){
+  const ent=Object.entries(S.locales).sort((a,b)=>(a[1].nombre||'').localeCompare(b[1].nombre||''));
+  const opciones='<option value="">— Sin asignar (General) —</option>'+ent.map(([k,l])=>'<option value="'+k+'">'+l.icono+' '+l.nombre+'</option>').join('');
+  ['c-local','v-local'].forEach(id=>{
+    const sel=$(id);if(!sel)return;
+    const valorActual=sel.value;
+    sel.innerHTML=opciones;
+    if([...sel.options].some(o=>o.value===valorActual))sel.value=valorActual;
+  });
+}
+// Muestra la página de un local específico, actualizando título y contenido según la pestaña activa
+let localActivo=null;
+let localTabActiva='ventas';
+function showPaginaLocal(localKey){
+  localActivo=localKey;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('nav button[data-page]').forEach(b=>b.classList.remove('active'));
+  const page=$('page-plantilla-local');
+  page.classList.add('active');
+  page.dataset.localKey=localKey;
+  document.querySelector('nav button[data-local-key="'+localKey+'"]')?.classList.add('active');
+  closeSidebarMobile();
+  window.scrollTo(0,0);
+  renderPaginaLocal(localKey);
+}
+function renderPaginaLocal(localKey){
+  const local=S.locales[localKey];
+  if(!local){$('pl-titulo').textContent='🏬 Local';return;}
+  $('pl-titulo').textContent=local.icono+' '+local.nombre;
+
+  const ventasLocal=Object.entries(S.ventas).filter(([,v])=>(v.localId||LOCAL_GENERAL_ID)===localKey);
+  const comprasLocal=Object.entries(S.compras).filter(([,c])=>(c.localId||LOCAL_GENERAL_ID)===localKey);
+  const totalVentas=ventasLocal.reduce((s,[,v])=>s+(v.totalUSD||0),0);
+  const totalGanancia=ventasLocal.reduce((s,[,v])=>s+(v.gananciaUSD||0),0);
+  const stockDisp=comprasLocal.reduce((s,[ck,c])=>s+c.items.reduce((a,it)=>a+getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId),0),0);
+
+  $('stats-local').innerHTML=
+    '<div class="stat-card sc-green"><div class="lbl">Ventas totales</div><div class="val">'+fmt(totalVentas)+'</div></div>'+
+    '<div class="stat-card sc-green"><div class="lbl">Ganancia</div><div class="val">'+fmt(totalGanancia)+'</div></div>'+
+    '<div class="stat-card sc-blue"><div class="lbl"># Ventas</div><div class="val">'+ventasLocal.length+'</div></div>'+
+    '<div class="stat-card sc-blue"><div class="lbl">Stock disponible</div><div class="val">'+stockDisp+' u.</div></div>';
+
+  const cont=$('pl-contenido');
+  if(localTabActiva==='ventas'){
+    if(!ventasLocal.length){cont.innerHTML='<div class="empty-state"><div class="big">🛒</div><p>Todavía no hay ventas registradas en este punto de venta.</p></div>';return;}
+    let rows='';
+    ventasLocal.sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||'')).forEach(([k,v])=>{
+      const cl=S.clientes[v.clienteId];
+      const mod=v.items.map(i=>i.modelo+(i.capacidad&&i.capacidad!=='N/A'?' '+i.capacidad:'')).join(', ');
+      rows+='<tr><td class="mono" style="font-size:11px">'+fmtD(v.fecha)+'</td><td>'+(cl?.nombre||'—')+'</td><td>'+mod+'</td><td class="mono" style="color:#0ca678">'+fmt(v.totalUSD)+'</td><td>'+(v.condicion==='fiado'?'<span class="tag tag-red">A pagar</span>':'<span class="tag tag-green">Contado</span>')+'</td></tr>';
+    });
+    cont.innerHTML='<div class="table-card"><h3>Ventas de este local</h3><table><thead><tr><th>Fecha</th><th>Cliente</th><th>Equipos</th><th>Total</th><th>Cond.</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }else if(localTabActiva==='compras'){
+    if(!comprasLocal.length){cont.innerHTML='<div class="empty-state"><div class="big">📦</div><p>Todavía no hay compras registradas en este punto de venta.</p></div>';return;}
+    let rows='';
+    comprasLocal.sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||'')).forEach(([k,c])=>{
+      const total=c.totalUSD!=null?c.totalUSD:c.items.reduce((s,i)=>s+(i.precio*(i.cantidad||1)),0);
+      const mod=c.items.map(i=>i.modelo+(i.capacidad&&i.capacidad!=='N/A'?' '+i.capacidad:'')).join(', ');
+      rows+='<tr><td class="mono" style="font-size:11px">'+fmtD(c.fecha)+'</td><td>'+(c.proveedor||'—')+'</td><td>'+mod+'</td><td class="mono" style="color:var(--yellow)">'+fmt(total)+'</td></tr>';
+    });
+    cont.innerHTML='<div class="table-card"><h3>Compras de este local</h3><table><thead><tr><th>Fecha</th><th>Proveedor</th><th>Equipos</th><th>Total</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }else if(localTabActiva==='stock'){
+    const map={};
+    comprasLocal.forEach(([ck,c])=>c.items.forEach(it=>{
+      const key=it.itemId||(ck+'||'+it.modelo+'||'+it.capacidad);
+      const d=getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId);
+      map[key]={modelo:it.modelo,cap:it.capacidad,color:it.color||'',disp:d,costo:it.precio};
+    }));
+    const rows=Object.values(map);
+    if(!rows.length){cont.innerHTML='<div class="empty-state"><div class="big">📊</div><p>Sin stock cargado en este punto de venta.</p></div>';return;}
+    let tr='';
+    rows.forEach(r=>{
+      const tag=r.disp===0?'<span class="tag tag-red">Sin stock</span>':r.disp<=2?'<span class="tag tag-yellow">'+r.disp+' u.</span>':'<span class="tag tag-green">'+r.disp+' u.</span>';
+      tr+='<tr><td><strong>'+r.modelo+'</strong>'+(r.color?' <span style="font-size:11px;color:var(--text2)">('+r.color+')</span>':'')+'</td><td><span class="tag tag-blue">'+r.cap+'</span></td><td class="mono" style="color:var(--yellow)">'+fmt(r.costo)+'</td><td>'+tag+'</td></tr>';
+    });
+    cont.innerHTML='<div class="table-card"><h3>Stock de este local</h3><table><thead><tr><th>Modelo</th><th>Cap.</th><th>Costo</th><th>Stock</th></tr></thead><tbody>'+tr+'</tbody></table></div>';
+  }
 }
 
 
@@ -2569,12 +2764,45 @@ function guardarPago(){
 }
 
 // ─── GARANTIAS ───────────────────────────────────────────────
+// Asigna códigos retroactivamente a garantías viejas que no tienen (una sola vez, en orden cronológico)
+let migracionGarantiasEnCurso=false;
+function migrarCodigosGarantias(){
+  if(migracionGarantiasEnCurso)return;
+  const sinCodigo=Object.entries(S.garantias).filter(([,g])=>!g.codigo);
+  if(!sinCodigo.length)return;
+  migracionGarantiasEnCurso=true;
+  // Ordenar por fecha cronológica para que los códigos respeten el orden real en que se cargaron
+  sinCodigo.sort((a,b)=>(a[1].fecha||'').localeCompare(b[1].fecha||''));
+  let siguiente=generarCodigoGarantia();
+  const promesas=sinCodigo.map(([k])=>{
+    const codigoAsignado=siguiente;
+    const letra=siguiente.charAt(0),num=parseInt(siguiente.slice(1),10);
+    siguiente=num>=9999?String.fromCharCode(letra.charCodeAt(0)+1)+'0001':letra+String(num+1).padStart(4,'0');
+    return update(dbRef('garantias/'+k),{codigo:codigoAsignado});
+  });
+  Promise.all(promesas).finally(()=>{migracionGarantiasEnCurso=false;});
+}
+// Genera el siguiente código alfanumérico para garantías: A0001, A0002... A9999, B0001...
+function generarCodigoGarantia(){
+  const codigos=Object.values(S.garantias).map(g=>g.codigo).filter(Boolean);
+  if(!codigos.length)return'A0001';
+  // Tomar el código más alto (orden alfabético-numérico funciona porque la letra pesa más que los dígitos)
+  const max=codigos.sort().at(-1);
+  const letra=max.charAt(0);
+  const num=parseInt(max.slice(1),10);
+  if(num>=9999){
+    const siguienteLetra=String.fromCharCode(letra.charCodeAt(0)+1);
+    return siguienteLetra+'0001';
+  }
+  return letra+String(num+1).padStart(4,'0');
+}
 function saveGarantia(){
   const fecha=$('g-fecha').value,clienteId=$('g-cliente').value,modelo=$('g-modelo').value.trim();
   const capacidad=$('g-cap').value,color=$('g-color').value.trim(),imei=$('g-imei').value.trim(),falla=$('g-falla').value.trim();
   if(!fecha||!clienteId||!modelo||!falla){showAlert('g-alert','Completá todos los campos obligatorios',false);return;}
-  push(dbRef('garantias'),{fecha,clienteId,modelo,capacidad,color,imei,falla,estado:'pendiente'})
-    .then(()=>{showAlert('g-alert','✅ Registrada');$('g-modelo').value='';$('g-color').value='';$('g-imei').value='';$('g-falla').value='';})
+  const codigo=generarCodigoGarantia();
+  push(dbRef('garantias'),{fecha,clienteId,modelo,capacidad,color,imei,falla,estado:'pendiente',codigo})
+    .then(()=>{showAlert('g-alert','✅ Registrada con código '+codigo);$('g-modelo').value='';$('g-color').value='';$('g-imei').value='';$('g-falla').value='';})
     .catch(()=>showAlert('g-alert','Error',false));
 }
 function renderGarantias(){
@@ -2590,9 +2818,9 @@ function renderGarantias(){
   let rows='';
   ent.forEach(([k,g])=>{
     const cl=S.clientes[g.clienteId];
-    rows+='<tr><td class="mono" style="font-size:11px">'+fmtD(g.fecha)+'</td><td>'+(cl?.nombre||'—')+'</td><td><strong>'+g.modelo+'</strong> <span class="tag tag-blue">'+g.capacidad+'</span></td><td>'+(g.color||'—')+'</td><td style="font-family:var(--mono);font-size:11px;color:var(--text2)">'+(g.imei||'—')+'</td><td style="font-size:12px;color:var(--red);max-width:160px">'+g.falla+'</td><td data-toggle-garantia="'+k+'" style="cursor:pointer">'+estadoGTag(g.estado)+'</td><td style="display:flex;gap:4px"><button class="btn btn-secondary btn-sm" data-edit-g="'+k+'">✏️</button><button class="btn btn-danger btn-sm" data-del-g="'+k+'">🗑</button></td></tr>';
+    rows+='<tr><td><span class="tag tag-purple" style="font-family:var(--mono);font-weight:700">'+(g.codigo||'—')+'</span></td><td class="mono" style="font-size:11px">'+fmtD(g.fecha)+'</td><td>'+(cl?.nombre||'—')+'</td><td><strong>'+g.modelo+'</strong> <span class="tag tag-blue">'+g.capacidad+'</span></td><td>'+(g.color||'—')+'</td><td style="font-family:var(--mono);font-size:11px;color:var(--text2)">'+(g.imei||'—')+'</td><td style="font-size:12px;color:var(--red);max-width:160px">'+g.falla+'</td><td data-toggle-garantia="'+k+'" style="cursor:pointer">'+estadoGTag(g.estado)+'</td><td style="display:flex;gap:4px"><button class="btn btn-secondary btn-sm" data-edit-g="'+k+'">✏️</button><button class="btn btn-danger btn-sm" data-del-g="'+k+'">🗑</button></td></tr>';
   });
-  el.innerHTML='<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Equipo</th><th>Color</th><th>IMEI</th><th>Falla</th><th>Estado</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  el.innerHTML='<table><thead><tr><th>Código</th><th>Fecha</th><th>Cliente</th><th>Equipo</th><th>Color</th><th>IMEI</th><th>Falla</th><th>Estado</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
   el.querySelectorAll('[data-toggle-garantia]').forEach(td=>td.addEventListener('click',()=>{
     const k=td.dataset.toggleGarantia;const g=S.garantias[k];if(!g)return;
     const est=['pendiente','en_reparacion','resuelto'];
