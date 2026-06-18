@@ -597,12 +597,18 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 <div id="page-informes" class="page">
   <div class="page-header"><h2>📈 Informes</h2><p>Panorama general del negocio y comparación entre meses.</p></div>
 
-  <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center">
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
     <span style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px">Período:</span>
     <button class="btn btn-secondary btn-sm inff active-filter" data-filtro="mes">Este mes</button>
     <button class="btn btn-secondary btn-sm inff" data-filtro="trimestre">Últimos 3 meses</button>
     <button class="btn btn-secondary btn-sm inff" data-filtro="anio">Este año</button>
     <button class="btn btn-secondary btn-sm inff" data-filtro="todo">Todo</button>
+    <button class="btn btn-secondary btn-sm inff" data-filtro="personalizado">📅 Personalizado</button>
+  </div>
+  <div id="inf-rango-personalizado" style="display:none;gap:10px;align-items:end;margin-bottom:18px;flex-wrap:wrap">
+    <div class="form-group" style="margin-bottom:0"><label>Desde</label><input type="date" id="inf-desde"></div>
+    <div class="form-group" style="margin-bottom:0"><label>Hasta</label><input type="date" id="inf-hasta"></div>
+    <button class="btn btn-primary btn-sm" id="btn-aplicar-rango-informes">Aplicar</button>
   </div>
 
   <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px">Panorama general</div>
@@ -1142,8 +1148,22 @@ function initApp(){
     informesFiltro=btn.dataset.filtro;
     document.querySelectorAll('.inff').forEach(b=>b.classList.remove('active-filter'));
     btn.classList.add('active-filter');
+    const rangoBox=$('inf-rango-personalizado');
+    if(informesFiltro==='personalizado'){
+      rangoBox.style.display='flex';
+      if(!$('inf-desde').value){$('inf-desde').value=today();$('inf-hasta').value=today();}
+    }else{
+      rangoBox.style.display='none';
+    }
     renderInformes();
   }));
+  $('btn-aplicar-rango-informes').addEventListener('click',()=>{
+    const desde=$('inf-desde').value,hasta=$('inf-hasta').value;
+    if(!desde||!hasta){alert('Elegí ambas fechas (desde y hasta)');return;}
+    if(desde>hasta){alert('La fecha "Desde" no puede ser posterior a "Hasta"');return;}
+    informesRangoPersonalizado={desde,hasta};
+    renderInformes();
+  });
   $('btn-comparar-meses').addEventListener('click',compararMeses);
 
   setTimeout(()=>{addCompraItem();addVentaItem();addMetodoItem();addMetodoCompraItem();calcTotalCompra();},400);
@@ -2215,11 +2235,13 @@ function renderCostos(){
 
 // ─── INFORMES ────────────────────────────────────────────────
 let informesFiltro='mes';
+let informesRangoPersonalizado={desde:null,hasta:null};
 function getInformesRango(){
   const now=new Date(),h=today();
   if(informesFiltro==='mes')return{desde:now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01',hasta:h};
   if(informesFiltro==='trimestre'){const d=new Date(now);d.setMonth(d.getMonth()-3);return{desde:d.toISOString().slice(0,10),hasta:h};}
   if(informesFiltro==='anio')return{desde:now.getFullYear()+'-01-01',hasta:h};
+  if(informesFiltro==='personalizado')return{desde:informesRangoPersonalizado.desde,hasta:informesRangoPersonalizado.hasta||h};
   return{desde:null,hasta:null};
 }
 // Convierte un costo a USD usando el dólar del día actual como referencia (aproximación para comparar períodos)
