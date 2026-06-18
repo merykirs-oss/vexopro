@@ -961,7 +961,7 @@ onAuthStateChanged(auth, async user=>{
 // ─── INIT ─────────────────────────────────────────────────────
 function initApp(){
   onValue(dbRef('compras'),s=>{S.compras=s.val()||{};renderCompras();renderStock();renderInicio();renderCCProveedores();});
-  onValue(dbRef('ventas'),s=>{S.ventas=s.val()||{};renderVentas();renderStock();renderCC();renderInicio();});
+  onValue(dbRef('ventas'),s=>{S.ventas=s.val()||{};renderVentas();renderStock();renderCC();renderInicio();renderClientes();});
   onValue(dbRef('clientes'),s=>{S.clientes=s.val()||{};renderClientes();refreshClienteSelects();});
   onValue(dbRef('garantias'),s=>{S.garantias=s.val()||{};renderGarantias();refreshRepSelects();});
   onValue(dbRef('tecnicos'),s=>{S.tecnicos=s.val()||{};renderTecnicos();refreshRepSelects();});
@@ -2125,12 +2125,51 @@ function renderClientes(){
   const el=$('tabla-clientes');
   const ent=Object.entries(S.clientes).sort((a,b)=>(a[1].nombre||'').localeCompare(b[1].nombre||''));
   if(!ent.length){el.innerHTML='<div class="empty-state"><div class="big">👥</div><p>Sin clientes.</p></div>';return;}
-  let rows='';
+  el.innerHTML='';
   ent.forEach(([k,cl])=>{
     const s=getSaldo(k);
-    rows+='<tr><td><strong>'+cl.nombre+'</strong></td><td>'+(cl.tel||'—')+'</td><td>'+(cl.email||'—')+'</td><td><span class="tag '+(cl.tipo==='mayorista'?'tag-purple':'tag-blue')+'">'+(cl.tipo||'minorista')+'</span></td><td class="mono" style="color:'+(s>0?'var(--red)':'var(--accent)')+'">'+fmt(s)+'</td><td style="display:flex;gap:4px"><button class="btn btn-secondary btn-sm" data-edit-cl="'+k+'">✏️</button><button class="btn btn-danger btn-sm" data-del-cl="'+k+'">🗑</button></td></tr>';
+    const hist=getHistorialCliente(k);
+    const totalComprado=hist.reduce((sum,[,v])=>sum+(v.totalUSD||0),0);
+    const safeId=btoa(encodeURIComponent(k));
+
+    const block=document.createElement('div');block.className='cc-block';
+    const hdr=document.createElement('div');hdr.className='cc-header';
+    hdr.innerHTML=
+      '<div><div style="font-size:14px;font-weight:600">'+cl.nombre+'</div>'+
+      '<div style="font-size:11px;color:var(--text3);margin-top:2px">'+(cl.tel||'—')+' · '+(cl.email||'—')+' · <span class="tag '+(cl.tipo==='mayorista'?'tag-purple':'tag-blue')+'" style="font-size:9px">'+(cl.tipo||'minorista')+'</span></div></div>'+
+      '<div style="display:flex;align-items:center;gap:14px">'+
+        '<div style="text-align:right"><div style="font-size:10px;color:var(--text3)">Total comprado</div><div style="font-family:var(--mono);font-size:14px;font-weight:600">'+fmt(totalComprado)+'</div></div>'+
+        '<div style="text-align:right"><div style="font-size:10px;color:var(--text3)">'+(s>0?'Debe':'Saldo')+'</div><div style="font-family:var(--mono);font-size:16px;font-weight:700;color:'+(s>0?'var(--red)':'var(--accent)')+'">'+fmt(s)+'</div></div>'+
+        '<button class="btn btn-secondary btn-sm" data-edit-cl="'+k+'">✏️</button>'+
+        '<button class="btn btn-danger btn-sm" data-del-cl="'+k+'">🗑</button>'+
+        '<span id="arrcl-'+safeId+'" style="color:var(--text3);font-size:12px">▼</span>'+
+      '</div>';
+
+    const body=document.createElement('div');body.id='clb-'+safeId;body.style.cssText='display:none;border-top:1px solid var(--border);padding:14px 20px';
+    if(!hist.length){
+      body.innerHTML='<p style="color:var(--text3);font-size:13px">Todavía no le registraste ninguna venta a este cliente.</p>';
+    }else{
+      let tr='';
+      hist.forEach(([vk,v])=>{
+        const equipos=v.items.map(i=>{
+          const det=[i.capacidad&&i.capacidad!=='N/A'?i.capacidad:'',i.color,i.grado,i.tipo].filter(Boolean).join(' · ');
+          return '<div>'+i.modelo+(det?' <span style="color:var(--text3);font-size:11px">('+det+')</span>':'')+' × '+(i.cantidad||1)+'</div>';
+        }).join('');
+        const condTag=v.condicion==='fiado'?'<span class="tag tag-red">A pagar</span>':'<span class="tag tag-green">Contado</span>';
+        tr+='<tr><td class="mono" style="font-size:11px">'+fmtD(v.fecha)+'</td><td>'+equipos+'</td><td class="mono" style="color:#0ca678">'+fmt(v.totalUSD)+'</td><td class="mono" style="font-size:11px;color:var(--text2)">'+fmt(v.gananciaUSD)+'</td><td>'+condTag+'</td></tr>';
+      });
+      body.innerHTML='<table style="width:100%"><thead><tr><th>Fecha</th><th>Equipos comprados</th><th>Precio venta</th><th>Ganancia</th><th>Condición</th></tr></thead><tbody>'+tr+'</tbody></table>';
+    }
+
+    hdr.addEventListener('click',e=>{
+      if(e.target.closest('[data-edit-cl]')||e.target.closest('[data-del-cl]'))return;
+      const abierto=body.style.display!=='none';
+      body.style.display=abierto?'none':'block';
+      $('arrcl-'+safeId).style.transform=abierto?'':'rotate(180deg)';
+    });
+    block.append(hdr,body);
+    el.appendChild(block);
   });
-  el.innerHTML='<table><thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Tipo</th><th>Deuda</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
   el.querySelectorAll('[data-edit-cl]').forEach(btn=>btn.addEventListener('click',()=>editCliente(btn.dataset.editCl)));
   el.querySelectorAll('[data-del-cl]').forEach(btn=>btn.addEventListener('click',()=>{if(confirm('¿Eliminar?'))remove(dbRef('clientes/'+btn.dataset.delCl));}));
 }
@@ -2143,6 +2182,10 @@ function guardarEditCliente(){
   const k=$('edit-cl-key').value;
   update(dbRef('clientes/'+k),{nombre:$('edit-cl-nombre').value.trim(),tel:$('edit-cl-tel').value.trim(),email:$('edit-cl-email').value.trim(),tipo:$('edit-cl-tipo').value})
     .then(()=>closeModal('modal-edit-cliente'));
+}
+// Historial completo de compras de un cliente (todas las ventas, contado y fiado), más reciente primero
+function getHistorialCliente(cid){
+  return Object.entries(S.ventas).filter(([,v])=>v.clienteId===cid).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||''));
 }
 
 
