@@ -1423,11 +1423,12 @@ function getStockBajo(){
   Object.entries(S.compras).forEach(([ck,c])=>c.items.forEach(it=>{const d=getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId);if(d<=2)r.push({modelo:it.modelo,cap:it.capacidad,disp:d});}));
   return r.sort((a,b)=>a.disp-b.disp);
 }
-function stockOptions(exclVK=null){
+function stockOptions(exclVK=null,categoriaFiltro=null){
   let o='<option value="">— Seleccionar equipo —</option>';
   Object.entries(S.compras).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||'')).forEach(([ck,comp])=>{
     const enCamino=comp.estadoEntrega==='en_camino';
     comp.items.forEach(it=>{
+      if(categoriaFiltro&&(it.categoria||'iphone')!==categoriaFiltro)return; // solo mostrar equipos de la categoría elegida
       const d=getStockDisp(ck,it.modelo,it.capacidad,exclVK,it.itemId);
       const capStr=it.capacidad&&it.capacidad!=='N/A'?' '+it.capacidad:'';
       const tipoStr=it.tipo?' · '+it.tipo:'';
@@ -1762,7 +1763,7 @@ function addVentaItem(){
   const COLORES=['Negro','Blanco','Azul','Verde','Rojo','Amarillo','Violeta','Rosa','Naranja','Gris','Plata','Natural','Titanio','Starlight','Midnight','Gold','Desert Titanium'];
 
   // Selector de equipo desde stock
-  const selEq=document.createElement('select');selEq.id='vi-eq-'+id;selEq.innerHTML=stockOptions();
+  const selEq=document.createElement('select');selEq.id='vi-eq-'+id;selEq.innerHTML=stockOptions(null,categoria);
   selEq.addEventListener('change',()=>calcItem(id));
 
   // Cantidad con stock hint
