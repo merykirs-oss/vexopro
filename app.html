@@ -1251,7 +1251,7 @@ function initApp(){
     // Mostrar botón de equipo en sidebar
     const sepEquipo=$('nav-sep-equipo'),btnEquipo=$('nav-equipo');
     if(sepEquipo)sepEquipo.style.display='';
-    if(btnEquipo){btnEquipo.style.display='';btnEquipo.addEventListener('click',()=>showPageEquipo());}
+    if(btnEquipo)btnEquipo.style.display='';
   }
 
   // Ocultar módulos en sidebar según permisos del empleado
@@ -1508,6 +1508,7 @@ function showPage(name){
   if(name==='costos')renderCostos();
   if(name==='informes')renderInformes();
   if(name==='gestion-locales')renderGestionLocales();
+  if(name==='equipo'){renderErModulos();renderErLocales();renderRoles();renderEquipo();}
 }
 function openSidebarMobile(){$('sidebar')?.classList.add('open');$('sidebar-overlay')?.classList.add('open');}
 function closeSidebarMobile(){$('sidebar')?.classList.remove('open');$('sidebar-overlay')?.classList.remove('open');}
