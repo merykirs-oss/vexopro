@@ -344,46 +344,87 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 
 <div id="page-compras" class="page">
   <div class="page-header"><h2>📦 Compras</h2></div>
-  <div class="form-card">
-    <h3>➕ Nuevo Pedido</h3>
-    <div class="form-grid">
-      <div class="form-group"><label>Fecha de compra</label><input type="date" id="c-fecha"></div>
-      <div class="form-group"><label>Proveedor</label><input type="text" id="c-proveedor" placeholder="Ej: Sunrise"></div>
-      <div class="form-group"><label>Referencia</label><input type="text" id="c-ref" placeholder="Ej: PED-001"></div>
-    </div>
-    <div class="form-grid">
-      <div class="form-group"><label>Fecha de entrega (estimada)</label><input type="date" id="c-fecha-entrega"></div>
-      <div class="form-group"><label>Estado de la mercadería</label><select id="c-estado-entrega"><option value="en_camino">🚚 En camino</option><option value="recibido">✅ Recibido en local/depósito</option></select></div>
-      <div class="form-group"><label>Punto de venta</label><select id="c-local"></select></div>
-    </div>
-    <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px">Categoría de Producto</div>
-    <div class="cat-selector" id="c-cat-selector">
-      <button class="cat-btn selected" data-cat="iphone"><span class="cat-icon">📱</span>iPhone</button>
-      <button class="cat-btn" data-cat="mac"><span class="cat-icon">💻</span>Mac</button>
-      <button class="cat-btn" data-cat="ipad"><span class="cat-icon">🖥️</span>iPad</button>
-      <button class="cat-btn" data-cat="watch"><span class="cat-icon">⌚</span>Apple Watch</button>
-      <button class="cat-btn" data-cat="audio"><span class="cat-icon">🎧</span>Audio</button>
-      <button class="cat-btn" data-cat="accesorio"><span class="cat-icon">🔌</span>Accesorios</button>
-      <button class="cat-btn" data-cat="otro"><span class="cat-icon">📦</span>Personalizado</button>
-    </div>
-    <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px" id="c-items-label">Equipos</div>
-    <div id="c-items-container"></div>
-    <button class="btn btn-add" id="btn-add-compra-item">＋ Agregar equipo</button>
-    <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
-      <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Total del pedido</div>
-      <div id="c-total" style="font-family:var(--mono);font-size:18px;font-weight:700;color:#0ca678;margin-bottom:14px">—</div>
-      <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">¿Cómo le pagás al proveedor?</div>
-      <div id="c-metodos-container"></div>
-      <button class="btn btn-add" id="btn-add-metodo-compra" style="margin-top:6px">＋ Agregar método de pago</button>
-      <div id="c-pagado-resumen" style="margin-top:8px;font-size:12px"></div>
-    </div>
-    <div class="form-actions">
-      <button class="btn btn-secondary" id="btn-reset-compra">Limpiar</button>
-      <button class="btn btn-primary" id="btn-save-compra">Guardar pedido</button>
-    </div>
-    <div id="c-alert"></div>
+  <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+    <button class="btn btn-primary" id="btn-abrir-wizard-compra">＋ Nuevo pedido</button>
   </div>
   <div class="table-card"><h3>Historial <span id="badge-compras" class="tag tag-blue"></span></h3><div id="tabla-compras"></div></div>
+</div>
+
+<!-- ============ WIZARD MODAL: NUEVA COMPRA ============ -->
+<div class="modal-overlay" id="modal-wizard-compra">
+  <div class="modal" style="max-width:600px;padding:0;overflow:visible">
+    <div class="wiz-header">
+      <button class="wiz-close" id="btn-cerrar-wizard-compra">✕</button>
+      <h3 style="margin:0;font-size:18px;color:#fff">📦 Nuevo Pedido</h3>
+      <div class="wiz-steps">
+        <div class="wiz-step-dot cwiz" data-cdot="1"></div>
+        <div class="wiz-step-dot cwiz" data-cdot="2"></div>
+        <div class="wiz-step-dot cwiz" data-cdot="3"></div>
+        <div class="wiz-step-dot cwiz" data-cdot="4"></div>
+      </div>
+      <div class="wiz-labels"><span>Proveedor</span><span>Equipos</span><span>Pago</span><span>Confirmar</span></div>
+    </div>
+    <div class="wiz-body">
+
+      <!-- PASO 1: PROVEEDOR -->
+      <div class="wiz-step cwiz-step" data-cwiz-step="1">
+        <div class="wiz-step-title"><span class="num">1</span> ¿De quién comprás?</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Fecha de compra</label><input type="date" id="c-fecha"></div>
+          <div class="form-group"><label>Proveedor</label><input type="text" id="c-proveedor" placeholder="Ej: Sunrise"></div>
+          <div class="form-group"><label>Referencia</label><input type="text" id="c-ref" placeholder="Ej: PED-001"></div>
+          <div class="form-group"><label>Punto de venta</label><select id="c-local"></select></div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group"><label>Fecha de entrega (estimada)</label><input type="date" id="c-fecha-entrega"></div>
+          <div class="form-group"><label>Estado de la mercadería</label><select id="c-estado-entrega"><option value="en_camino">🚚 En camino</option><option value="recibido">✅ Recibido en local/depósito</option></select></div>
+        </div>
+      </div>
+
+      <!-- PASO 2: EQUIPOS -->
+      <div class="wiz-step cwiz-step" data-cwiz-step="2" style="display:none">
+        <div class="wiz-step-title"><span class="num">2</span> ¿Qué comprás?</div>
+        <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px">Categoría de Producto</div>
+        <div class="cat-selector" id="c-cat-selector">
+          <button class="cat-btn selected" data-cat="iphone"><span class="cat-icon">📱</span>iPhone</button>
+          <button class="cat-btn" data-cat="mac"><span class="cat-icon">💻</span>Mac</button>
+          <button class="cat-btn" data-cat="ipad"><span class="cat-icon">🖥️</span>iPad</button>
+          <button class="cat-btn" data-cat="watch"><span class="cat-icon">⌚</span>Apple Watch</button>
+          <button class="cat-btn" data-cat="audio"><span class="cat-icon">🎧</span>Audio</button>
+          <button class="cat-btn" data-cat="accesorio"><span class="cat-icon">🔌</span>Accesorios</button>
+          <button class="cat-btn" data-cat="otro"><span class="cat-icon">📦</span>Personalizado</button>
+        </div>
+        <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px;margin-top:14px" id="c-items-label">Equipos</div>
+        <div id="c-items-container"></div>
+        <button class="btn btn-add" id="btn-add-compra-item" style="margin-top:8px">＋ Agregar equipo</button>
+      </div>
+
+      <!-- PASO 3: PAGO AL PROVEEDOR -->
+      <div class="wiz-step cwiz-step" data-cwiz-step="3" style="display:none">
+        <div class="wiz-step-title"><span class="num">3</span> ¿Cómo le pagás al proveedor?</div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:16px">
+          <div style="font-size:10px;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Total del pedido</div>
+          <div id="c-total" style="font-family:var(--mono);font-size:22px;font-weight:800;color:#0ca678">—</div>
+        </div>
+        <div id="c-metodos-container"></div>
+        <button class="btn btn-add" id="btn-add-metodo-compra" style="margin-top:6px">＋ Agregar método de pago</button>
+        <div id="c-pagado-resumen" style="margin-top:8px;font-size:12px"></div>
+      </div>
+
+      <!-- PASO 4: CONFIRMAR -->
+      <div class="wiz-step cwiz-step" data-cwiz-step="4" style="display:none">
+        <div class="wiz-step-title"><span class="num">4</span> Confirmá el pedido</div>
+        <div id="cwiz-resumen" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;font-size:13px;line-height:2"></div>
+        <div id="c-alert" style="margin-top:14px"></div>
+      </div>
+
+    </div>
+    <div class="wiz-footer">
+      <button class="btn btn-secondary" id="btn-reset-compra" style="margin-right:auto">Limpiar</button>
+      <button class="btn btn-secondary" id="wizCompraBack">← Atrás</button>
+      <button class="btn btn-primary" id="wizCompraNext">Siguiente →</button>
+    </div>
+  </div>
 </div>
 
 <div id="page-ventas" class="page">
@@ -1259,7 +1300,10 @@ function initApp(){
   });
   $('btn-add-compra-item').addEventListener('click',()=>addCompraItem());
   $('btn-reset-compra').addEventListener('click',resetCompraForm);
-  $('btn-save-compra').addEventListener('click',saveCompra);
+  $('btn-abrir-wizard-compra').addEventListener('click',abrirWizardCompra);
+  $('btn-cerrar-wizard-compra').addEventListener('click',cerrarWizardCompra);
+  $('wizCompraBack').addEventListener('click',()=>wizCompraMove(-1));
+  $('wizCompraNext').addEventListener('click',()=>wizCompraMove(1));
 
   // Botones ventas
   // Selector categoría ventas
@@ -1826,6 +1870,72 @@ function addCompraItem(data=null,cat=null){
   const id=uid();compraItems.push(id);
   $('c-items-container').appendChild(makeCompraItemEl(id,data,cat));
 }
+// ─── WIZARD DE COMPRA ────────────────────────────────────────
+let wizCompraPaso=1;
+
+function abrirWizardCompra(){
+  openModal('modal-wizard-compra');
+  wizCompraGoTo(1);
+}
+function cerrarWizardCompra(){
+  closeModal('modal-wizard-compra');
+}
+function wizCompraGoTo(n){
+  wizCompraPaso=n;
+  document.querySelectorAll('.cwiz-step').forEach(s=>s.style.display=(+s.dataset.cwizStep===n?'block':'none'));
+  document.querySelectorAll('.wiz-step-dot.cwiz').forEach(d=>{
+    const dn=+d.dataset.cdot;
+    d.classList.remove('active','done');
+    if(dn===n)d.classList.add('active');
+    else if(dn<n)d.classList.add('done');
+  });
+  const back=$('wizCompraBack'),next=$('wizCompraNext');
+  back.style.visibility=n===1?'hidden':'visible';
+  next.textContent=n===4?'✅ Guardar pedido':'Siguiente →';
+  if(n===4)renderCwizResumen();
+}
+function validarPasoWizardCompra(n){
+  if(n===1){
+    if(!$('c-fecha').value){showAlert('c-alert','Seleccioná una fecha',false);wizCompraGoTo(1);return false;}
+    if(!$('c-proveedor').value.trim()){showAlert('c-alert','Ingresá el proveedor',false);wizCompraGoTo(1);return false;}
+  }
+  if(n===2){
+    const hayItem=compraItems.some(id=>$('ci-modelo-'+id)?.value.trim());
+    if(!hayItem){showAlert('c-alert','Agregá al menos un equipo',false);return false;}
+  }
+  return true;
+}
+function wizCompraMove(dir){
+  if(dir>0&&!validarPasoWizardCompra(wizCompraPaso))return;
+  const next=wizCompraPaso+dir;
+  if(next<1)return;
+  if(next>4){saveCompra();return;}
+  wizCompraGoTo(next);
+}
+function renderCwizResumen(){
+  const el=$('cwiz-resumen');if(!el)return;
+  const proveedor=$('c-proveedor').value||'—';
+  const fecha=$('c-fecha').value?fmtD($('c-fecha').value):'—';
+  const entrega=$('c-fecha-entrega').value?fmtD($('c-fecha-entrega').value):'—';
+  const estado=$('c-estado-entrega').value==='en_camino'?'🚚 En camino':'✅ Recibido';
+  const local=$('c-local').options[$('c-local').selectedIndex]?.text||'—';
+  const items=compraItems.map(id=>{
+    const m=$('ci-modelo-'+id)?.value||'';
+    const cap=$('ci-cap-'+id)?.value||'';
+    const cant=$('ci-cant-'+id)?.value||1;
+    const precio=$('ci-precio-'+id)?.value||0;
+    return m?`${m} ${cap} x${cant} — $${precio}`:null;
+  }).filter(Boolean);
+  el.innerHTML=
+    `<div><b>Proveedor:</b> ${proveedor}</div>
+     <div><b>Fecha:</b> ${fecha}</div>
+     <div><b>Entrega:</b> ${entrega} · ${estado}</div>
+     <div><b>Punto de venta:</b> ${local}</div>
+     <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><b>Equipos:</b></div>
+     ${items.map(i=>`<div style="font-size:12px;color:var(--text2)">• ${i}</div>`).join('')}
+     <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><b>Total:</b> <span style="color:#0ca678;font-family:var(--mono);font-weight:700">${$('c-total').textContent}</span></div>`;
+}
+
 function resetCompraForm(){
   $('c-fecha').value=today();$('c-proveedor').value='';$('c-ref').value='';
   $('c-fecha-entrega').value='';$('c-estado-entrega').value='en_camino';
@@ -1838,6 +1948,7 @@ function resetCompraForm(){
   const mcc=$('c-metodos-container');if(mcc)mcc.innerHTML='';
   addMetodoCompraItem();
   setTimeout(calcTotalCompra,50);
+  wizCompraGoTo(1); // volver al paso 1
 }
 function saveCompra(){
   const fecha=$('c-fecha').value,proveedor=$('c-proveedor').value.trim(),refv=$('c-ref').value.trim();
@@ -1893,12 +2004,12 @@ function saveCompra(){
   const condicion=pagadoUSD>=totalUSD-0.01?'pagado':(pagadoUSD>0?'parcial':'pendiente');
   push(dbRef('compras'),{fecha,proveedor,ref:refv,items,totalUSD,metodos:metodosUsados,condicionPago:condicion,fechaEntrega,estadoEntrega,localId})
     .then((refC)=>{
-      showAlert('c-alert','✅ Pedido guardado');
-      // Movimientos de caja por lo efectivamente pagado en el momento (egreso)
+      showAlert('c-alert','✅ Pedido guardado correctamente');
       metodosUsados.forEach(m=>{
         push(dbRef('caja'),{fecha,tipo:'egreso',moneda:m.moneda,monto:m.monto,categoria:'compra',desc:'Compra a '+proveedor+' - '+m.label,auto:true,compraId:refC.key});
       });
       resetCompraForm();
+      setTimeout(()=>cerrarWizardCompra(),1200); // cierra el wizard después de mostrar el mensaje de éxito
     })
     .catch(()=>showAlert('c-alert','Error al guardar',false));
 }
