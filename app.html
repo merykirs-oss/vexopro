@@ -308,6 +308,8 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     <button id="nav-gestion-locales" data-page="gestion-locales">⚙️ Gestionar locales</button>
     <div class="nav-sep">Análisis</div>
     <button id="nav-informes" data-page="informes">📈 Informes</button>
+    <div class="nav-sep" id="nav-sep-equipo" style="display:none">Negocio</div>
+    <button id="nav-equipo" data-page="equipo" style="display:none">👤 Equipo</button>
   </nav>
   <div style="padding:8px 16px">
     <a href="https://wa.me/5491132133878?text=Hola!%20Necesito%20soporte%20con%20VexoPRO" target="_blank" style="display:flex;align-items:center;gap:8px;background:#25D366;color:#fff;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;text-decoration:none;justify-content:center">
@@ -773,7 +775,63 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 </main>
 </div>
 
-<!-- MODALES -->
+<!-- PÁGINA EQUIPO (solo dueños) -->
+<div id="page-equipo" class="page" style="display:none">
+  <div class="page-header"><h2>👤 Equipo</h2><p>Gestioná los usuarios de tu negocio y sus permisos de acceso.</p></div>
+
+  <!-- Tabs -->
+  <div style="display:flex;gap:8px;margin-bottom:24px;border-bottom:1px solid var(--border);padding-bottom:0">
+    <button class="equipo-tab active" data-etab="usuarios" style="padding:10px 18px;border:none;background:none;font-size:14px;font-weight:600;color:var(--accent);border-bottom:2px solid var(--accent);cursor:pointer">👥 Usuarios</button>
+    <button class="equipo-tab" data-etab="roles" style="padding:10px 18px;border:none;background:none;font-size:14px;font-weight:600;color:var(--text2);border-bottom:2px solid transparent;cursor:pointer">🎭 Roles y permisos</button>
+  </div>
+
+  <!-- Tab: Usuarios -->
+  <div id="etab-usuarios">
+    <div class="form-card">
+      <h3>➕ Crear usuario</h3>
+      <div class="form-grid">
+        <div class="form-group"><label>Nombre</label><input type="text" id="eu-nombre" placeholder="Ej: Juan Pérez"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="eu-email" placeholder="empleado@email.com"></div>
+        <div class="form-group"><label>Contraseña</label><input type="password" id="eu-pass" placeholder="Mínimo 6 caracteres"></div>
+        <div class="form-group"><label>Rol asignado</label><select id="eu-rol"><option value="">— Seleccionar rol —</option></select></div>
+      </div>
+      <div class="form-actions"><button class="btn btn-primary" id="btn-crear-usuario">Crear usuario</button></div>
+      <div id="eu-alert"></div>
+    </div>
+    <div class="table-card"><h3>Usuarios del equipo <span id="badge-equipo" class="tag tag-blue"></span></h3><div id="tabla-equipo"></div></div>
+  </div>
+
+  <!-- Tab: Roles -->
+  <div id="etab-roles" style="display:none">
+    <div class="form-card">
+      <h3>➕ Crear rol</h3>
+      <div class="form-group" style="max-width:320px;margin-bottom:18px"><label>Nombre del rol</label><input type="text" id="er-nombre" placeholder="Ej: Vendedor, Supervisor..."></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:20px">
+        <!-- Módulos -->
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px">Módulos accesibles</div>
+          <div id="er-modulos-container" style="display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+        <!-- Locales -->
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px">Puntos de venta</div>
+          <div id="er-locales-container" style="display:flex;flex-direction:column;gap:6px">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+              <input type="checkbox" id="er-local-all" checked style="accent-color:var(--accent)">
+              <span>Todos los locales</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions"><button class="btn btn-primary" id="btn-crear-rol">Guardar rol</button></div>
+      <div id="er-alert"></div>
+    </div>
+    <div class="table-card"><h3>Roles creados <span id="badge-roles" class="tag tag-purple"></span></h3><div id="tabla-roles"></div></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-pago">
   <div class="modal">
     <h3>💰 Registrar Pago</h3>
@@ -903,7 +961,26 @@ const db = getDatabase(app);
 signOut(auth).catch(()=>{});
 
 // ─── STATE ───────────────────────────────────────────────────
-let S = {compras:{},ventas:{},clientes:{},garantias:{},tecnicos:{},reparaciones:{},pagos:{},pagosProveedores:{},proveedores:{},caja:{},costos:{},locales:{},config:{}};
+let S = {compras:{},ventas:{},clientes:{},garantias:{},tecnicos:{},reparaciones:{},pagos:{},pagosProveedores:{},proveedores:{},caja:{},costos:{},locales:{},config:{},equipo:{},roles:{}};
+let currentUser=null;
+let currentUserRole=null; // 'owner' | 'employee'
+let currentUserPermisos=null; // {modulos:{ventas:true,...}, locales:['all']|[localId,...], puedeEscribir:{ventas:true,...}}
+let ownerUid=null; // uid del dueño del negocio (para empleados = su jefe; para dueños = él mismo)
+
+function tienePermiso(modulo){
+  if(currentUserRole==='owner')return true;
+  return !!(currentUserPermisos?.modulos?.[modulo]);
+}
+function puedeEscribir(modulo){
+  if(currentUserRole==='owner')return true;
+  return !!(currentUserPermisos?.escritura?.[modulo]);
+}
+function localPermitido(localId){
+  if(currentUserRole==='owner')return true;
+  const locales=currentUserPermisos?.locales||[];
+  return locales.includes('all')||locales.includes(localId);
+}
+function dbRef(p){return ref(db,'negocios/'+ownerUid+'/'+p);}
 let cajaFiltro='hoy';
 let cajaMoneda='USD';
 let costosFiltro='actual';
@@ -912,7 +989,7 @@ let ventaCategoria='iphone';
 let compraCategoria='iphone';
 const METODOS=[{v:'efectivo_usd',l:'Efectivo USD',moneda:'USD'},{v:'efectivo_ars',l:'Efectivo ARS',moneda:'ARS'},{v:'usdt',l:'USDT',moneda:'USD'},{v:'transferencia_ars',l:'Transferencia ARS',moneda:'ARS'},{v:'transferencia_usd',l:'Transferencia USD',moneda:'USD'},{v:'mercadopago',l:'Mercado Pago',moneda:'ARS'},{v:'cripto',l:'Cripto (otras)',moneda:'USD'},{v:'cheque',l:'Cheque',moneda:'ARS'}];
 let dolar = {compra:0,venta:0,oficial:0};
-let currentUser = null;
+
 let ventaFiltro = 'mes';
 let compraItems = [];
 let ventaItems = [];
@@ -956,7 +1033,8 @@ const metodoARS = m => ['efectivo_ars','mercadopago','transferencia','mixto_usd_
 const CAPS = ['128GB','256GB','512GB','1TB','64GB'];
 const REP_ESTADOS = {enviado:'📤 Enviado al técnico',reparando:'🔧 En reparación',volvio:'📦 Volvió a oficina',entregado:'✅ Entregado al cliente'};
 
-function dbRef(p){return ref(db,'negocios/'+currentUser.uid+'/'+p);}
+
+
 
 // ─── LOGIN ────────────────────────────────────────────────────
 $('btn-login').addEventListener('click', async ()=>{
@@ -1049,24 +1127,56 @@ function checkTrial(userData){
 
 onAuthStateChanged(auth, async user=>{
   if(user){
-    const snap=await get(ref(db,'usuarios/'+user.uid));
-    const ud=snap.val();
-    if(!ud||ud.activo===false){
-      await signOut(auth);
-      const e=$('login-error');e.style.display='block';e.textContent='Cuenta no activa. Contactá al administrador.';
-      return;
+    // 1. Primero buscar si es un dueño (cuenta principal)
+    const snapOwner=await get(ref(db,'usuarios/'+user.uid));
+    const udOwner=snapOwner.val();
+
+    if(udOwner && udOwner.role!=='employee'){
+      // Es el DUEÑO
+      if(udOwner.activo===false){
+        await signOut(auth);
+        const e=$('login-error');e.style.display='block';e.textContent='Cuenta no activa.';return;
+      }
+      currentUser=user;
+      currentUserRole='owner';
+      ownerUid=user.uid;
+      currentUserPermisos=null;
+      const trialOk=checkTrial(udOwner);
+      if(!trialOk)return;
+      $('login-screen').style.display='none';
+      $('registro-screen').style.display='none';
+      $('app').style.display='flex';
+      $('user-email-label').textContent=user.email;
+      if(udOwner.negocio)$('negocio-nombre').textContent=udOwner.negocio;
+      initApp();
+    } else {
+      // Puede ser un EMPLEADO — buscar en subUsuarios de algún negocio
+      const snapEmp=await get(ref(db,'empleados/'+user.uid));
+      const udEmp=snapEmp.val();
+      if(!udEmp){
+        await signOut(auth);
+        const e=$('login-error');e.style.display='block';e.textContent='Usuario no encontrado.';return;
+      }
+      if(udEmp.activo===false){
+        await signOut(auth);
+        const e=$('login-error');e.style.display='block';e.textContent='Tu acceso fue desactivado. Contactá al administrador.';return;
+      }
+      // Cargar permisos del rol
+      const rolSnap=await get(ref(db,'negocios/'+udEmp.ownerUid+'/roles/'+udEmp.rolId));
+      const rolData=rolSnap.val()||{};
+      currentUser=user;
+      currentUserRole='employee';
+      ownerUid=udEmp.ownerUid;
+      currentUserPermisos={modulos:rolData.modulos||{},escritura:rolData.escritura||{},locales:rolData.locales||['all']};
+      $('login-screen').style.display='none';
+      $('registro-screen').style.display='none';
+      $('app').style.display='flex';
+      $('user-email-label').textContent=udEmp.nombre||user.email;
+      $('negocio-nombre').textContent=udEmp.negocioNombre||'Mi Negocio';
+      initApp();
     }
-    currentUser=user;
-    const trialOk=checkTrial(ud);
-    if(!trialOk) return;
-    $('login-screen').style.display='none';
-    $('registro-screen').style.display='none';
-    $('app').style.display='flex';
-    $('user-email-label').textContent=user.email;
-    if(ud.negocio)$('negocio-nombre').textContent=ud.negocio;
-    initApp();
   }else{
-    currentUser=null;
+    currentUser=null;currentUserRole=null;ownerUid=null;currentUserPermisos=null;
     $('login-screen').style.display='flex';
     $('app').style.display='none';
   }
@@ -1084,9 +1194,27 @@ function initApp(){
   onValue(dbRef('pagos'),s=>{S.pagos=s.val()||{};renderCC();});
   onValue(dbRef('pagosProveedores'),s=>{S.pagosProveedores=s.val()||{};renderCCProveedores();});
   onValue(dbRef('proveedores'),s=>{S.proveedores=s.val()||{};renderProveedores();renderCCProveedores();});
-  onValue(dbRef('locales'),s=>{S.locales=s.val()||{};renderNavLocales();renderGestionLocales();refreshLocalSelects();if(document.querySelector('.page-local.active'))renderPaginaLocal(document.querySelector('.page-local.active').dataset.localKey);});
+  onValue(dbRef('locales'),s=>{S.locales=s.val()||{};renderNavLocales();renderGestionLocales();refreshLocalSelects();renderErLocales();if(document.querySelector('.page-local.active'))renderPaginaLocal(document.querySelector('.page-local.active').dataset.localKey);});
   onValue(dbRef('caja'),s=>{S.caja=s.val()||{};renderCaja();});
   onValue(dbRef('costos'),s=>{S.costos=s.val()||{};renderCostos();});
+
+  // Solo el dueño carga el módulo de equipo
+  if(currentUserRole==='owner'){
+    onValue(dbRef('roles'),s=>{S.roles=s.val()||{};renderRoles();renderErRoles();});
+    onValue(ref(db,'empleados'),s=>{
+      // Filtrar solo los empleados de este negocio
+      const todos=s.val()||{};
+      S.equipo=Object.fromEntries(Object.entries(todos).filter(([,e])=>e.ownerUid===ownerUid));
+      renderEquipo();
+    });
+    // Mostrar botón de equipo en sidebar
+    const sepEquipo=$('nav-sep-equipo'),btnEquipo=$('nav-equipo');
+    if(sepEquipo)sepEquipo.style.display='';
+    if(btnEquipo){btnEquipo.style.display='';btnEquipo.addEventListener('click',()=>showPageEquipo());}
+  }
+
+  // Ocultar módulos en sidebar según permisos del empleado
+  aplicarPermisosSidebar();
 
   fetchDolar();
   setInterval(fetchDolar,5*60*1000);
@@ -1299,6 +1427,20 @@ function initApp(){
     document.querySelectorAll('.pl-tab').forEach(b=>b.classList.remove('active-filter'));
     btn.classList.add('active-filter');
     if(localActivo)renderPaginaLocal(localActivo);
+  }));
+
+  // Equipo (solo dueños — los botones existen en el HTML pero se usan solo si hay rol owner)
+  $('btn-crear-rol')?.addEventListener('click',crearRol);
+  $('btn-crear-usuario')?.addEventListener('click',crearUsuario);
+  document.querySelectorAll('.equipo-tab').forEach(tab=>tab.addEventListener('click',()=>{
+    document.querySelectorAll('.equipo-tab').forEach(t=>{
+      t.style.color='var(--text2)';t.style.borderBottomColor='transparent';
+    });
+    tab.style.color='var(--accent)';tab.style.borderBottomColor='var(--accent)';
+    const target=tab.dataset.etab;
+    $('etab-usuarios').style.display=target==='usuarios'?'block':'none';
+    $('etab-roles').style.display=target==='roles'?'block':'none';
+    if(target==='roles')renderErModulos();
   }));
 
   setTimeout(()=>{addCompraItem();addVentaItem();addMetodoItem();addMetodoCompraItem();calcTotalCompra();},400);
@@ -2430,7 +2572,9 @@ function renderGestionLocales(){
 function renderNavLocales(){
   const cont=$('nav-locales-container');
   if(!cont)return;
-  const ent=Object.entries(S.locales).sort((a,b)=>(a[1].nombre||'').localeCompare(b[1].nombre||''));
+  const ent=Object.entries(S.locales)
+    .filter(([k])=>localPermitido(k)) // solo locales permitidos para empleados
+    .sort((a,b)=>(a[1].nombre||'').localeCompare(b[1].nombre||''));
   cont.innerHTML='';
   ent.forEach(([k,l])=>{
     const btn=document.createElement('button');
@@ -2440,6 +2584,9 @@ function renderNavLocales(){
     btn.addEventListener('click',()=>showPaginaLocal(k));
     cont.appendChild(btn);
   });
+  // Ocultar la sección de locales si el empleado no tiene acceso a ninguno
+  const navGestion=$('nav-gestion-locales');
+  if(navGestion)navGestion.style.display=currentUserRole==='owner'?'':'none';
 }
 // Llena los <select> de punto de venta en los formularios de Compras y Ventas
 function refreshLocalSelects(){
@@ -2521,6 +2668,213 @@ function renderPaginaLocal(localKey){
   }
 }
 
+
+// ─── PERMISOS SIDEBAR ──────────────────────────────────────
+const MODULOS_SIDEBAR={
+  inicio:'nav-inicio',compras:'nav-compras',ventas:'nav-ventas',stock:'nav-stock',
+  clientes:'nav-clientes',cuentacorriente:'nav-cuentacorriente',
+  garantias:'nav-garantias',tecnicos:'nav-tecnicos',
+  proveedores:'nav-proveedores','cc-proveedores':'nav-cc-proveedores',
+  caja:'nav-caja',costos:'nav-costos',informes:'nav-informes'
+};
+function aplicarPermisosSidebar(){
+  if(currentUserRole==='owner')return; // dueño ve todo
+  Object.entries(MODULOS_SIDEBAR).forEach(([mod,navId])=>{
+    const btn=$(navId);
+    if(btn)btn.style.display=tienePermiso(mod)?'':'none';
+  });
+  // Ocultar puntos de venta si no tiene ninguno permitido
+  // (los locales se filtran en renderNavLocales)
+  renderNavLocales();
+}
+
+// ─── EQUIPO ──────────────────────────────────────────────────
+const MODULOS_ETIQUETAS=[
+  {key:'inicio',label:'🏠 Inicio'},
+  {key:'compras',label:'📦 Compras'},
+  {key:'ventas',label:'🛒 Ventas'},
+  {key:'stock',label:'📊 Stock'},
+  {key:'clientes',label:'👥 Clientes'},
+  {key:'cuentacorriente',label:'💳 Cta. Corriente'},
+  {key:'garantias',label:'🛡️ Garantías'},
+  {key:'tecnicos',label:'👨‍🔧 Técnicos'},
+  {key:'proveedores',label:'🏢 Proveedores'},
+  {key:'cc-proveedores',label:'📑 Cta. Cte. Proveedores'},
+  {key:'caja',label:'💵 Caja'},
+  {key:'costos',label:'📋 Costos'},
+  {key:'informes',label:'📈 Informes'},
+];
+
+function showPageEquipo(){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('nav button[data-page]').forEach(b=>b.classList.remove('active'));
+  $('page-equipo').classList.add('active');
+  $('nav-equipo')?.classList.add('active');
+  closeSidebarMobile();
+  window.scrollTo(0,0);
+  renderErModulos();renderErLocales();renderRoles();renderEquipo();
+}
+
+// Render checkboxes de módulos al crear rol
+function renderErModulos(){
+  const cont=$('er-modulos-container');if(!cont)return;
+  cont.innerHTML='';
+  MODULOS_ETIQUETAS.forEach(m=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px';
+    row.innerHTML=`<label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;flex:1">
+      <input type="checkbox" class="er-mod-check" data-mod="${m.key}" style="accent-color:var(--accent)">
+      <span>${m.label}</span>
+    </label>
+    <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);cursor:pointer">
+      <input type="checkbox" class="er-write-check" data-mod="${m.key}" style="accent-color:var(--accent)">
+      <span>Editar</span>
+    </label>`;
+    cont.appendChild(row);
+    // Si se activa vista, habilitar checkbox de editar
+    row.querySelector('.er-mod-check').addEventListener('change',e=>{
+      const writeBox=row.querySelector('.er-write-check');
+      if(!e.target.checked)writeBox.checked=false;
+      writeBox.disabled=!e.target.checked;
+    });
+    row.querySelector('.er-write-check').disabled=true;
+  });
+}
+
+// Render checkboxes de locales al crear rol
+function renderErLocales(){
+  const cont=$('er-locales-container');if(!cont)return;
+  const allCheck=$('er-local-all');
+  // Quitar locales dinámicos anteriores
+  cont.querySelectorAll('.er-local-item').forEach(e=>e.remove());
+  Object.entries(S.locales).forEach(([k,l])=>{
+    const lbl=document.createElement('label');
+    lbl.className='er-local-item';
+    lbl.style.cssText='display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer';
+    lbl.innerHTML=`<input type="checkbox" class="er-local-check" data-local="${k}" style="accent-color:var(--accent)">${l.icono} ${l.nombre}`;
+    cont.appendChild(lbl);
+  });
+  // Al marcar "Todos", desmarcar específicos
+  allCheck?.addEventListener('change',e=>{
+    cont.querySelectorAll('.er-local-check').forEach(cb=>{cb.checked=false;cb.disabled=e.target.checked;});
+  });
+}
+
+// Generar ID base36 único
+function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+async function crearRol(){
+  const nombre=$('er-nombre').value.trim();
+  if(!nombre){showAlert('er-alert','Ingresá un nombre para el rol',false);return;}
+  const modulos={},escritura={};
+  document.querySelectorAll('.er-mod-check:checked').forEach(cb=>{modulos[cb.dataset.mod]=true;});
+  document.querySelectorAll('.er-write-check:checked').forEach(cb=>{escritura[cb.dataset.mod]=true;});
+  const allLocales=$('er-local-all')?.checked;
+  const locales=allLocales?['all']:Array.from(document.querySelectorAll('.er-local-check:checked')).map(cb=>cb.dataset.local);
+  if(locales.length===0&&!allLocales){showAlert('er-alert','Seleccioná al menos un punto de venta',false);return;}
+  const rolId=genId();
+  await set(dbRef('roles/'+rolId),{nombre,modulos,escritura,locales});
+  showAlert('er-alert','✅ Rol "'+nombre+'" creado');
+  $('er-nombre').value='';
+  document.querySelectorAll('.er-mod-check,.er-write-check').forEach(cb=>{cb.checked=false;});
+  if($('er-local-all'))$('er-local-all').checked=true;
+}
+
+function renderRoles(){
+  const badge=$('badge-roles'),tabla=$('tabla-roles');
+  if(!tabla)return;
+  const ent=Object.entries(S.roles);
+  if(badge)badge.textContent=ent.length;
+  if(!ent.length){tabla.innerHTML='<div class="empty-state"><div class="big">🎭</div><p>No creaste ningún rol todavía.</p></div>';return;}
+  let rows='';
+  ent.forEach(([k,r])=>{
+    const modCount=Object.keys(r.modulos||{}).length;
+    const locales=(r.locales||[]).includes('all')?'Todos los locales':(r.locales||[]).map(lId=>S.locales[lId]?.nombre||lId).join(', ');
+    rows+=`<tr><td><strong>${r.nombre}</strong></td><td>${modCount} módulos</td><td style="font-size:12px;color:var(--text2)">${locales}</td><td><button class="btn btn-danger btn-sm" data-del-rol="${k}">🗑</button></td></tr>`;
+  });
+  tabla.innerHTML='<table><thead><tr><th>Rol</th><th>Acceso</th><th>Locales</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  tabla.querySelectorAll('[data-del-rol]').forEach(btn=>btn.addEventListener('click',()=>{
+    if(confirm('¿Eliminar este rol? Los usuarios con este rol perderán el acceso.'))remove(dbRef('roles/'+btn.dataset.delRol));
+  }));
+  // Actualizar select de roles en el form de usuario
+  refreshRolSelect();
+}
+
+function refreshRolSelect(){
+  const sel=$('eu-rol');if(!sel)return;
+  sel.innerHTML='<option value="">— Seleccionar rol —</option>';
+  Object.entries(S.roles).forEach(([k,r])=>sel.innerHTML+=`<option value="${k}">${r.nombre}</option>`);
+}
+
+async function crearUsuario(){
+  const nombre=$('eu-nombre').value.trim();
+  const email=$('eu-email').value.trim();
+  const pass=$('eu-pass').value;
+  const rolId=$('eu-rol').value;
+  if(!nombre||!email||!pass){showAlert('eu-alert','Completá todos los campos',false);return;}
+  if(pass.length<6){showAlert('eu-alert','La contraseña debe tener al menos 6 caracteres',false);return;}
+  if(!rolId){showAlert('eu-alert','Seleccioná un rol para este usuario',false);return;}
+  try{
+    // Guardar auth del dueño temporalmente
+    const ownerAuth=auth.currentUser;
+    // Crear cuenta Firebase para el empleado
+    const cred=await createUserWithEmailAndPassword(auth,email,pass);
+    const empUid=cred.user.uid;
+    // Guardar datos del empleado en la colección global 'empleados'
+    const snapOwnerData=await get(ref(db,'usuarios/'+ownerUid));
+    const ownerData=snapOwnerData.val()||{};
+    await set(ref(db,'empleados/'+empUid),{
+      nombre,email,rolId,ownerUid,
+      negocioNombre:ownerData.negocio||'Mi Negocio',
+      activo:true,creadoEn:today()
+    });
+    // Marcar en usuarios Firebase como employee para que el login lo identifique
+    await set(ref(db,'usuarios/'+empUid),{role:'employee',activo:true});
+    // Volver a loguear al dueño
+    showAlert('eu-alert','✅ Usuario "'+nombre+'" creado correctamente');
+    $('eu-nombre').value='';$('eu-email').value='';$('eu-pass').value='';$('eu-rol').value='';
+  }catch(e){
+    let msg='Error al crear usuario';
+    if(e.code==='auth/email-already-in-use')msg='Este email ya está registrado';
+    if(e.code==='auth/invalid-email')msg='Email inválido';
+    showAlert('eu-alert',msg,false);
+  }
+}
+
+function renderEquipo(){
+  const badge=$('badge-equipo'),tabla=$('tabla-equipo');
+  if(!tabla)return;
+  const ent=Object.entries(S.equipo);
+  if(badge)badge.textContent=ent.length;
+  if(!ent.length){tabla.innerHTML='<div class="empty-state"><div class="big">👥</div><p>Todavía no agregaste ningún usuario al equipo.</p></div>';return;}
+  let rows='';
+  ent.forEach(([uid,emp])=>{
+    const rol=S.roles[emp.rolId];
+    rows+=`<tr>
+      <td><strong>${emp.nombre}</strong></td>
+      <td style="font-size:12px;color:var(--text2)">${emp.email}</td>
+      <td>${rol?'<span class="tag tag-purple">'+rol.nombre+'</span>':'<span class="tag tag-red">Sin rol</span>'}</td>
+      <td>${emp.activo!==false?'<span class="tag tag-green">Activo</span>':'<span class="tag tag-red">Inactivo</span>'}</td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-secondary btn-sm" data-toggle-emp="${uid}">${emp.activo!==false?'🚫 Desactivar':'✅ Activar'}</button>
+        <button class="btn btn-danger btn-sm" data-del-emp="${uid}">🗑</button>
+      </td>
+    </tr>`;
+  });
+  tabla.innerHTML='<table><thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  tabla.querySelectorAll('[data-toggle-emp]').forEach(btn=>btn.addEventListener('click',()=>{
+    const uid=btn.dataset.toggleEmp;
+    const emp=S.equipo[uid];
+    update(ref(db,'empleados/'+uid),{activo:emp.activo===false})
+      .then(()=>update(ref(db,'usuarios/'+uid),{activo:emp.activo===false}));
+  }));
+  tabla.querySelectorAll('[data-del-emp]').forEach(btn=>btn.addEventListener('click',()=>{
+    if(confirm('¿Eliminar este usuario? Esta acción no se puede deshacer.')){
+      remove(ref(db,'empleados/'+btn.dataset.delEmp));
+      remove(ref(db,'usuarios/'+btn.dataset.delEmp));
+    }
+  }));
+}
 
 // ─── CAJA ────────────────────────────────────────────────────
 function getCajaRango(){
