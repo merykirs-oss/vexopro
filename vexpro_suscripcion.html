@@ -3,382 +3,341 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VexoPRO — Planes y Suscripción</title>
+<title>VexoPRO — Ver plan</title>
+<meta name="description" content="5 días gratis, sin tarjeta. El sistema completo para revendedores de tecnología.">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --green:#2d7a4f;
-  --green-light:#e8f5ee;
-  --green-mid:#c3e6d3;
-  --green-dark:#1a5c38;
-  --green-accent:#3aa76d;
-  --text:#1a2e24;
-  --text2:#4a6358;
-  --text3:#7a9e8e;
-  --border:#c3e6d3;
-  --surface:#ffffff;
-  --bg:#f2faf6;
-}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
-a{color:var(--green);text-decoration:none}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+:root{--g:#2d7a4f;--gd:#1a5c38;--gl:#e8f5ee;--gm:#c3e6d3;--ink:#0d1f16;--ink2:#3d5246;--ink3:#7a9484;--border:#e0ebe4;--red:#dc2626}
+body{font-family:'Inter',sans-serif;background:#fff;color:var(--ink);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.w{max-width:1100px;margin:0 auto;padding:0 28px}
+@media(max-width:600px){.w{padding:0 18px}}
 
 /* NAV */
-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;box-shadow:0 1px 8px rgba(45,122,79,0.08)}
-.nav-logo{font-size:20px;font-weight:800;color:var(--green);display:flex;align-items:center;gap:8px}
-.nav-logo span{font-weight:300;color:var(--text3)}
-.nav-cta{background:var(--green);color:#fff;border:none;border-radius:8px;padding:10px 22px;font-weight:600;font-size:14px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:background 0.15s}
-.nav-cta:hover{background:var(--green-dark)}
+nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.97);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+.nav-i{display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{display:flex;align-items:center;gap:10px}
+.lm{width:32px;height:32px;background:var(--g);border-radius:8px;display:grid;place-items:center;font-size:16px}
+.ln{font-size:17px;font-weight:800;color:var(--ink);letter-spacing:-.4px}
+.ln b{color:var(--g)}
+.nav-r{display:flex;align-items:center;gap:8px}
+.nb{padding:8px 16px;border-radius:8px;font-size:14px;font-weight:600}
+.nb-ghost{color:var(--ink2);border:1.5px solid var(--border);transition:.15s}
+.nb-ghost:hover{border-color:var(--g);color:var(--g)}
+.nb-solid{background:var(--g);color:#fff;transition:.15s}
+.nb-solid:hover{background:var(--gd)}
+#btn-volver-app{display:none;position:fixed;top:16px;right:20px;z-index:999;background:#fff;color:#1a5c38;border:1.5px solid #c3e6d3;border-radius:50px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;align-items:center;gap:6px;box-shadow:0 4px 16px rgba(0,0,0,.12);transition:transform .15s}
+#btn-volver-app:hover{transform:translateY(-1px)}
+#btn-volver-app.visible{display:inline-flex}
 
-/* HERO */
-.hero{text-align:center;padding:80px 40px 60px;max-width:760px;margin:0 auto}
-.hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--green-light);color:var(--green);border:1px solid var(--green-mid);border-radius:20px;padding:6px 16px;font-size:13px;font-weight:600;margin-bottom:24px}
-.hero h1{font-size:48px;font-weight:800;line-height:1.15;color:var(--text);margin-bottom:16px}
-.hero h1 span{color:var(--green)}
-.hero p{font-size:18px;color:var(--text2);margin-bottom:40px;max-width:580px;margin-left:auto;margin-right:auto}
+/* HERO DE LA PÁGINA */
+.page-hero{padding:72px 0 56px;text-align:center;border-bottom:1px solid var(--border)}
+.ph-badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--gm);background:var(--gl);border-radius:100px;padding:6px 16px;font-size:12.5px;font-weight:600;color:var(--gd);margin-bottom:24px}
+.page-hero h1{font-size:44px;font-weight:900;letter-spacing:-1.5px;line-height:1.08;margin-bottom:14px}
+.page-hero h1 em{font-style:normal;color:var(--g)}
+.page-hero p{font-size:17px;color:var(--ink2);max-width:520px;margin:0 auto}
 
-/* PRECIO */
-.precio-card{background:var(--surface);border:2px solid var(--green);border-radius:20px;padding:40px;max-width:420px;margin:0 auto 60px;text-align:center;box-shadow:0 8px 32px rgba(45,122,79,0.12)}
-.precio-badge{background:var(--green);color:#fff;border-radius:8px;padding:4px 14px;font-size:12px;font-weight:700;display:inline-block;margin-bottom:20px;letter-spacing:0.5px;text-transform:uppercase}
-.precio-monto{font-size:56px;font-weight:800;color:var(--green);line-height:1}
-.precio-monto sup{font-size:24px;vertical-align:top;margin-top:10px;display:inline-block}
-.precio-periodo{font-size:15px;color:var(--text3);margin-bottom:8px}
-.precio-cancelar{font-size:13px;color:var(--text3);margin-bottom:28px;display:flex;align-items:center;justify-content:center;gap:6px}
-.precio-cancelar::before{content:'✓';color:var(--green);font-weight:700}
-.precio-cta{display:block;background:var(--green);color:#fff;border-radius:12px;padding:16px;font-size:16px;font-weight:700;margin-bottom:12px;transition:background 0.15s;border:none;width:100%;cursor:pointer;text-decoration:none}
-.precio-cta:hover{background:var(--green-dark)}
-.precio-cta-wsp{display:flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:#fff;border-radius:12px;padding:14px;font-size:15px;font-weight:600;text-decoration:none;transition:opacity 0.15s}
-.precio-cta-wsp:hover{opacity:0.9}
-.trial-note{font-size:13px;color:var(--text3);margin-top:14px}
+/* PRICING */
+.pricing-s{padding:64px 0;background:#fff}
+.pricing-wrap{max-width:520px;margin:0 auto}
+.plan-card{border:2px solid var(--g);border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(45,122,79,.12)}
+.plan-head{background:var(--g);padding:28px 32px;text-align:center}
+.plan-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.7);margin-bottom:10px}
+.plan-price{display:flex;align-items:flex-start;justify-content:center;gap:4px;margin-bottom:6px}
+.plan-currency{font-size:22px;font-weight:700;color:#fff;margin-top:10px}
+.plan-amount{font-size:64px;font-weight:900;color:#fff;line-height:1;letter-spacing:-3px}
+.plan-period{font-size:14px;color:rgba(255,255,255,.75);margin-bottom:0}
+.plan-body{padding:28px 32px;background:#fff}
+.plan-includes{list-style:none;margin-bottom:24px}
+.plan-includes li{display:flex;align-items:flex-start;gap:10px;font-size:14.5px;color:var(--ink2);padding:7px 0;border-bottom:1px solid var(--border)}
+.plan-includes li:last-child{border-bottom:none}
+.plan-includes li::before{content:'✓';color:var(--g);font-weight:800;flex-shrink:0;margin-top:1px}
+.plan-cta{display:block;width:100%;padding:15px;background:var(--g);color:#fff;border-radius:10px;font-size:16px;font-weight:800;text-align:center;transition:.2s;margin-bottom:12px}
+.plan-cta:hover{background:var(--gd);transform:translateY(-1px)}
+.plan-fine{text-align:center;font-size:12.5px;color:var(--ink3)}
+.plan-tags{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:20px;padding-top:20px;border-top:1px solid var(--border)}
+.ptag{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink3);font-weight:500}
+.ptag::before{content:'✓';color:var(--g);font-weight:800}
 
-/* BENEFICIOS */
-.section{padding:60px 40px;max-width:1000px;margin:0 auto}
-.section-title{font-size:30px;font-weight:800;text-align:center;margin-bottom:8px;color:var(--text)}
-.section-sub{font-size:16px;color:var(--text2);text-align:center;margin-bottom:40px}
-.beneficios-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
-.beneficio-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;transition:box-shadow 0.15s}
-.beneficio-card:hover{box-shadow:0 4px 20px rgba(45,122,79,0.1)}
-.beneficio-icon{font-size:32px;margin-bottom:14px}
-.beneficio-card h3{font-size:17px;font-weight:700;margin-bottom:8px;color:var(--text)}
-.beneficio-card p{font-size:14px;color:var(--text2);line-height:1.6}
+/* MÉTODOS DE PAGO */
+.pay-s{padding:40px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:#f7fbf8}
+.pay-inner{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.pay-lbl{font-size:13px;font-weight:600;color:var(--ink3);margin-right:4px}
+.pay-chip{background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 16px;font-size:13px;font-weight:600;color:var(--ink2);display:flex;align-items:center;gap:6px}
 
-/* MÓDULOS */
-.modulos-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:32px}
-.modulo-item{background:var(--green-light);border:1px solid var(--green-mid);border-radius:12px;padding:16px 20px;display:flex;align-items:center;gap:12px}
-.modulo-item .mi{font-size:22px}
-.modulo-item span{font-size:14px;font-weight:600;color:var(--green-dark)}
+/* QUÉ INCLUYE */
+.includes-s{padding:80px 0}
+.sec-head{text-align:center;max-width:560px;margin:0 auto 52px}
+.sec-ey{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.8px;color:var(--g);margin-bottom:10px}
+.sec-head h2{font-size:30px;font-weight:800;letter-spacing:-.8px;margin-bottom:12px}
+.sec-head p{font-size:15px;color:var(--ink2);line-height:1.6}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:860px){.feat-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.feat-grid{grid-template-columns:1fr}}
+.feat-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:22px 20px;transition:.15s}
+.feat-card:hover{border-color:var(--gm);box-shadow:0 8px 24px rgba(45,122,79,.08)}
+.feat-ico{width:40px;height:40px;background:var(--gl);border-radius:10px;display:grid;place-items:center;font-size:18px;margin-bottom:12px}
+.feat-card h3{font-size:14.5px;font-weight:700;margin-bottom:5px;color:var(--ink)}
+.feat-card p{font-size:12.5px;color:var(--ink3);line-height:1.55}
 
-/* SEGURIDAD */
-.seguridad-section{background:var(--green-light);border-top:1px solid var(--green-mid);border-bottom:1px solid var(--green-mid);padding:60px 40px}
-.seguridad-inner{max-width:1000px;margin:0 auto}
-.seguridad-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;margin-top:32px}
-.seg-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px}
-.seg-card .seg-icon{width:44px;height:44px;background:var(--green-light);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px;border:1px solid var(--green-mid)}
-.seg-card h3{font-size:16px;font-weight:700;margin-bottom:8px;color:var(--text)}
-.seg-card p{font-size:13px;color:var(--text2);line-height:1.6}
-.certificado-banner{background:var(--green);color:#fff;border-radius:14px;padding:24px 32px;display:flex;align-items:center;gap:20px;margin-top:32px;flex-wrap:wrap}
-.certificado-banner .cb-icon{font-size:28px;flex-shrink:0}
-.certificado-banner h3{font-size:21px;font-weight:700;margin-bottom:8px}
-.certificado-banner p{font-size:16px;opacity:0.9;line-height:1.6}
+/* HIGHLIGHTS */
+.hl-s{padding:56px 0;background:#f7fbf8;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.hl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:700px){.hl-grid{grid-template-columns:1fr}}
+.hl-card{background:var(--gl);border:1px solid var(--gm);border-radius:14px;padding:20px;display:flex;align-items:flex-start;gap:12px}
+.hl-ico{font-size:22px;flex-shrink:0}
+.hl-card h3{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.hl-card p{font-size:12.5px;color:var(--ink2);line-height:1.5}
 
 /* FAQ */
-.faq-list{max-width:680px;margin:0 auto}
+.faq-s{padding:72px 0}
+.faq-wrap{max-width:680px;margin:0 auto}
 .faq-item{border-bottom:1px solid var(--border);padding:20px 0}
 .faq-item:last-child{border-bottom:none}
-.faq-item h4{font-size:16px;font-weight:600;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:8px}
-.faq-item h4::before{content:'▸';color:var(--green);font-size:12px}
-.faq-item p{font-size:14px;color:var(--text2);line-height:1.6;padding-left:20px}
+.faq-q{font-size:15px;font-weight:700;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;user-select:none}
+.faq-q::after{content:'＋';font-size:18px;color:var(--g);flex-shrink:0;transition:.2s}
+.faq-item.open .faq-q::after{content:'−'}
+.faq-a{font-size:14px;color:var(--ink2);line-height:1.65;max-height:0;overflow:hidden;transition:max-height .3s ease, padding .3s}
+.faq-item.open .faq-a{max-height:200px;padding-top:12px}
+
+/* SEGURIDAD */
+.sec-s{padding:72px 0;background:#f7fbf8;border-top:1px solid var(--border)}
+.sec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:32px}
+@media(max-width:760px){.sec-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.sec-grid{grid-template-columns:1fr}}
+.sec-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px}
+.sec-ico{width:36px;height:36px;background:var(--gl);border-radius:8px;display:grid;place-items:center;font-size:16px;margin-bottom:10px}
+.sec-card h3{font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.sec-card p{font-size:12px;color:var(--ink3);line-height:1.5}
+.sec-banner{background:var(--g);border-radius:14px;padding:22px 26px;display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.sec-banner .ico{font-size:26px;flex-shrink:0}
+.sec-banner h3{font-size:15px;font-weight:800;color:#fff;margin-bottom:4px}
+.sec-banner p{font-size:13px;color:rgba(255,255,255,.85);line-height:1.5}
 
 /* CTA FINAL */
-.cta-final{background:var(--green);padding:60px 40px;text-align:center;color:#fff}
-.cta-final h2{font-size:32px;font-weight:800;margin-bottom:12px}
-.cta-final p{font-size:16px;opacity:0.85;margin-bottom:32px;max-width:500px;margin-left:auto;margin-right:auto}
-.cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.btn-white{background:#fff;color:var(--green);border-radius:10px;padding:14px 28px;font-weight:700;font-size:15px;border:none;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:opacity 0.15s}
-.btn-white:hover{opacity:0.9}
-.btn-wsp{background:#25D366;color:#fff;border-radius:10px;padding:14px 28px;font-weight:700;font-size:15px;border:none;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.cta-s{background:var(--g);padding:80px 0;text-align:center}
+.cta-s h2{font-size:36px;font-weight:900;color:#fff;letter-spacing:-1px;margin-bottom:12px;line-height:1.1}
+.cta-s p{font-size:16px;color:rgba(255,255,255,.8);margin-bottom:34px}
+.cta-btn{background:#fff;color:var(--gd);border-radius:10px;padding:16px 34px;font-size:16px;font-weight:800;display:inline-flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.15);transition:.2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(0,0,0,.2)}
+.cta-fine{font-size:13px;color:rgba(255,255,255,.5);margin-top:16px}
 
 /* FOOTER */
-footer{background:var(--green-dark);color:#fff;padding:28px 40px;text-align:center}
-footer p{font-size:13px;opacity:0.7}
-
-@media(max-width:600px){
-  .hero h1{font-size:32px}
-  nav{padding:0 20px}
-  .section{padding:40px 20px}
-  .seguridad-section{padding:40px 20px}
-}
-/* Botón volver al CRM (solo visible cuando viene desde ?from=app) */
-#btn-volver-app{
-  display:none;
-  position:fixed;
-  top:16px;
-  right:20px;
-  z-index:999;
-  background:#fff;
-  color:#1a5c38;
-  border:1.5px solid #c3e6d3;
-  border-radius:50px;
-  padding:8px 16px 8px 12px;
-  font-size:13px;
-  font-weight:700;
-  cursor:pointer;
-  align-items:center;
-  gap:6px;
-  box-shadow:0 4px 16px rgba(0,0,0,0.12);
-  text-decoration:none;
-  transition:transform 0.15s, box-shadow 0.15s;
-}
-#btn-volver-app:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,0,0,0.16)}
-#btn-volver-app.visible{display:inline-flex}
+footer{padding:28px 0;border-top:1px solid var(--border);background:#fff}
+.ft-i{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.ft-copy{font-size:13px;color:var(--ink3)}
 </style>
 </head>
 <body>
 
-<!-- NAV -->
+<a id="btn-volver-app" href="app.html">✕ Volver al sistema</a>
+
 <nav>
-  <div class="nav-logo">📱 VexoPRO</div>
-  <a href="https://wa.me/5491132133878?text=Hola!%20Quiero%20suscribirme%20a%20VexoPRO" target="_blank" class="nav-cta">
-    SUSCRIBIRME AHORA
-  </a>
+  <div class="w nav-i">
+    <a href="index.html" class="logo">
+      <div class="lm">📱</div>
+      <span class="ln">Vexo<b>PRO</b></span>
+    </a>
+    <div class="nav-r">
+      <a href="app.html" class="nb nb-ghost">Iniciar sesión</a>
+      <a href="app.html" class="nb nb-solid">Empezar gratis →</a>
+    </div>
+  </div>
 </nav>
 
 <!-- HERO -->
-<div class="hero">
-  <div class="hero-badge">🚀 Software para Mayoristas y Revendedores de tecnología</div>
-  <h1>Gestioná tu negocio desde <span>un solo lugar</span></h1>
-  <p>VexoPro es el sistema todo-en-uno para revendedores de celulares y tecnología en Argentina. Controlá tu stock, tus ventas, tus reparaciones y tus cobros desde cualquier dispositivo, en segundos. Sin Excel, sin cuadernos, sin dolores de cabeza. Probalo gratis y sentí la diferencia desde el primer día.</p>
-</div>
+<section class="page-hero">
+  <div class="w">
+    <div class="ph-badge">5 días de prueba gratuita · sin tarjeta · cancelás cuando quieras</div>
+    <h1>Un solo plan.<br><em>Todo incluido.</em></h1>
+    <p>Sin funciones limitadas, sin módulos extra. Desde el primer día tenés acceso completo a todo el sistema.</p>
+  </div>
+</section>
 
-<!-- PRECIO -->
-<div style="padding:0 20px">
-<div class="precio-card">
-  <div class="precio-badge">Plan Profesional</div>
-  <div class="precio-monto"><sup>USD</sup>50</div>
-  <div class="precio-periodo">por mes · pago mensual</div>
-  <div class="precio-cancelar" style="margin-bottom:6px">Cancelás cuando querés, sin permanencia</div>
-  <div class="precio-cancelar">📲 Instalable como app en tu celular (Android y iPhone)</div>
-  <a href="app.html" class="precio-cta">
-    COMENZAR PRUEBA GRATIS
-  </a>
-  <div class="trial-note">✨ Incluye 5 días de prueba gratuita sin tarjeta</div>
-</div>
-</div>
-
+<!-- PRICING -->
+<section class="pricing-s">
+  <div class="w">
+    <div class="pricing-wrap">
+      <div class="plan-card">
+        <div class="plan-head">
+          <div class="plan-label">Plan Profesional</div>
+          <div class="plan-price">
+            <span class="plan-currency">USD</span>
+            <span class="plan-amount">50</span>
+          </div>
+          <div class="plan-period">por mes · pago mensual</div>
+        </div>
+        <div class="plan-body">
+          <ul class="plan-includes">
+            <li>Acceso completo a todos los módulos</li>
+            <li>Stock por unidad con IMEI y estado</li>
+            <li>Ventas con métodos de pago combinados (efectivo, transferencia, MercadoPago)</li>
+            <li>Caja multimoneda: pesos y dólares automáticos</li>
+            <li>Garantías con certificado PDF y verificador</li>
+            <li>Multi punto de venta (locales ilimitados)</li>
+            <li>Informes y métricas en tiempo real</li>
+            <li>Clientes, proveedores y cuenta corriente</li>
+            <li>Módulo de técnicos y reparaciones</li>
+            <li>Instalable como app en celular y tablet</li>
+            <li>Acceso desde cualquier dispositivo</li>
+            <li>Soporte incluido</li>
+          </ul>
+          <a href="app.html" class="plan-cta">EMPEZAR SUSCRIPCIÓN GRATIS →</a>
+          <div class="plan-fine">5 días gratis · sin tarjeta de crédito · cancelás cuando quieras</div>
+          <div class="plan-tags">
+            <span class="ptag">Sin permanencia</span>
+            <span class="ptag">Sin límite de ventas</span>
+            <span class="ptag">Datos seguros</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- MÉTODOS DE PAGO -->
-<div style="max-width:420px;margin:0 auto 60px;padding:0 20px">
-  <div style="text-align:center;font-size:14px;font-weight:600;color:var(--text2);margin-bottom:16px;text-transform:uppercase;letter-spacing:0.7px">Métodos de pago aceptados</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 12px;text-align:center">
-      <div style="font-size:28px;margin-bottom:8px">🏦</div>
-      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">Transferencia</div>
-      <div style="font-size:11px;color:var(--text3)">En pesos ARS</div>
-    </div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 12px;text-align:center">
-      <div style="font-size:28px;margin-bottom:8px">💳</div>
-      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">Mercado Pago</div>
-      <div style="font-size:11px;color:var(--text3)">En pesos ARS</div>
-    </div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 12px;text-align:center">
-      <div style="font-size:28px;margin-bottom:8px">💎</div>
-      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">USDT</div>
-      <div style="font-size:11px;color:var(--text3)">En dólares</div>
+<section class="pay-s">
+  <div class="w">
+    <div class="pay-inner">
+      <span class="pay-lbl">Métodos de pago aceptados:</span>
+      <span class="pay-chip">💵 Efectivo USD</span>
+      <span class="pay-chip">💵 Efectivo ARS</span>
+      <span class="pay-chip">🏦 Transferencia</span>
+      <span class="pay-chip">📲 MercadoPago</span>
+      <span class="pay-chip">💳 Combinados</span>
     </div>
   </div>
-  <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">
-    El tipo de cambio para pagos en pesos se acuerda al momento de la suscripción
-  </div>
-</div>
+</section>
 
-<!-- BENEFICIOS -->
-<div class="section">
-  <div class="section-title">Todo lo que necesitás, en un solo sistema</div>
-  <div class="section-sub">Dejá de usar planillas de Excel y papeles. VexoPRO centraliza toda la información de tu negocio.</div>
-  <div class="beneficios-grid">
-    <div class="beneficio-card">
-      <div class="beneficio-icon">📦</div>
-      <h3>Control de compras y stock</h3>
-      <p>Registrá cada pedido con modelo, capacidad, color, IMEI y porcentaje de batería. El stock se actualiza automáticamente con cada venta.</p>
-    </div>
-    <div class="beneficio-card">
-      <div class="beneficio-icon">🛒</div>
-      <h3>Gestión de ventas completa</h3>
-      <p>Registrá ventas con múltiples métodos de pago combinados (USD, ARS, USDT, transferencia, Mercado Pago), descuentos y comisiones.</p>
-    </div>
-    <div class="beneficio-card">
-      <div class="beneficio-icon">💳</div>
-      <h3>Cuenta corriente de clientes</h3>
-      <p>Seguimiento de deudas en tiempo real. Alertas automáticas cuando un cliente lleva días sin pagar. Historial completo de movimientos.</p>
-    </div>
-    <div class="beneficio-card">
-      <div class="beneficio-icon">💵</div>
-      <h3>Caja en USD y ARS</h3>
-      <p>Control del flujo de dinero separado por moneda. Las ventas se registran automáticamente. Dólar blue actualizado en tiempo real.</p>
-    </div>
-    <div class="beneficio-card">
-      <div class="beneficio-icon">🔧</div>
-      <h3>Garantías y técnicos</h3>
-      <p>Seguimiento de equipos en reparación con estados: enviado, en reparación, en oficina, entregado. Control de costos por técnico.</p>
-    </div>
-    <div class="beneficio-card">
-      <div class="beneficio-icon">📊</div>
-      <h3>Reportes y métricas</h3>
-      <p>Ventas del mes, ganancia, ticket promedio, stock disponible y más. Toda la información de tu negocio al instante.</p>
-    </div>
-    <div class="beneficio-card">
-      <div class="beneficio-icon">🌐</div>
-      <h3>Accesible desde cualquier lugar</h3>
-      <p>Funciona en celular, tablet y computadora. Vos y tu socio pueden trabajar al mismo tiempo con datos sincronizados en tiempo real.</p>
-    </div>
-    <div class="beneficio-card">
-      <div class="beneficio-icon">📲</div>
-      <h3>Instalalo como app en tu celular</h3>
-      <p>Agregá VexoPRO a la pantalla de inicio de tu celu (Android o iPhone) y usalo a pantalla completa, con su propio ícono, como si fuera una app más.</p>
-    </div>
-    <div class="beneficio-card">
-      <div class="beneficio-icon">🏢</div>
-      <h3>Gestión de proveedores</h3>
-      <p>Directorio completo de proveedores con historial de compras, datos de contacto y totales invertidos por proveedor.</p>
-    </div>
-    <div class="beneficio-card">
-      <div class="beneficio-icon">📋</div>
-      <h3>Control de costos fijos</h3>
-      <p>Registrá sueldos, alquileres, monotributo y servicios. Diferenciá costos mensuales de gastos puntuales para tener tu margen real.</p>
+<!-- HIGHLIGHTS: CAJA, MÉTODOS, APP -->
+<section class="hl-s">
+  <div class="w">
+    <div class="hl-grid">
+      <div class="hl-card"><div class="hl-ico">💱</div><div><h3>Caja multimoneda</h3><p>Pesos y dólares, separados y actualizados automáticamente con cada venta.</p></div></div>
+      <div class="hl-card"><div class="hl-ico">💳</div><div><h3>Métodos de pago combinados</h3><p>Efectivo, transferencia y MercadoPago en la misma venta, con comisiones automáticas.</p></div></div>
+      <div class="hl-card"><div class="hl-ico">📲</div><div><h3>App en tu celular</h3><p>Instalalo en tu celu o tablet como app. Sin tienda, sin descargas. Siempre a mano.</p></div></div>
     </div>
   </div>
+</section>
 
-  <!-- MÓDULOS -->
-  <div style="margin-top:48px">
-    <div class="section-title" style="font-size:22px;margin-bottom:8px">Módulos incluidos</div>
-    <div class="modulos-grid">
-      <div class="modulo-item"><span class="mi">🏠</span><span>Inicio con métricas</span></div>
-      <div class="modulo-item"><span class="mi">📦</span><span>Compras</span></div>
-      <div class="modulo-item"><span class="mi">🛒</span><span>Ventas</span></div>
-      <div class="modulo-item"><span class="mi">📊</span><span>Stock</span></div>
-      <div class="modulo-item"><span class="mi">👥</span><span>Clientes</span></div>
-      <div class="modulo-item"><span class="mi">💳</span><span>Cuenta Corriente</span></div>
-      <div class="modulo-item"><span class="mi">🔧</span><span>Garantías</span></div>
-      <div class="modulo-item"><span class="mi">👨‍🔧</span><span>Técnicos</span></div>
-      <div class="modulo-item"><span class="mi">🏢</span><span>Proveedores</span></div>
-      <div class="modulo-item"><span class="mi">💵</span><span>Caja</span></div>
-      <div class="modulo-item"><span class="mi">📋</span><span>Costos</span></div>
-      <div class="modulo-item"><span class="mi">💱</span><span>Dólar blue en tiempo real</span></div>
+<!-- QUÉ INCLUYE -->
+<section class="includes-s">
+  <div class="w">
+    <div class="sec-head">
+      <div class="sec-ey">Todo incluido</div>
+      <h2>Cada módulo de tu negocio, cubierto</h2>
+      <p>Sin funciones de relleno. Todo fue diseñado para la operación real de un revendedor de tecnología.</p>
+    </div>
+    <div class="feat-grid">
+      <div class="feat-card"><div class="feat-ico">📦</div><h3>Stock por unidad</h3><p>IMEI, color, estado y capacidad. Sabés exactamente qué tenés y dónde está.</p></div>
+      <div class="feat-card"><div class="feat-ico">🛒</div><h3>Registro de ventas</h3><p>Registrás una venta en menos de un minuto. Stock, caja y ganancia actualizados solos.</p></div>
+      <div class="feat-card"><div class="feat-ico">🛡️</div><h3>Garantías con código</h3><p>Certificados PDF con código único y verificador instantáneo de vigencia.</p></div>
+      <div class="feat-card"><div class="feat-ico">🏬</div><h3>Multi punto de venta</h3><p>Varios locales con stock y ventas separados. Vista global en un clic.</p></div>
+      <div class="feat-card"><div class="feat-ico">💵</div><h3>Caja y finanzas</h3><p>Ingresos, egresos y comisiones calculados automáticamente. Pesos y dólares.</p></div>
+      <div class="feat-card"><div class="feat-ico">📈</div><h3>Informes y métricas</h3><p>Ganancia, ticket promedio y comparación entre períodos. Sin armar nada a mano.</p></div>
+      <div class="feat-card"><div class="feat-ico">👥</div><h3>Clientes</h3><p>Historial de compras, cuenta corriente y pagos parciales por cliente.</p></div>
+      <div class="feat-card"><div class="feat-ico">🏢</div><h3>Proveedores</h3><p>Cuenta corriente con proveedores y condiciones de pago.</p></div>
+      <div class="feat-card"><div class="feat-ico">🔧</div><h3>Técnicos</h3><p>Reparaciones vinculadas a garantías, con costo y técnico asignado.</p></div>
     </div>
   </div>
-</div>
+</section>
 
 <!-- SEGURIDAD -->
-<div class="seguridad-section">
-  <div class="seguridad-inner">
-    <div class="section-title">Tu información está 100% protegida</div>
-    <div class="section-sub">La seguridad y privacidad de los datos de tu negocio es nuestra prioridad absoluta.</div>
-    <div class="seguridad-grid">
-      <div class="seg-card">
-        <div class="seg-icon">🔐</div>
-        <h3>Encriptación de extremo a extremo</h3>
-        <p>Todos los datos se transmiten mediante protocolo HTTPS con encriptación TLS. Tu información viaja cifrada y nunca en texto plano.</p>
-      </div>
-      <div class="seg-card">
-        <div class="seg-icon">🛡️</div>
-        <h3>Acceso exclusivo tuyo</h3>
-        <p>Nadie más que vos (y las personas que autorizás) puede ver los datos de tu negocio. Ni siquiera el equipo de VexoPRO tiene acceso a tu información.</p>
-      </div>
-      <div class="seg-card">
-        <div class="seg-icon">🔒</div>
-        <h3>Base de datos aislada por negocio</h3>
-        <p>Cada cuenta tiene su propia base de datos completamente separada. Los datos de tu negocio nunca se mezclan con los de otros usuarios.</p>
-      </div>
-      <div class="seg-card">
-        <div class="seg-icon">☁️</div>
-        <h3>Infraestructura Google Firebase</h3>
-        <p>Utilizamos Firebase de Google, una plataforma de nivel empresarial con certificaciones de seguridad internacionales y disponibilidad del 99.9%.</p>
-      </div>
-      <div class="seg-card">
-        <div class="seg-icon">🔑</div>
-        <h3>Autenticación segura</h3>
-        <p>Las contraseñas se almacenan con hash criptográfico. Nunca guardamos tu contraseña en texto plano. Podés cambiarla en cualquier momento.</p>
-      </div>
-      <div class="seg-card">
-        <div class="seg-icon">📋</div>
-        <h3>Protección de datos personales</h3>
-        <p>No vendemos ni compartimos tu información con terceros bajo ninguna circunstancia. Tus clientes, productos y finanzas son exclusivamente tuyos.</p>
-      </div>
+<section class="sec-s">
+  <div class="w">
+    <div class="sec-head" style="margin-bottom:28px">
+      <div class="sec-ey">Seguridad y privacidad</div>
+      <h2>Tu información está 100% protegida</h2>
+      <p>La seguridad de los datos de tu negocio es nuestra prioridad absoluta.</p>
     </div>
-    <div class="certificado-banner">
-      <div class="cb-icon">🏆</div>
+    <div class="sec-banner">
+      <div class="ico">🏆</div>
       <div>
         <h3>Infraestructura certificada a nivel mundial</h3>
-        <p>VexoPRO opera sobre Google Cloud, certificado bajo los estándares ISO 27001, SOC 2 Tipo II y GDPR. La misma infraestructura que usan empresas Fortune 500 para proteger su información crítica.</p>
+        <p>VexoPRO opera sobre Google Firebase con disponibilidad del 99,9%. La misma infraestructura que usan empresas de todo el mundo para proteger su información crítica.</p>
+      </div>
+    </div>
+    <div class="sec-grid">
+      <div class="sec-card"><div class="sec-ico">🔒</div><h3>Encriptación TLS</h3><p>Todos los datos viajan cifrados mediante HTTPS. Nunca en texto plano.</p></div>
+      <div class="sec-card"><div class="sec-ico">🛡️</div><h3>Acceso exclusivo tuyo</h3><p>Solo vos y quienes autorizás pueden ver los datos de tu negocio.</p></div>
+      <div class="sec-card"><div class="sec-ico">🗄️</div><h3>Base de datos aislada</h3><p>Cada cuenta tiene su propia base de datos. Tus datos no se mezclan con nadie.</p></div>
+      <div class="sec-card"><div class="sec-ico">🔑</div><h3>Autenticación segura</h3><p>Contraseñas con hash criptográfico. Nunca guardamos tu contraseña en texto plano.</p></div>
+      <div class="sec-card"><div class="sec-ico">☁️</div><h3>Google Firebase</h3><p>Respaldado por Google con certificaciones de seguridad de nivel empresarial.</p></div>
+      <div class="sec-card"><div class="sec-ico">📋</div><h3>Privacidad total</h3><p>No vendemos ni compartimos tu información con terceros bajo ninguna circunstancia.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-s">
+  <div class="w">
+    <div class="sec-head">
+      <div class="sec-ey">Preguntas frecuentes</div>
+      <h2>Todo lo que necesitás saber</h2>
+    </div>
+    <div class="faq-wrap">
+      <div class="faq-item open">
+        <div class="faq-q">¿Cómo funciona la prueba gratuita?</div>
+        <div class="faq-a">Tenés 5 días completos para probar todas las funciones sin ningún cargo. No se requiere tarjeta de crédito. Al finalizar el período podés suscribirte o simplemente no hacer nada y la cuenta se cancela sola.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">¿Puedo cancelar cuando quiero?</div>
+        <div class="faq-a">Sí, absolutamente. No hay contrato ni permanencia mínima. Podés cancelar la suscripción en cualquier momento, sin penalizaciones ni trámites complicados.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">¿Cuántos dispositivos puedo usar al mismo tiempo?</div>
+        <div class="faq-a">Los que quieras. VexoPRO funciona en celular, tablet y computadora. Podés trabajar desde varios dispositivos al mismo tiempo con los datos sincronizados en tiempo real.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">¿Mis datos están seguros si cancelo?</div>
+        <div class="faq-a">Sí. Durante los 30 días posteriores a la cancelación podés exportar toda tu información. Después de ese período, la información se elimina de forma permanente y segura.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">¿Cómo instalo VexoPRO como app en mi celular?</div>
+        <div class="faq-a">En Android: abrís el sistema en Chrome, tocás el menú y elegís "Agregar a pantalla de inicio". En iPhone: abrís en Safari, tocás el botón compartir y elegís "Agregar a pantalla de inicio". En segundos tenés el ícono en tu celu como si fuera una app nativa.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">¿El precio puede cambiar?</div>
+        <div class="faq-a">En caso de actualización de precios, te avisamos con al menos 30 días de anticipación. Nunca modificamos el precio de forma retroactiva durante un período ya pagado.</div>
       </div>
     </div>
   </div>
-</div>
-
-<!-- FAQ -->
-<div class="section">
-  <div class="section-title">Preguntas frecuentes</div>
-  <div class="section-sub" style="margin-bottom:32px">Todo lo que necesitás saber antes de suscribirte</div>
-  <div class="faq-list">
-    <div class="faq-item">
-      <h4>¿Cómo funciona la prueba gratuita?</h4>
-      <p>Al registrarte tenés 5 días completos para probar todas las funciones sin ningún costo. No se requiere tarjeta de crédito. Al finalizar el período, si querés continuar, contactanos por WhatsApp para activar tu suscripción.</p>
-    </div>
-    <div class="faq-item">
-      <h4>¿Puedo cancelar cuando quiero?</h4>
-      <p>Sí, absolutamente. No hay contrato ni permanencia mínima. Podés cancelar tu suscripción en cualquier momento contactándonos por WhatsApp sin ningún cargo adicional.</p>
-    </div>
-    <div class="faq-item">
-      <h4>¿Cuántos usuarios pueden usar el sistema?</h4>
-      <p>Con el Plan Profesional podés tener vos y tu socio/equipo usando el sistema al mismo tiempo. Los datos se sincronizan en tiempo real entre todos los dispositivos.</p>
-    </div>
-    <div class="faq-item">
-      <h4>¿Mis datos están seguros si cancelo?</h4>
-      <p>Sí. En caso de cancelar, tus datos permanecen en el sistema por 30 días adicionales para que puedas exportarlos. Después de ese período se eliminan de forma permanente y segura.</p>
-    </div>
-    <div class="faq-item">
-      <h4>¿Funciona en el celular?</h4>
-      <p>VexoPRO está diseñado para funcionar perfectamente en celular, tablet y computadora. Solo necesitás un navegador y conexión a internet.</p>
-    </div>
-    <div class="faq-item">
-      <h4>¿Cómo es el soporte?</h4>
-      <p>El soporte es directo por WhatsApp. Respondemos consultas y ayudamos con la configuración inicial del sistema.</p>
-    </div>
-    <div class="faq-item">
-      <h4>¿El precio puede cambiar?</h4>
-      <p>En caso de actualización de precios, te avisamos con al menos 30 días de anticipación. Nunca modificamos el precio de forma retroactiva durante un período ya pagado.</p>
-    </div>
-  </div>
-</div>
+</section>
 
 <!-- CTA FINAL -->
-<div class="cta-final">
-  <h2>Empezá a gestionar tu negocio hoy</h2>
-  <p>5 días de prueba gratuita. Sin tarjeta de crédito. Sin permanencia. Cancelás cuando querés.</p>
-  <div class="cta-btns">
-    <a href="app.html" class="btn-wsp">
-      SUSCRIBIRME AHORA
-    </a>
+<section class="cta-s">
+  <div class="w">
+    <h2>Empezá a controlar<br>tu negocio hoy</h2>
+    <p>5 días de prueba gratuita. Sin tarjeta. Sin instalación.</p>
+    <a href="app.html" class="cta-btn">EMPEZAR SUSCRIPCIÓN GRATIS →</a>
+    <p class="cta-fine">Sin permanencia · Cancelás cuando quieras · Soporte incluido</p>
   </div>
-</div>
+</section>
 
-<!-- FOOTER -->
 <footer>
-  <p>© 2026 VexoPRO · Todos los derechos reservados · Desarrollado en Argentina</p>
-  <p style="margin-top:6px">Los datos de tu negocio son exclusivamente tuyos. No vendemos ni compartimos información con terceros.</p>
+  <div class="w ft-i">
+    <a href="index.html" class="logo">
+      <div class="lm">📱</div>
+      <span class="ln">Vexo<b>PRO</b></span>
+    </a>
+    <span class="ft-copy">© 2026 VexoPRO · Software de gestión para revendedores de tecnología · Argentina</span>
+  </div>
 </footer>
 
-<!-- BOTÓN VOLVER AL CRM (solo visible cuando viene desde ?from=app) -->
-<a id="btn-volver-app" href="app.html">
-  ✕ Volver al sistema
-</a>
-
 <script>
-  // Si el usuario llegó desde el CRM, mostrar el botón de volver
-  if(new URLSearchParams(window.location.search).get('from')==='app'){
-    document.getElementById('btn-volver-app').classList.add('visible');
-  }
+document.querySelectorAll('.faq-q').forEach(q=>{
+  q.addEventListener('click',()=>{
+    const item=q.parentElement;
+    const wasOpen=item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));
+    if(!wasOpen)item.classList.add('open');
+  });
+});
+if(new URLSearchParams(window.location.search).get('from')==='app'){
+  document.getElementById('btn-volver-app').classList.add('visible');
+}
 </script>
-
 </body>
 </html>
