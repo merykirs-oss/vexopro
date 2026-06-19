@@ -3,304 +3,641 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VexoPRO — El sistema para revendedores de tecnología</title>
-<meta name="description" content="Gestioná stock, ventas, garantías y reparaciones de tu negocio de celulares desde un solo lugar. Probalo gratis 5 días.">
+<title>VexoPRO — Software de gestión para revendedores de tecnología</title>
+<meta name="description" content="El sistema que usan los mejores revendedores de celulares en Argentina. Stock, ventas, garantías y finanzas en un solo lugar.">
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
-
-:root{
-  --green:#2d7a4f;
-  --green-light:#e8f5ee;
-  --green-mid:#c3e6d3;
-  --green-dark:#1a5c38;
-  --green-accent:#3aa76d;
-  --ink:#1a2620;
-  --ink-soft:#4a5c52;
-  --ink-faint:#8a9a8e;
-  --border:#e4ebe6;
-  --surface:#ffffff;
-  --red:#c0392b;
-}
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{font-family:'Inter',sans-serif;background:#fff;color:var(--ink);line-height:1.6;overflow-x:hidden}
-.mono{font-family:'JetBrains Mono',monospace}
-a{color:inherit;text-decoration:none}
-.wrap{max-width:1140px;margin:0 auto;padding:0 24px}
-
-/* ─── NAV ─── */
-.nav{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--border);box-shadow:0 1px 6px rgba(0,0,0,0.04)}
-.nav-inner{max-width:1140px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;justify-content:space-between}
-.nav-logo{font-size:19px;font-weight:800;color:var(--green-dark);display:flex;align-items:center;gap:8px;letter-spacing:-0.3px}
-.nav-cta{background:var(--green);color:#fff;border-radius:8px;padding:10px 20px;font-weight:600;font-size:14px;transition:background 0.15s, transform 0.15s;white-space:nowrap}
-.nav-cta:hover{background:var(--green-dark);transform:translateY(-1px)}
-.nav-login{background:var(--green-dark);color:#fff;font-weight:600;font-size:14px;padding:10px 18px;border-radius:8px;transition:background 0.15s, transform 0.15s;white-space:nowrap}
-.nav-login:hover{background:#0f3f24;transform:translateY(-1px)}
-.nav-actions{display:flex;align-items:center;gap:8px}
-@media(max-width:480px){
-  .nav-inner{padding:14px 16px}
-  .nav-logo{font-size:16px}
-  .nav-login{font-size:13px;padding:8px 12px}
-  .nav-cta{font-size:13px;padding:8px 14px}
+:root{
+  --g:#2d7a4f;--gd:#1a5c38;--gl:#e8f5ee;--gm:#c3e6d3;
+  --ink:#0d1f16;--ink2:#3d5246;--ink3:#7a9484;
+  --border:#e0ebe4;--red:#dc2626;--yellow:#d97706;
 }
+body{font-family:'Inter',sans-serif;background:#fff;color:var(--ink);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+.w{max-width:1180px;margin:0 auto;padding:0 32px}
+@media(max-width:600px){.w{padding:0 18px}}
 
-/* ─── HERO: BANNER VERDE SÓLIDO ─── */
-.hero{background:var(--green);padding:72px 0 80px;text-align:center}
-.eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:7px 16px;font-size:13px;font-weight:600;margin-bottom:28px}
-.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.7)}
-h1{font-size:48px;font-weight:800;letter-spacing:-1.2px;line-height:1.08;max-width:760px;margin:0 auto 20px;color:#fff}
-h1 .accent{color:rgba(255,255,255,0.75)}
-h1 .strike{position:relative;color:rgba(255,255,255,0.5);text-decoration:line-through;text-decoration-color:rgba(255,255,255,0.4)}
-.hero-sub{font-size:18px;color:rgba(255,255,255,0.85);max-width:580px;margin:0 auto 36px}
-.hero-ctas{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
-.btn{display:inline-flex;align-items:center;gap:8px;border-radius:10px;padding:15px 28px;font-weight:700;font-size:15px;cursor:pointer;border:none;transition:transform 0.15s, box-shadow 0.15s}
-.btn-primary{background:#fff;color:var(--green-dark);box-shadow:0 6px 20px rgba(0,0,0,0.15)}
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,0.2)}
-.btn-ghost{background:rgba(255,255,255,0.12);color:#fff;border:1.5px solid rgba(255,255,255,0.35)}
-.btn-ghost:hover{background:rgba(255,255,255,0.2);transform:translateY(-2px)}
-.hero-trust{font-size:13px;color:rgba(255,255,255,0.6)}
+/* ═══ NAV ═══ */
+nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.97);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+.nav-i{display:flex;align-items:center;justify-content:space-between;height:68px}
+.logo{display:flex;align-items:center;gap:10px}
+.lm{width:34px;height:34px;background:var(--g);border-radius:9px;display:grid;place-items:center}
+.lm svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ln{font-size:18px;font-weight:800;color:var(--ink);letter-spacing:-.5px}
+.ln b{color:var(--g);font-weight:900}
+.nav-r{display:flex;align-items:center;gap:8px}
+.nb{padding:9px 18px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
+.nb-ghost{color:var(--ink2);border:1.5px solid var(--border);transition:.15s}
+.nb-ghost:hover{border-color:var(--g);color:var(--g)}
+.nb-solid{background:var(--g);color:#fff;transition:.15s}
+.nb-solid:hover{background:var(--gd)}
+@media(max-width:480px){.ln{font-size:16px}.nb{font-size:13px;padding:8px 13px}}
 
-/* ─── PILARES ─── */
-.pillars-section{padding:72px 0 40px;background:#fff}
-.pillars-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-@media(max-width:760px){.pillars-grid{grid-template-columns:1fr}}
-.pillar-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:30px 26px;text-align:center;box-shadow:0 4px 16px rgba(26,38,32,0.05)}
-.pillar-icon{width:50px;height:50px;border-radius:12px;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 16px}
-.pillar-card h3{font-size:17px;font-weight:800;margin-bottom:8px;letter-spacing:-0.2px}
-.pillar-card p{font-size:14px;color:var(--ink-soft);line-height:1.55}
+/* ═══ HERO ═══ */
+.hero{padding:80px 0 0;background:#fff;overflow:hidden}
+.hero-top{text-align:center;margin-bottom:56px}
+.hbadge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--gm);background:var(--gl);border-radius:100px;padding:6px 16px;font-size:12.5px;font-weight:600;color:var(--gd);margin-bottom:28px}
+.hbadge::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--g);flex-shrink:0;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+h1{font-size:60px;font-weight:900;line-height:1.04;letter-spacing:-2.5px;color:var(--ink);max-width:860px;margin:0 auto 24px}
+h1 em{font-style:normal;color:var(--g)}
+.hp{font-size:19px;color:var(--ink2);max-width:580px;margin:0 auto 42px;line-height:1.65}
+.ha{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
+.bcta{display:inline-flex;align-items:center;gap:8px;padding:15px 32px;border-radius:10px;font-weight:700;font-size:16px;cursor:pointer;transition:.2s}
+.bcta-p{background:var(--g);color:#fff;box-shadow:0 4px 20px rgba(45,122,79,.35)}
+.bcta-p:hover{background:var(--gd);transform:translateY(-2px);box-shadow:0 10px 28px rgba(45,122,79,.4)}
+.bcta-s{background:#fff;color:var(--ink2);border:1.5px solid var(--border)}
+.bcta-s:hover{border-color:var(--g);color:var(--g)}
+.hfine{font-size:13px;color:var(--ink3)}
 
-/* ─── SECCIONES GENERALES ─── */
-.section{padding:84px 0;background:#fff}
-.section-tight{padding:56px 0;background:#fff}
-.section-alt{background:#f7fbf8;padding:84px 0}
-.section-head{text-align:center;max-width:620px;margin:0 auto 52px}
-.section-eyebrow{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--green);margin-bottom:10px}
-.section-head h2{font-size:32px;font-weight:800;letter-spacing:-0.6px;margin-bottom:14px}
-.section-head p{font-size:16px;color:var(--ink-soft)}
+/* ═══ BROWSER FRAME ═══ */
+.browser-wrap{position:relative;max-width:1100px;margin:0 auto;padding:0 20px}
+.browser-frame{background:#e8eef0;border-radius:16px 16px 0 0;overflow:hidden;box-shadow:0 -8px 0 rgba(0,0,0,.06),0 40px 80px rgba(13,31,22,.18),0 0 0 1px rgba(0,0,0,.06)}
+.browser-bar{background:#dee4e6;padding:12px 16px;display:flex;align-items:center;gap:10px}
+.bbtns{display:flex;gap:6px}
+.bbtns span{width:12px;height:12px;border-radius:50%}
+.bbtns span:nth-child(1){background:#ff5f57}
+.bbtns span:nth-child(2){background:#febc2e}
+.bbtns span:nth-child(3){background:#28c840}
+.burl{flex:1;background:#fff;border-radius:6px;padding:6px 12px;font-size:12px;color:#666;display:flex;align-items:center;gap:6px;max-width:380px;margin:0 auto}
+.burl::before{content:'🔒';font-size:10px}
+.burl span{color:#888}
+/* App inside browser */
+.app-shell{display:flex;height:560px;background:#f4f9f6;font-size:13px}
+.app-sidebar{width:210px;background:#ffffff;flex-shrink:0;padding:0;display:flex;flex-direction:column;border-right:1px solid #c3e6d3;box-shadow:2px 0 8px rgba(0,0,0,0.04)}
+.app-logo{padding:18px 20px 14px;border-bottom:1px solid #c3e6d3}
+.app-logo .name{font-size:16px;font-weight:700;color:#2d7a4f;display:flex;align-items:center;gap:8px}
+.app-logo .biz{font-size:11px;color:#7a9e8e;margin-top:2px}
+.snav-nav{padding:10px 12px;flex:1}
+.snav-sec{font-size:10px;font-weight:600;color:#7a9e8e;text-transform:uppercase;letter-spacing:1px;padding:10px 4px 4px}
+.snav-btn{padding:8px 10px;color:#4a6358;display:flex;align-items:center;gap:9px;border-radius:7px;font-size:13px;cursor:pointer;transition:.1s;margin-bottom:1px;font-weight:500}
+.snav-btn:hover{background:#f2faf6;color:#1a2e24}
+.snav-btn.active{background:rgba(45,122,79,0.10);color:#2d7a4f;font-weight:600}
+.snav-ico{font-size:13px;width:15px;text-align:center;flex-shrink:0}
+.app-main{flex:1;overflow:hidden;padding:24px;display:flex;flex-direction:column;gap:16px}
+/* Page header */
+.aph{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.aph h2{font-size:18px;font-weight:800;color:var(--ink);letter-spacing:-.4px}
+.aph-tag{background:var(--gl);color:var(--gd);border:1px solid var(--gm);border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700}
+/* Stats row */
+.ast{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.asc{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px}
+.asc-l{font-size:10px;color:var(--ink3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.asc-v{font-size:20px;font-weight:800;color:var(--ink);letter-spacing:-.5px}
+.asc-v.green{color:var(--g)}
+.asc-s{font-size:10px;margin-top:2px;display:flex;align-items:center;gap:3px}
+.asc-s.up{color:var(--g)}
+.asc-s.down{color:var(--red)}
+/* Table */
+.atbl{background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden;flex:1}
+.atbl-h{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.atbl-h span{font-size:13px;font-weight:700;color:var(--ink)}
+.atbl-tag{background:var(--gl);color:var(--gd);border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700}
+.atbl table{width:100%;border-collapse:collapse}
+.atbl th{padding:8px 16px;text-align:left;font-size:10px;color:var(--ink3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);background:#fafcfb}
+.atbl td{padding:10px 16px;border-bottom:1px solid #f0f5f2;font-size:12px;color:var(--ink2)}
+.atbl tr:last-child td{border-bottom:none}
+.atbl td.bold{font-weight:700;color:var(--ink)}
+.atbl td.green{font-weight:700;color:var(--g)}
+.atbl td.red{font-weight:700;color:var(--red)}
+.tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700}
+.tag-g{background:var(--gl);color:var(--gd)}
+.tag-y{background:#fef3c7;color:#92400e}
+.tag-r{background:#fee2e2;color:#991b1b}
 
-/* ─── ANTES / DESPUÉS ─── */
-.pain-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;background:#fff;border:1px solid var(--border);border-radius:18px;overflow:hidden;box-shadow:0 8px 30px rgba(26,38,32,0.06)}
-.pain-col{padding:36px 38px}
-.pain-col + .pain-col{border-left:1px solid var(--border)}
-.pain-col h3{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:18px;display:flex;align-items:center;gap:8px}
-.pain-col.before h3{color:var(--ink-faint)}
-.pain-col.after h3{color:var(--green-dark)}
-.pain-list{list-style:none}
-.pain-list li{display:flex;align-items:flex-start;gap:10px;font-size:14.5px;padding:9px 0;color:var(--ink-soft)}
-.pain-col.before li::before{content:'✕';color:var(--red);font-weight:700;flex-shrink:0}
-.pain-col.after li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0}
-.pain-col.after li{color:var(--ink)}
-@media(max-width:700px){.pain-grid{grid-template-columns:1fr}.pain-col + .pain-col{border-left:none;border-top:1px solid var(--border)}}
+/* ═══ PROOF BAND ═══ */
+.proof{background:var(--g);padding:18px 0}
+.proof-i{display:flex;align-items:center;justify-content:center;gap:48px;flex-wrap:wrap}
+.pi{color:rgba(255,255,255,.9);font-size:13.5px;font-weight:500;display:flex;align-items:center;gap:8px}
+.pi::before{content:'✓';font-weight:900;font-size:14px}
+@media(max-width:600px){.proof-i{gap:14px}.pi{font-size:12px}}
 
-/* ─── MÓDULOS ─── */
-.modules-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-@media(max-width:900px){.modules-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:600px){.modules-grid{grid-template-columns:1fr}}
-.module-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:26px 24px;transition:transform 0.2s, box-shadow 0.2s}
-.module-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(26,38,32,0.08);border-color:var(--green-mid)}
-.module-icon{width:42px;height:42px;border-radius:10px;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:14px}
-.module-card h3{font-size:16px;font-weight:700;margin-bottom:8px}
-.module-card p{font-size:13.5px;color:var(--ink-soft);line-height:1.55}
+/* ═══ STATS NUMBERS ═══ */
+.nums{padding:80px 0;border-bottom:1px solid var(--border)}
+.nums-g{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border)}
+@media(max-width:700px){.nums-g{grid-template-columns:repeat(2,1fr)}}
+.num-c{background:#fff;padding:40px 32px;text-align:center}
+.num-n{font-size:42px;font-weight:900;color:var(--g);letter-spacing:-2px;line-height:1;margin-bottom:10px}
+.num-l{font-size:14px;color:var(--ink2);font-weight:500;line-height:1.4}
 
-/* ─── BANDA DE NÚMEROS ─── */
-.stats-band{background:var(--green-dark);color:#fff;padding:52px 0}
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:center}
-@media(max-width:700px){.stats-row{grid-template-columns:repeat(2,1fr)}}
-.stat-num{font-size:34px;font-weight:800;font-family:'JetBrains Mono',monospace}
-.stat-lbl{font-size:12.5px;color:rgba(255,255,255,0.7);margin-top:5px;text-transform:uppercase;letter-spacing:0.5px}
+/* ═══ FEATURES ═══ */
+.features{padding:100px 0}
+.feat{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;margin-bottom:120px}
+.feat:last-child{margin-bottom:0}
+.feat.r{direction:rtl}
+.feat.r>*{direction:ltr}
+@media(max-width:860px){.feat,.feat.r{grid-template-columns:1fr;direction:ltr;gap:40px;margin-bottom:72px}}
+.fey{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.8px;color:var(--g);margin-bottom:12px}
+.fh{font-size:30px;font-weight:800;letter-spacing:-.8px;line-height:1.18;margin-bottom:16px}
+.fp{font-size:15.5px;color:var(--ink2);line-height:1.7;margin-bottom:24px}
+.fl{list-style:none}
+.fl li{display:flex;align-items:flex-start;gap:10px;font-size:14.5px;color:var(--ink2);padding:6px 0;line-height:1.5}
+.fl li::before{content:'';width:18px;height:18px;border-radius:50%;background:var(--gl);border:1.5px solid var(--gm);flex-shrink:0;display:grid;place-items:center;font-size:9px;color:var(--g);margin-top:1px}
+.fl li::before{content:'✓';font-weight:900}
 
-/* ─── QUOTE ─── */
-.quote-block{max-width:680px;margin:0 auto;text-align:center}
-.quote-mark{font-size:48px;color:var(--green-mid);font-weight:800;line-height:0.5;display:block;margin-bottom:8px}
-.quote-text{font-size:21px;font-weight:600;color:var(--ink);line-height:1.45;margin-bottom:20px}
-.quote-author{font-size:13.5px;color:var(--ink-faint)}
-.quote-author b{color:var(--ink-soft)}
+/* Feature screen visuals */
+.fv{border-radius:20px;overflow:hidden;box-shadow:0 24px 60px rgba(13,31,22,.12),0 0 0 1px var(--border);background:#fff}
+.fv-topbar{background:#1a2e24;padding:10px 16px;display:flex;align-items:center;gap:8px}
+.fv-topbar .dots{display:flex;gap:5px}
+.fv-topbar .dots span{width:10px;height:10px;border-radius:50%}
+.fv-topbar .dots span:nth-child(1){background:#ff5f57}
+.fv-topbar .dots span:nth-child(2){background:#febc2e}
+.fv-topbar .dots span:nth-child(3){background:#28c840}
+.fv-topbar .title{font-size:11px;color:rgba(255,255,255,.5);font-weight:600;margin-left:4px}
+.fv-body{padding:20px}
 
-/* ─── CTA FINAL: BANNER VERDE SÓLIDO ─── */
-.cta-final{background:var(--green);padding:72px 0;text-align:center;color:#fff}
-.cta-final h2{font-size:32px;font-weight:800;margin-bottom:14px}
-.cta-final p{font-size:16px;opacity:0.88;margin-bottom:32px}
-.cta-final .btn-primary{background:#fff;color:var(--green-dark);box-shadow:0 8px 24px rgba(0,0,0,0.18)}
-.cta-final .btn-primary:hover{background:#f4faf6}
+/* Wizard mock */
+.wiz-prog{display:flex;gap:4px;margin-bottom:20px}
+.wiz-dot{flex:1;height:4px;background:#e0ebe4;border-radius:2px}
+.wiz-dot.done{background:var(--g)}
+.wiz-dot.active{background:var(--gm)}
+.wiz-step-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--g);margin-bottom:12px}
+.wiz-field{margin-bottom:10px}
+.wiz-field label{display:block;font-size:10px;font-weight:600;color:var(--ink3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.wiz-field .fi{background:#f4f9f6;border:1.5px solid var(--border);border-radius:7px;padding:9px 12px;font-size:13px;color:var(--ink);width:100%}
+.wiz-field .fi.sel{border-color:var(--g);background:var(--gl);font-weight:600;color:var(--gd)}
+.wiz-2col{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.wiz-footer{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.wiz-footer .back{font-size:12px;color:var(--ink3);font-weight:500}
+.wiz-footer .next{background:var(--g);color:#fff;border-radius:7px;padding:9px 18px;font-size:13px;font-weight:700}
+.wiz-total{background:var(--gl);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.wiz-total span{font-size:12px;color:var(--ink2)}
+.wiz-total b{font-size:18px;font-weight:900;color:var(--g);letter-spacing:-.5px}
 
-/* ─── FOOTER ─── */
-.footer{padding:36px 0;text-align:center;font-size:13px;color:var(--ink-faint);border-top:1px solid var(--border);background:#fff}
+/* Garantía mock */
+.cert-box{border:2px solid var(--g);border-radius:12px;padding:20px;text-align:center;background:linear-gradient(135deg,var(--gl) 0%,#fff 100%)}
+.cert-header{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--ink3);margin-bottom:12px}
+.cert-code{font-size:32px;font-weight:900;color:var(--g);letter-spacing:3px;font-family:monospace;margin-bottom:8px}
+.cert-detail{font-size:12px;color:var(--ink2);line-height:1.6}
+.cert-vigente{display:flex;align-items:center;gap:10px;background:#f0faf5;border:1.5px solid var(--gm);border-radius:10px;padding:14px;margin-top:14px}
+.cert-vigente .ico{font-size:22px}
+.cert-vigente .info .ti{font-size:13px;font-weight:800;color:var(--gd)}
+.cert-vigente .info .su{font-size:11px;color:var(--ink3);margin-top:2px}
+.cert-vencida{background:#fef2f2;border-color:#fca5a5}
+.cert-vencida .ti{color:var(--red)!important}
+
+/* Informe mock */
+.inf-bar{display:flex;align-items:flex-end;gap:6px;height:90px;margin-bottom:12px}
+.bar-col{flex:1;border-radius:4px 4px 0 0;background:var(--gm);position:relative;transition:.3s}
+.bar-col.hl{background:var(--g)}
+.bar-col:hover{background:var(--g)}
+.inf-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.inf-kpi{background:#f4f9f6;border-radius:8px;padding:12px}
+.inf-kpi .n{font-size:20px;font-weight:800;color:var(--g);letter-spacing:-.5px}
+.inf-kpi .l{font-size:10px;color:var(--ink3);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+.inf-kpi .d{font-size:11px;color:var(--g);font-weight:600;margin-top:4px}
+
+/* ═══ MODULOS ═══ */
+.mods{background:#f7fbf8;padding:80px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.mods-head{text-align:center;max-width:580px;margin:0 auto 52px}
+.mh-ey{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.8px;color:var(--g);margin-bottom:10px}
+.mods-head h2{font-size:32px;font-weight:800;letter-spacing:-.8px;margin-bottom:12px}
+.mods-head p{font-size:15.5px;color:var(--ink2);line-height:1.6}
+.mods-g{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border)}
+@media(max-width:860px){.mods-g{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.mods-g{grid-template-columns:1fr}}
+.mod{background:#fff;padding:30px 28px;transition:.15s;border-bottom:3px solid transparent}
+.mod:hover{background:#f0faf5;border-bottom-color:var(--g)}
+.mod-i{width:42px;height:42px;border-radius:10px;background:var(--gl);display:grid;place-items:center;font-size:18px;margin-bottom:14px}
+.mod h3{font-size:15px;font-weight:700;margin-bottom:6px;color:var(--ink)}
+.mod p{font-size:13px;color:var(--ink3);line-height:1.55}
+
+/* ═══ TESTIMONIAL ═══ */
+.test-s{padding:80px 0;background:#fff}
+.test-i{max-width:700px;margin:0 auto;text-align:center}
+.test-q{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--g);margin-bottom:20px}
+.test-t{font-size:24px;font-weight:700;color:var(--ink);line-height:1.42;letter-spacing:-.4px;margin-bottom:28px}
+.test-a{display:flex;align-items:center;justify-content:center;gap:12px}
+.test-avatar{width:44px;height:44px;border-radius:50%;background:var(--g);display:grid;place-items:center;color:#fff;font-weight:800;font-size:16px}
+.test-info .name{font-size:14px;font-weight:700;color:var(--ink)}
+.test-info .role{font-size:13px;color:var(--ink3)}
+
+/* ═══ CTA ═══ */
+.cta-s{background:var(--g);padding:100px 0;text-align:center;position:relative;overflow:hidden}
+.cta-s::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:rgba(255,255,255,.04);top:-200px;right:-200px;pointer-events:none}
+.cta-s::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;background:rgba(255,255,255,.04);bottom:-150px;left:-100px;pointer-events:none}
+.cta-s h2{font-size:42px;font-weight:900;color:#fff;letter-spacing:-1.5px;line-height:1.1;margin-bottom:16px;position:relative}
+.cta-s p{font-size:17px;color:rgba(255,255,255,.8);margin-bottom:40px;position:relative}
+.cta-btn{background:#fff;color:var(--gd);border-radius:12px;padding:17px 38px;font-size:17px;font-weight:800;display:inline-flex;align-items:center;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.15);transition:.2s;position:relative}
+.cta-btn:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(0,0,0,.2)}
+.cta-fine{font-size:13px;color:rgba(255,255,255,.5);margin-top:20px;position:relative}
+
+/* ═══ FOOTER ═══ */
+footer{padding:36px 0;border-top:1px solid var(--border)}
+.ft-i{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.ft-copy{font-size:13px;color:var(--ink3)}
+
+/* ═══ MOBILE ═══ */
+@media(max-width:860px){
+  h1{font-size:38px;letter-spacing:-1.5px}
+  .hp{font-size:16px}
+  .browser-wrap{padding:0 16px}
+  .app-sidebar{width:160px}
+  .snav-btn{font-size:11px;padding:8px 12px}
+  .ast{grid-template-columns:repeat(2,1fr)}
+  .nums-g{grid-template-columns:repeat(2,1fr)}
+  .num-n{font-size:32px}
+}
+@media(max-width:580px){
+  h1{font-size:30px;letter-spacing:-1px}
+  .app-shell{height:auto;flex-direction:column}
+  .app-sidebar{width:100%;flex-direction:row;overflow-x:auto;padding:8px;gap:4px}
+  .snav-sec{display:none}
+  .snav-btn{padding:6px 10px;font-size:11px;white-space:nowrap;border-radius:6px}
+  .snav-btn.active{border-right:none;border-bottom:2px solid #3aa76d}
+  .app-main{padding:16px}
+  .ast{grid-template-columns:repeat(2,1fr)}
+}
 </style>
 </head>
 <body>
 
-<nav class="nav">
-  <div class="nav-inner">
-    <div class="nav-logo">📱 VexoPRO</div>
-    <div class="nav-actions">
-      <a href="app.html" class="nav-login">Iniciar sesión</a>
-      <a href="vexpro_suscripcion.html" class="nav-cta">Ver precio →</a>
+<!-- NAV -->
+<nav>
+  <div class="w nav-i">
+    <a href="#" class="logo">
+      <div class="lm">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h13"/></svg>
+      </div>
+      <span class="ln">Vexo<b>PRO</b></span>
+    </a>
+    <div class="nav-r">
+      <a href="app.html" class="nb nb-ghost">Iniciar sesión</a>
+      <a href="vexpro_suscripcion.html" class="nb nb-solid">Ver precio →</a>
     </div>
   </div>
 </nav>
 
 <!-- HERO -->
 <section class="hero">
-  <div class="wrap">
-    <div class="eyebrow"><span class="dot"></span> Hecho para revendedores de celulares y tecnología</div>
-    <h1>Tu negocio ordenado,<br>de <span class="strike">la libreta</span> al <span class="accent">control total</span></h1>
-    <p class="hero-sub">Todas las métricas de tu negocio, todo controlado, todo en un solo lugar. Cargás una venta y el resto —stock, caja, ganancia, garantía— se actualiza solo. Tan simple que lo usás desde el primer día sin instructivo.</p>
-    <div class="hero-ctas">
-      <a href="vexpro_suscripcion.html" class="btn btn-primary">Empezar prueba gratis →</a>
-      <a href="#como-funciona" class="btn btn-ghost">Ver cómo funciona</a>
+  <div class="w">
+    <div class="hero-top">
+      <div class="hbadge">Software profesional para revendedores de tecnología</div>
+      <h1>Todo tu negocio.<br>Un solo sistema.<br><em>Control total.</em></h1>
+      <p class="hp">Stock, ventas, garantías, caja y clientes actualizados en tiempo real. Sin planillas. Sin errores. Desde el primer día.</p>
+      <div class="ha">
+        <a href="vexpro_suscripcion.html" class="bcta bcta-p">Empezar prueba gratis →</a>
+        <a href="#features" class="bcta bcta-s">Ver el sistema</a>
+      </div>
+      <p class="hfine">5 días gratis · sin tarjeta de crédito · cancelás cuando quieras</p>
     </div>
-    <p class="hero-trust">5 días de prueba gratis · sin tarjeta · cancelás cuando quieras</p>
+  </div>
+
+  <!-- BROWSER FRAME CON APP REAL -->
+  <div class="browser-wrap">
+    <div class="browser-frame">
+      <div class="browser-bar">
+        <div class="bbtns"><span></span><span></span><span></span></div>
+        <div class="burl"><span>app.vexopro.com</span></div>
+      </div>
+      <div class="app-shell">
+        <!-- Sidebar (igual al CRM real: fondo blanco, borde verde claro) -->
+        <div class="app-sidebar">
+          <div class="app-logo">
+            <div class="name"><span style="font-size:18px">📱</span>VexoPRO</div>
+            <div class="biz">Mi Negocio</div>
+          </div>
+          <div class="snav-nav">
+            <div class="snav-sec">Principal</div>
+            <div class="snav-btn active"><span class="snav-ico">🏠</span>Inicio</div>
+            <div class="snav-btn"><span class="snav-ico">📦</span>Compras</div>
+            <div class="snav-btn"><span class="snav-ico">🛒</span>Ventas</div>
+            <div class="snav-btn"><span class="snav-ico">📊</span>Stock</div>
+            <div class="snav-sec">Clientes</div>
+            <div class="snav-btn"><span class="snav-ico">👥</span>Clientes</div>
+            <div class="snav-btn"><span class="snav-ico">💳</span>Cta. Corriente</div>
+            <div class="snav-sec">Servicio</div>
+            <div class="snav-btn"><span class="snav-ico">🛡️</span>Garantías</div>
+            <div class="snav-btn"><span class="snav-ico">👨‍🔧</span>Técnicos</div>
+            <div class="snav-sec">Finanzas</div>
+            <div class="snav-btn"><span class="snav-ico">💵</span>Caja</div>
+            <div class="snav-btn"><span class="snav-ico">📈</span>Informes</div>
+            <div class="snav-sec">Puntos de Venta</div>
+            <div class="snav-btn"><span class="snav-ico">🏬</span>Local Devoto</div>
+            <div class="snav-btn"><span class="snav-ico">💻</span>Online</div>
+          </div>
+        </div>
+        <!-- Main content -->
+        <div class="app-main">
+          <div class="aph">
+            <h2>🏠 Inicio</h2>
+            <span class="aph-tag">Hoy: Jueves 19 Jun</span>
+          </div>
+          <div class="ast">
+            <div class="asc"><div class="asc-l">Ventas del mes</div><div class="asc-v green">$14.200</div><div class="asc-s up">↑ 18% vs mes anterior</div></div>
+            <div class="asc"><div class="asc-l">Ganancia</div><div class="asc-v green">$3.840</div><div class="asc-s up">↑ 12% vs mes anterior</div></div>
+            <div class="asc"><div class="asc-l">Unidades vendidas</div><div class="asc-v">38</div><div class="asc-s up">↑ 5 más que el mes pasado</div></div>
+            <div class="asc"><div class="asc-l">Garantías vigentes</div><div class="asc-v">12</div><div class="asc-s" style="color:var(--ink3)">Ninguna vence esta semana</div></div>
+          </div>
+          <div class="atbl">
+            <div class="atbl-h"><span>Últimas ventas</span><span class="atbl-tag">Este mes</span></div>
+            <table>
+              <thead><tr><th>Fecha</th><th>Cliente</th><th>Equipo</th><th>Total</th><th>Ganancia</th><th>Estado</th></tr></thead>
+              <tbody>
+                <tr><td>19/06</td><td class="bold">Ramírez, Diego</td><td>iPhone 15 Pro 256GB</td><td class="green">$1.100</td><td class="green">$220</td><td><span class="tag tag-g">Contado</span></td></tr>
+                <tr><td>19/06</td><td class="bold">López, Ana</td><td>MacBook Air M3</td><td class="green">$1.800</td><td class="green">$360</td><td><span class="tag tag-y">A pagar</span></td></tr>
+                <tr><td>18/06</td><td class="bold">Torres, Marta</td><td>AirPods Pro 2</td><td class="green">$320</td><td class="green">$80</td><td><span class="tag tag-g">Contado</span></td></tr>
+                <tr><td>17/06</td><td class="bold">García, Lucía</td><td>iPad Pro M4 512GB</td><td class="green">$980</td><td class="green">$190</td><td><span class="tag tag-g">Contado</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- PILARES -->
-<section class="pillars-section" id="como-funciona">
-  <div class="wrap">
-    <div class="pillars-grid">
-      <div class="pillar-card">
-        <div class="pillar-icon">📊</div>
-        <h3>Todas las métricas, siempre a mano</h3>
-        <p>Ventas, ganancia, stock, comisiones y garantías vigentes. Lo ves de un vistazo, sin armar un informe.</p>
+<!-- PROOF BAND -->
+<div class="proof">
+  <div class="w proof-i">
+    <span class="pi">Resultados desde el primer día</span>
+    <span class="pi">Accedé desde cualquier dispositivo</span>
+    <span class="pi">Instalalo como app en tu celular</span>
+    <span class="pi">Datos seguros en la nube</span>
+  </div>
+</div>
+
+<!-- STATS -->
+<section class="nums">
+  <div class="w">
+    <div class="nums-g">
+      <div class="num-c"><div class="num-n">&lt;1 min</div><div class="num-l">Para registrar una venta<br>completa con todos los datos</div></div>
+      <div class="num-c"><div class="num-n">0</div><div class="num-l">Planillas externas<br>necesarias</div></div>
+      <div class="num-c"><div class="num-n">100%</div><div class="num-l">Datos en tiempo real<br>desde cualquier dispositivo</div></div>
+      <div class="num-c"><div class="num-n">5 días</div><div class="num-l">De prueba gratuita<br>sin tarjeta de crédito</div></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ACCESO DESDE CUALQUIER DISPOSITIVO -->
+<section style="padding:72px 0;background:#f7fbf8;border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+  <div class="w">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center">
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.8px;color:var(--g);margin-bottom:12px">Siempre con vos</div>
+        <h2 style="font-size:32px;font-weight:800;letter-spacing:-.8px;line-height:1.18;margin-bottom:16px">Tu negocio en el bolsillo.<br>Desde donde estés.</h2>
+        <p style="font-size:15.5px;color:var(--ink2);line-height:1.7;margin-bottom:28px">VexoPRO funciona desde cualquier celular, tablet o computadora. Sin instalar nada. Y si querés tenerlo siempre a mano, lo agregás a la pantalla de inicio de tu celu como una app — con su propio ícono, a pantalla completa, como si fuera nativa.</p>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:flex-start;gap:14px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 18px">
+            <div style="width:40px;height:40px;background:var(--gl);border-radius:10px;display:grid;place-items:center;font-size:18px;flex-shrink:0">💻</div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:3px">Computadora o tablet</div>
+              <div style="font-size:13px;color:var(--ink3);line-height:1.5">Abrís el navegador, entrás a la URL y listo. Sin instalaciones, sin actualizaciones manuales.</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:14px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 18px">
+            <div style="width:40px;height:40px;background:var(--gl);border-radius:10px;display:grid;place-items:center;font-size:18px;flex-shrink:0">📲</div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:3px">App en tu celular (Android e iPhone)</div>
+              <div style="font-size:13px;color:var(--ink3);line-height:1.5">Agregalo a la pantalla de inicio con un toque. Se abre a pantalla completa, con ícono propio. Sin App Store, sin Google Play.</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:14px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 18px">
+            <div style="width:40px;height:40px;background:var(--gl);border-radius:10px;display:grid;place-items:center;font-size:18px;flex-shrink:0">🔄</div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:3px">Todo sincronizado en tiempo real</div>
+              <div style="font-size:13px;color:var(--ink3);line-height:1.5">Abrís desde el celu o la computadora y ves exactamente lo mismo. Sin exportar ni sincronizar nada.</div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="pillar-card">
-        <div class="pillar-icon">🗂️</div>
-        <h3>Todo en un solo lugar</h3>
-        <p>Stock, ventas, clientes, proveedores, caja y técnicos viven juntos. Nada de tener cinco planillas distintas.</p>
-      </div>
-      <div class="pillar-card">
-        <div class="pillar-icon">⚡</div>
-        <h3>Fácil y simple de usar</h3>
-        <p>Sin curva de aprendizaje. Si sabés vender, ya sabés usar VexoPRO.</p>
+      <div style="display:flex;gap:16px;align-items:flex-end;justify-content:center">
+        <!-- Mock celular -->
+        <div style="width:160px;background:#1a2e24;border-radius:28px;padding:10px;box-shadow:0 30px 60px rgba(13,31,22,.25);flex-shrink:0">
+          <div style="background:#fff;border-radius:20px;overflow:hidden">
+            <div style="background:var(--g);padding:10px 12px;text-align:center">
+              <div style="font-size:10px;color:rgba(255,255,255,.7);font-weight:600">VexoPRO</div>
+              <div style="font-size:11px;color:#fff;margin-top:1px">Mi Negocio</div>
+            </div>
+            <div style="padding:10px">
+              <div style="font-size:9px;color:#7a9e8e;margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Inicio</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px">
+                <div style="background:#f2faf6;border-radius:6px;padding:8px 7px"><div style="font-size:12px;font-weight:800;color:#2d7a4f">$14.2k</div><div style="font-size:8px;color:#7a9e8e;margin-top:1px">Ventas</div></div>
+                <div style="background:#f2faf6;border-radius:6px;padding:8px 7px"><div style="font-size:12px;font-weight:800;color:#2d7a4f">$3.8k</div><div style="font-size:8px;color:#7a9e8e;margin-top:1px">Ganancia</div></div>
+              </div>
+              <div style="background:#f2faf6;border-radius:6px;padding:8px;font-size:8px">
+                <div style="font-weight:700;color:#1a2e24;margin-bottom:5px">Últimas ventas</div>
+                <div style="display:flex;justify-content:space-between;color:#4a6358;padding:3px 0;border-bottom:1px solid #e8f5ee"><span>iPhone 15 Pro</span><span style="color:#2d7a4f;font-weight:700">+$1.100</span></div>
+                <div style="display:flex;justify-content:space-between;color:#4a6358;padding:3px 0;border-bottom:1px solid #e8f5ee"><span>MacBook Air M3</span><span style="color:#2d7a4f;font-weight:700">+$1.800</span></div>
+                <div style="display:flex;justify-content:space-between;color:#4a6358;padding:3px 0"><span>AirPods Pro 2</span><span style="color:#2d7a4f;font-weight:700">+$320</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Mock desktop más chico al fondo -->
+        <div style="flex:1;max-width:220px">
+          <div style="background:#dee4e6;border-radius:10px 10px 0 0;padding:8px 10px;display:flex;gap:5px">
+            <span style="width:8px;height:8px;border-radius:50%;background:#ff5f57;display:block"></span>
+            <span style="width:8px;height:8px;border-radius:50%;background:#febc2e;display:block"></span>
+            <span style="width:8px;height:8px;border-radius:50%;background:#28c840;display:block"></span>
+          </div>
+          <div style="background:#f4f9f6;border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;padding:10px;font-size:9px">
+            <div style="display:flex;gap:6px;margin-bottom:8px">
+              <div style="width:55px;background:#fff;border:1px solid #c3e6d3;border-radius:5px;padding:6px">
+                <div style="font-size:8px;color:#7a9e8e;margin-bottom:2px">Ventas</div>
+                <div style="font-size:11px;font-weight:800;color:#2d7a4f">$14.2k</div>
+              </div>
+              <div style="flex:1;background:#fff;border:1px solid #c3e6d3;border-radius:5px;padding:6px">
+                <div style="font-size:8px;color:#7a9e8e;margin-bottom:2px">Ganancia</div>
+                <div style="font-size:11px;font-weight:800;color:#2d7a4f">$3.8k</div>
+              </div>
+            </div>
+            <div style="background:#fff;border:1px solid #c3e6d3;border-radius:5px;padding:6px">
+              <div style="font-weight:700;color:#1a2e24;margin-bottom:4px;font-size:8px">Últimas ventas</div>
+              <div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid #e8f5ee"><span style="color:#4a6358">iPhone 15 Pro</span><span style="color:#2d7a4f;font-weight:700">+$1.100</span></div>
+              <div style="display:flex;justify-content:space-between;padding:2px 0"><span style="color:#4a6358">MacBook Air</span><span style="color:#2d7a4f;font-weight:700">+$1.800</span></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ANTES / DESPUÉS -->
-<section class="section">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="section-eyebrow">El problema real</div>
-      <h2>Llevar el negocio "a mano" te cuesta más de lo que ves</h2>
-      <p>No es solo tiempo. Es plata que se pierde sin que te enteres.</p>
-    </div>
-    <div class="pain-grid">
-      <div class="pain-col before">
-        <h3>✕ Sin VexoPRO</h3>
-        <ul class="pain-list">
-          <li>Anotás ventas en un cuaderno o Excel que nadie más entiende</li>
-          <li>No sabés cuánto stock real tenés hasta que falta</li>
-          <li>Las garantías se controlan "de memoria" o por WhatsApp</li>
-          <li>Calculás ganancia a mano, equipo por equipo</li>
-          <li>Si tenés más de un local, cada uno lleva su propio control</li>
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="w">
+
+    <!-- F1: Ventas wizard -->
+    <div class="feat">
+      <div>
+        <div class="fey">Registro de ventas</div>
+        <h2 class="fh">Registrá una venta en menos de un minuto. Todo lo demás, automático.</h2>
+        <p class="fp">Elegís el cliente, el equipo y cómo pagó. VexoPRO hace el resto: descuenta el stock, actualiza la caja, calcula la ganancia. Así de simple y así de rápido.</p>
+        <ul class="fl">
+          <li>Stock se descuenta automáticamente al confirmar</li>
+          <li>Caja y ganancia calculadas en tiempo real</li>
+          <li>Comisiones por MercadoPago, transferencia o efectivo</li>
+          <li>Historial completo filtrable por período y cliente</li>
         </ul>
       </div>
-      <div class="pain-col after">
-        <h3>✓ Con VexoPRO</h3>
-        <ul class="pain-list">
-          <li>Cada venta se carga en un popup guiado en menos de 1 minuto</li>
-          <li>El stock se descuenta solo, por equipo y por local</li>
-          <li>Certificado de garantía con código verificable al instante</li>
-          <li>Ganancia, comisiones y costos calculados automáticamente</li>
-          <li>Cada punto de venta con su propio panel, todo centralizado</li>
-        </ul>
+      <div class="fv">
+        <div class="fv-topbar"><div class="dots"><span></span><span></span><span></span></div><span class="title">Nueva venta — Paso 3 de 4</span></div>
+        <div class="fv-body">
+          <div class="wiz-prog"><div class="wiz-dot done"></div><div class="wiz-dot done"></div><div class="wiz-dot active"></div><div class="wiz-dot"></div></div>
+          <div class="wiz-step-lbl">3 · ¿Cómo te paga?</div>
+          <div class="wiz-field">
+            <label>Método de pago</label>
+            <div class="fi sel" style="background:var(--gl);border-color:var(--g);padding:9px 12px;border-radius:7px;font-size:13px;font-weight:600;color:var(--gd)">💵 Efectivo USD</div>
+          </div>
+          <div class="wiz-field">
+            <label>Monto</label>
+            <div class="fi sel" style="background:var(--gl);border-color:var(--g);padding:9px 12px;border-radius:7px;font-size:13px;font-weight:700;color:var(--gd)">$1.100,00</div>
+          </div>
+          <div class="wiz-total">
+            <span>Total de la venta</span>
+            <b>$1.100</b>
+          </div>
+          <div style="background:#f0faf5;border-radius:7px;padding:8px 12px;margin-top:8px;font-size:11px;color:var(--gd);display:flex;align-items:center;gap:6px">
+            <span>✓</span> Ganancia estimada: <b>$220 USD</b>
+          </div>
+          <div class="wiz-footer">
+            <span class="back">← Atrás</span>
+            <div class="next">Confirmar venta ✓</div>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- F2: Garantías -->
+    <div class="feat r">
+      <div>
+        <div class="fey">Garantías con código</div>
+        <h2 class="fh">Certificados PDF. Verificación instantánea. Sin papel.</h2>
+        <p class="fp">Al vender un dispositivo emitís un certificado PDF con código único. Cuando el cliente reclama por WhatsApp, escribís el código y sabés en segundos si la garantía es válida.</p>
+        <ul class="fl">
+          <li>Código único por equipo: G0001, G0002...</li>
+          <li>Verificador en tiempo real: vigente, vencida o inexistente</li>
+          <li>Días de cobertura configurables para todo el negocio</li>
+          <li>Vinculado al módulo de técnicos para reparaciones</li>
+        </ul>
+      </div>
+      <div class="fv">
+        <div class="fv-topbar"><div class="dots"><span></span><span></span><span></span></div><span class="title">🛡️ Garantías — Verificar</span></div>
+        <div class="fv-body">
+          <div class="cert-box">
+            <div class="cert-header">Certificado de Garantía · VexoPRO</div>
+            <div class="cert-code">G0042</div>
+            <div class="cert-detail"><b>iPhone 15 Pro · 256GB · Negro</b><br>Diego Ramírez · IMEI 354321098765432<br>Comprado: 19/05/2026 · Cubre 30 días</div>
+          </div>
+          <div class="cert-vigente">
+            <div class="ico">✅</div>
+            <div class="info">
+              <div class="ti">GARANTÍA VIGENTE</div>
+              <div class="su">Quedan 29 días · Vence el 18/07/2026</div>
+            </div>
+          </div>
+          <div style="margin-top:12px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--ink2)">
+            <div style="font-weight:600;margin-bottom:4px;color:var(--ink)">Historial de reparaciones</div>
+            <div style="color:var(--ink3);font-style:italic">Sin reparaciones registradas</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- F3: Informes -->
+    <div class="feat">
+      <div>
+        <div class="fey">Informes y métricas</div>
+        <h2 class="fh">Todos los números de tu negocio. Siempre visibles.</h2>
+        <p class="fp">Ventas, ganancia, costos, comisiones financieras y comparación entre períodos. Sin armar ninguna tabla. Todo calculado automáticamente en tiempo real.</p>
+        <ul class="fl">
+          <li>Ganancia neta después de comisiones y costos</li>
+          <li>Comparación entre meses con variación porcentual</li>
+          <li>Filtro por período: hoy, semana, mes, año o rango personalizado</li>
+          <li>Separado por punto de venta si tenés varios locales</li>
+        </ul>
+      </div>
+      <div class="fv">
+        <div class="fv-topbar"><div class="dots"><span></span><span></span><span></span></div><span class="title">📈 Informes — Junio 2026</span></div>
+        <div class="fv-body">
+          <div class="inf-grid" style="margin-bottom:16px">
+            <div class="inf-kpi"><div class="n">$14.200</div><div class="l">Ventas del mes</div><div class="d">↑ 18% vs mayo</div></div>
+            <div class="inf-kpi"><div class="n">$3.840</div><div class="l">Ganancia neta</div><div class="d">↑ 12% vs mayo</div></div>
+            <div class="inf-kpi"><div class="n">38</div><div class="l">Unidades vendidas</div><div class="d">↑ 5 más que mayo</div></div>
+            <div class="inf-kpi"><div class="n">$374</div><div class="l">Ticket promedio</div><div class="d">↑ 8% vs mayo</div></div>
+          </div>
+          <div style="background:#f4f9f6;border-radius:8px;padding:14px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--ink3);margin-bottom:10px">Tendencia 6 meses</div>
+            <div class="inf-bar">
+              <div class="bar-col" style="height:55%"></div>
+              <div class="bar-col" style="height:45%"></div>
+              <div class="bar-col" style="height:65%"></div>
+              <div class="bar-col" style="height:58%"></div>
+              <div class="bar-col" style="height:72%"></div>
+              <div class="bar-col hl" style="height:88%"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--ink3)">
+              <span>Ene</span><span>Feb</span><span>Mar</span><span>Abr</span><span>May</span><span style="color:var(--g);font-weight:700">Jun</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </section>
 
 <!-- MÓDULOS -->
-<section class="section-alt">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="section-eyebrow">Todo en un solo sistema</div>
-      <h2>Un módulo para cada parte de tu negocio</h2>
-      <p>No es una planilla con nombres lindos. Cada módulo está pensado para cómo trabaja un revendedor de verdad.</p>
+<section class="mods">
+  <div class="w">
+    <div class="mods-head">
+      <div class="mh-ey">Plataforma completa</div>
+      <h2>Todo lo que necesita tu negocio</h2>
+      <p>Cada módulo fue diseñado para la operación real de un revendedor de tecnología. Sin funciones de relleno.</p>
     </div>
-    <div class="modules-grid">
-      <div class="module-card">
-        <div class="module-icon">📦</div>
-        <h3>Stock por unidad</h3>
-        <p>Cada iPhone, cada Mac, con su propio IMEI, color y estado. Sabés exactamente qué tenés y dónde.</p>
-      </div>
-      <div class="module-card">
-        <div class="module-icon">🛒</div>
-        <h3>Ventas guiadas</h3>
-        <p>Un popup paso a paso: cliente, equipo, pago y confirmación. Rápido incluso desde el celular.</p>
-      </div>
-      <div class="module-card">
-        <div class="module-icon">🛡️</div>
-        <h3>Garantías con código</h3>
-        <p>Emitís un certificado en PDF y lo verificás con un código único cuando el cliente reclama.</p>
-      </div>
-      <div class="module-card">
-        <div class="module-icon">🏬</div>
-        <h3>Multi punto de venta</h3>
-        <p>Local Devoto, Local Palermo, Online — cada uno con su stock, sus ventas y su panel separado.</p>
-      </div>
-      <div class="module-card">
-        <div class="module-icon">💵</div>
-        <h3>Caja y costos</h3>
-        <p>Ingresos, egresos y comisiones de cada medio de pago, calculados solos en cada venta.</p>
-      </div>
-      <div class="module-card">
-        <div class="module-icon">📈</div>
-        <h3>Informes claros</h3>
-        <p>Ganancia, ticket promedio y comparación entre meses, sin armar una tabla a mano.</p>
-      </div>
-      <div class="module-card">
-        <div class="module-icon">🏢</div>
-        <h3>Cuenta corriente</h3>
-        <p>Clientes y proveedores con saldo, fiado y pagos parciales, todo prolijo y al día.</p>
-      </div>
-      <div class="module-card">
-        <div class="module-icon">👨‍🔧</div>
-        <h3>Técnicos</h3>
-        <p>Mandás un equipo a reparar vinculado a su garantía, con costo y diagnóstico registrados.</p>
-      </div>
-      <div class="module-card">
-        <div class="module-icon">📲</div>
-        <h3>Instalable como app</h3>
-        <p>Lo agregás a la pantalla de inicio de tu celular y lo usás a pantalla completa, sin abrir el navegador.</p>
-      </div>
+    <div class="mods-g">
+      <div class="mod"><div class="mod-i">📦</div><h3>Stock por unidad</h3><p>IMEI, color, estado y capacidad. Sabés exactamente qué tenés y dónde está.</p></div>
+      <div class="mod"><div class="mod-i">🛒</div><h3>Ventas wizard</h3><p>Popup guiado en 4 pasos. Cliente, equipo, pago y confirmación en menos de un minuto.</p></div>
+      <div class="mod"><div class="mod-i">🛡️</div><h3>Garantías con código</h3><p>Certificados PDF con código único y verificador instantáneo de vigencia.</p></div>
+      <div class="mod"><div class="mod-i">🏬</div><h3>Multi punto de venta</h3><p>Stock y ventas por local. Vista global del negocio completo en un clic.</p></div>
+      <div class="mod"><div class="mod-i">💵</div><h3>Caja y finanzas</h3><p>Ingresos, egresos y comisiones calculados automáticamente en cada operación.</p></div>
+      <div class="mod"><div class="mod-i">📈</div><h3>Informes</h3><p>Ganancia, ticket promedio y comparación entre períodos. Sin armar nada a mano.</p></div>
+      <div class="mod"><div class="mod-i">👥</div><h3>Clientes y CTA</h3><p>Historial, cuenta corriente, fiado y pagos parciales por cliente.</p></div>
+      <div class="mod"><div class="mod-i">🏢</div><h3>Proveedores</h3><p>Cuenta corriente con proveedores y condiciones de pago actualizadas.</p></div>
+      <div class="mod"><div class="mod-i">🔧</div><h3>Técnicos</h3><p>Reparaciones vinculadas a garantías con costo, técnico y diagnóstico.</p></div>
     </div>
   </div>
 </section>
 
-<!-- BANDA DE NÚMEROS -->
-<section class="stats-band">
-  <div class="wrap">
-    <div class="stats-row">
-      <div><div class="stat-num">&lt;1 min</div><div class="stat-lbl">Para cargar una venta</div></div>
-      <div><div class="stat-num">5 días</div><div class="stat-lbl">De prueba gratis</div></div>
-      <div><div class="stat-num">0</div><div class="stat-lbl">Planillas separadas</div></div>
-      <div><div class="stat-num">100%</div><div class="stat-lbl">En español, para Argentina</div></div>
-    </div>
-  </div>
-</section>
-
-<!-- FRASE / POSICIONAMIENTO -->
-<section class="section">
-  <div class="wrap">
-    <div class="quote-block">
-      <span class="quote-mark">"</span>
-      <p class="quote-text">No querés un programa más para aprender. Querés dejar de perder tiempo anotando lo que ya sabés hacer todos los días.</p>
-      <p class="quote-author">Eso es exactamente lo que resuelve <b>VexoPRO</b>.</p>
+<!-- TESTIMONIAL -->
+<section class="test-s">
+  <div class="w">
+    <div class="test-i">
+      <div class="test-q">Por qué VexoPRO</div>
+      <p class="test-t">"El negocio de reventa de tecnología en Argentina es rápido, de alto volumen y sin margen para el error. VexoPRO fue construido exactamente para eso."</p>
+      <div class="test-a">
+        <div class="test-avatar">V</div>
+        <div class="test-info">
+          <div class="name">Equipo VexoPRO</div>
+          <div class="role">Desarrollado en Argentina · Para el mercado argentino</div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- CTA FINAL -->
-<section class="cta-final">
-  <div class="wrap">
-    <h2>Probalo gratis durante 5 días</h2>
-    <p>Sin tarjeta de crédito. Sin instalar nada. Cancelás cuando quieras.</p>
-    <a href="vexpro_suscripcion.html" class="btn btn-primary">Ver plan y empezar →</a>
+<section class="cta-s">
+  <div class="w">
+    <h2>Empezá a controlar<br>tu negocio hoy</h2>
+    <p>5 días de prueba gratuita. Sin tarjeta. Sin instalación.<br>Empezás en minutos.</p>
+    <a href="vexpro_suscripcion.html" class="cta-btn">Ver plan y empezar →</a>
+    <p class="cta-fine">Sin permanencia · Cancelás cuando quieras · Soporte incluido</p>
   </div>
 </section>
 
-<footer class="footer">
-  <div class="wrap">VexoPRO — Sistema de gestión para revendedores de tecnología</div>
+<footer>
+  <div class="w ft-i">
+    <a href="#" class="logo">
+      <div class="lm"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h13"/></svg></div>
+      <span class="ln">Vexo<b>PRO</b></span>
+    </a>
+    <span class="ft-copy">© 2026 VexoPRO · Software de gestión para revendedores de tecnología · Argentina</span>
+  </div>
 </footer>
 
 </body>
