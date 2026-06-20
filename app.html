@@ -2824,7 +2824,7 @@ function renderStock(){
     // Cada itemId es una unidad o lote distinto — se muestra por separado si tiene color/IMEI/grado propios
     const key=it.itemId||(ck+'||'+it.modelo+'||'+it.capacidad+'||'+(it.color||'')+'||'+(it.imei||''));
     const d=getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId);
-    map[key]={modelo:it.modelo,cap:it.capacidad,color:it.color||'',estado:it.estado||'',grado:it.grado||'',tipo:it.tipo||'',imei:it.imei||'',ref:c.ref||fmtD(c.fecha),proveedor:c.proveedor||'',costo:it.precio,precioVenta:it.precioVenta||0,comprado:it.cantidad||1,disp:d,fecha:c.fecha,enCamino:c.estadoEntrega==='en_camino',localId:c.localId||''};
+    map[key]={modelo:it.modelo,cap:it.capacidad,color:it.color||'',estado:it.estado||'',grado:it.grado||'',tipo:it.tipo||'',imei:it.imei||'',ref:c.ref||fmtD(c.fecha),proveedor:c.proveedor||'',costo:it.precio,precioVenta:it.precioVenta||0,comprado:it.cantidad||1,disp:d,fecha:c.fecha,enCamino:c.estadoEntrega==='en_camino',localId:c.localId||'',compraKey:ck};
   }));
   const rows=Object.values(map).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
   const tc=rows.reduce((s,r)=>s+r.comprado,0),td=rows.reduce((s,r)=>s+r.disp,0),tv=rows.reduce((s,r)=>s+r.disp*r.costo,0);
@@ -2844,9 +2844,14 @@ function renderStock(){
     const bar=r.enCamino?'':'<div style="background:var(--surface3);border-radius:4px;height:5px;width:80px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:6px"><div style="background:'+(r.disp===0?'var(--red)':r.disp<=2?'var(--yellow)':'var(--accent)')+';height:100%;width:'+pct+'%"></div></div>';
     const detalle=[r.tipo,r.color,r.grado,r.estado].filter(Boolean).join(' · ');
     const imeiTag=r.imei?'<div style="font-size:10px;color:var(--text3);font-family:var(--mono)">IMEI '+r.imei+'</div>':'';
-    tr+='<tr><td><strong>'+r.modelo+'</strong>'+(detalle?'<div style="font-size:11px;color:var(--text2)">'+detalle+'</div>':'')+imeiTag+'</td><td><span class="tag tag-blue">'+r.cap+'</span></td><td style="font-size:12px;color:var(--text2)">'+r.ref+'</td><td style="font-size:12px;color:var(--text2)">'+(r.proveedor||'—')+'</td><td class="mono" style="color:var(--yellow)">'+fmt(r.costo)+'</td><td class="mono" style="color:#0ca678">'+(r.precioVenta?fmt(r.precioVenta):'<span style="color:var(--text3)">—</span>')+'</td><td class="mono" style="color:var(--blue)">'+r.comprado+'</td><td class="mono" style="color:var(--text2)">'+(r.comprado-r.disp)+'</td><td>'+tag+bar+'</td></tr>';
+    const localOpts='<option value="">'+(r.localId?'Sin asignar':'Sin asignar')+'</option>'+Object.entries(S.locales).map(([k,l])=>'<option value="'+k+'"'+(r.localId===k?' selected':'')+'>'+l.icono+' '+l.nombre+'</option>').join('');
+    const localSel='<select class="stock-local-sel" data-compra-key="'+r.compraKey+'" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font-size:12px;font-family:var(--sans);max-width:140px">'+localOpts+'</select>';
+    tr+='<tr><td><strong>'+r.modelo+'</strong>'+(detalle?'<div style="font-size:11px;color:var(--text2)">'+detalle+'</div>':'')+imeiTag+'</td><td><span class="tag tag-blue">'+r.cap+'</span></td><td style="font-size:12px;color:var(--text2)">'+r.ref+'</td><td style="font-size:12px;color:var(--text2)">'+(r.proveedor||'—')+'</td><td class="mono" style="color:var(--yellow)">'+fmt(r.costo)+'</td><td class="mono" style="color:#0ca678">'+(r.precioVenta?fmt(r.precioVenta):'<span style="color:var(--text3)">—</span>')+'</td><td class="mono" style="color:var(--blue)">'+r.comprado+'</td><td class="mono" style="color:var(--text2)">'+(r.comprado-r.disp)+'</td><td>'+tag+bar+'</td><td>'+localSel+'</td></tr>';
   });
-  el.innerHTML='<table><thead><tr><th>Modelo / Detalle</th><th>Cap.</th><th>Pedido</th><th>Proveedor</th><th>Costo c/u</th><th>Precio venta</th><th>Comprado</th><th>Vendido</th><th>Stock</th></tr></thead><tbody>'+tr+'</tbody></table>';
+  el.innerHTML='<table><thead><tr><th>Modelo / Detalle</th><th>Cap.</th><th>Pedido</th><th>Proveedor</th><th>Costo c/u</th><th>Precio venta</th><th>Comprado</th><th>Vendido</th><th>Stock</th><th>Punto de venta</th></tr></thead><tbody>'+tr+'</tbody></table>';
+  el.querySelectorAll('.stock-local-sel').forEach(sel=>sel.addEventListener('change',()=>{
+    update(dbRef('compras/'+sel.dataset.compraKey),{localId:sel.value});
+  }));
   renderCatalogoEstado();
 }
 
