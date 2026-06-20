@@ -179,7 +179,7 @@ td,th{vertical-align:middle;padding:10px 14px}
 }
 
 /* ─── WIZARD DE VENTA ─── */
-#modal-wizard-venta .modal{padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:92vh}
+#modal-wizard-venta .modal,#modal-wizard-compra .modal{padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:92vh}
 .wiz-header{background:var(--accent);color:#fff;padding:20px 24px;position:relative;flex-shrink:0}
 .wiz-header h3{margin:0 0 4px;font-size:18px}
 .wiz-close{position:absolute;top:16px;right:18px;background:none;border:none;color:#fff;font-size:20px;cursor:pointer;opacity:0.8}
@@ -193,7 +193,7 @@ td,th{vertical-align:middle;padding:10px 14px}
 .wiz-step-title .num{background:var(--accent);color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
 .wiz-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
 @media (max-width:600px){
-  #modal-wizard-venta .modal{max-width:96vw;max-height:94vh}
+  #modal-wizard-venta .modal,#modal-wizard-compra .modal{max-width:96vw;max-height:94vh}
   .wiz-body{padding:18px}
   .wiz-footer{padding:12px 16px}
   .wiz-labels{font-size:9px}
@@ -357,7 +357,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 
 <!-- ============ WIZARD MODAL: NUEVA COMPRA ============ -->
 <div class="modal-overlay" id="modal-wizard-compra">
-  <div class="modal" style="max-width:600px;padding:0;overflow:visible">
+  <div class="modal" style="max-width:600px">
     <div class="wiz-header">
       <button class="wiz-close" id="btn-cerrar-wizard-compra">✕</button>
       <h3 style="margin:0;font-size:18px;color:#fff">📦 Nuevo Pedido</h3>
