@@ -754,14 +754,39 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 <div id="page-garantias" class="page">
   <div class="page-header"><h2>🛡️ Garantías</h2><p>Emití certificados y gestioná ingresos por garantía.</p></div>
 
-  <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
-    <button class="btn btn-primary" id="btn-nuevo-ingreso-garantia">🛡️ Nuevo ingreso por garantía</button>
-    <button class="btn btn-secondary" id="btn-emitir-cert">📄 Emitir certificado</button>
-    <button class="btn btn-secondary" id="btn-verificar-cert">🔍 Verificar código</button>
+  <!-- TABS -->
+  <div style="display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;border-bottom:2px solid var(--border);padding-bottom:0">
+    <button class="gar-tab active-tab" data-tab="ingresos" style="padding:10px 18px;font-size:13px;font-weight:600;border:none;background:none;color:var(--accent);cursor:pointer;border-bottom:3px solid var(--accent);margin-bottom:-2px">🛡️ Ingresos por garantía</button>
+    <button class="gar-tab" data-tab="emitir" style="padding:10px 18px;font-size:13px;font-weight:600;border:none;background:none;color:var(--text2);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px">📄 Emitir certificado</button>
+    <button class="gar-tab" data-tab="verificar" style="padding:10px 18px;font-size:13px;font-weight:600;border:none;background:none;color:var(--text2);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px">🔍 Verificar código</button>
   </div>
 
-  <!-- Panel emitir (colapsable) -->
-  <div id="panel-emitir-cert" style="display:none;margin-bottom:16px">
+  <!-- PANEL INGRESOS -->
+  <div id="gar-panel-ingresos">
+    <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+      <button class="btn btn-primary" id="btn-nuevo-ingreso-garantia">🛡️ Nuevo ingreso por garantía</button>
+      <button class="btn btn-secondary btn-sm" id="btn-toggle-filtros-gar">🔍 Filtrar <span id="filtros-gar-arrow">▼</span></button>
+    </div>
+    <div id="panel-filtros-gar" style="display:none;margin-bottom:14px">
+      <div class="form-card" style="padding:14px 16px;margin-bottom:0">
+        <div class="form-grid" style="margin-bottom:10px">
+          <div class="form-group"><label>Cliente</label><input type="text" id="gf-cliente" placeholder="Buscar nombre..."></div>
+          <div class="form-group"><label>N° garantía</label><input type="text" id="gf-codigo" placeholder="Ej: G0001" style="text-transform:uppercase"></div>
+          <div class="form-group"><label>Equipo</label><input type="text" id="gf-equipo" placeholder="Ej: iPhone 15..."></div>
+          <div class="form-group"><label>Tipo</label><select id="gf-tipo"><option value="">Todos</option><option value="reparacion">Reparación</option><option value="cambio">Cambio</option></select></div>
+          <div class="form-group"><label>Estado</label><select id="gf-estado"><option value="">Todos</option><option value="en_proceso">En proceso</option><option value="listo">Listo</option><option value="entregado">Entregado</option></select></div>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="btn-limpiar-filtros-gar">Limpiar</button>
+      </div>
+    </div>
+    <div class="table-card">
+      <h3>Ingresos por garantía <span id="badge-ingresos-garantia" class="tag tag-blue"></span></h3>
+      <div id="tabla-ingresos-garantia"></div>
+    </div>
+  </div>
+
+  <!-- PANEL EMITIR -->
+  <div id="gar-panel-emitir" style="display:none">
     <div class="form-card">
       <h3>📜 Emitir Garantía</h3>
       <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Elegí una venta registrada para generar el certificado.</p>
@@ -772,8 +797,8 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     </div>
   </div>
 
-  <!-- Panel verificar (colapsable) -->
-  <div id="panel-verificar-cert" style="display:none;margin-bottom:16px">
+  <!-- PANEL VERIFICAR -->
+  <div id="gar-panel-verificar" style="display:none">
     <div class="form-card">
       <h3>🔍 Verificar Garantía</h3>
       <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Ingresá el código del certificado para chequear su vigencia.</p>
@@ -781,12 +806,6 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
       <div class="form-actions"><button class="btn btn-primary" id="btn-verificar-garantia">Verificar</button></div>
       <div id="ver-resultado" style="margin-top:14px"></div>
     </div>
-  </div>
-
-  <!-- Lista de ingresos por garantía -->
-  <div class="table-card">
-    <h3>Ingresos por garantía <span id="badge-ingresos-garantia" class="tag tag-blue"></span></h3>
-    <div id="tabla-ingresos-garantia"></div>
   </div>
 </div>
 
@@ -953,7 +972,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
           <button class="rep-origen-btn btn" data-origen="sistema" style="padding:24px 16px;border:2px solid var(--border);border-radius:12px;background:var(--surface2);font-size:14px;flex-direction:column;gap:8px;height:auto">
             <span style="font-size:32px">📱</span>
             <span style="font-weight:600">Del sistema</span>
-            <span style="font-size:12px;color:var(--text2)">Equipo vendido por el negocio</span>
+            <span style="font-size:12px;color:var(--text2)">Equipo vendido por el negocio, sin garantía vigente</span>
           </button>
           <button class="rep-origen-btn btn" data-origen="externo" style="padding:24px 16px;border:2px solid var(--border);border-radius:12px;background:var(--surface2);font-size:14px;flex-direction:column;gap:8px;height:auto">
             <span style="font-size:32px">🚶</span>
@@ -1113,12 +1132,8 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     <div class="form-grid">
       <div class="form-group"><label>Nombre del local</label><input type="text" id="loc-nombre" placeholder="Ej: Local Devoto, Local Palermo, Online..."></div>
       <div class="form-group"><label>Ícono</label><select id="loc-icono">
-        <option value="🏬">🏬 Local / Sucursal</option>
-        <option value="🛍️">🛍️ Tienda</option>
-        <option value="💻">💻 Online</option>
-        <option value="📦">📦 Depósito</option>
-        <option value="🚚">🚚 Móvil / Delivery</option>
-        <option value="🏠">🏠 Casa / Oficina</option>
+        <option value="🏬">🏬 Local</option>
+        <option value="🌐">🌐 Online</option>
       </select></div>
     </div>
     <div class="form-actions">
@@ -1980,13 +1995,31 @@ function initApp(){
   $('ccp-filtro-nombre')?.addEventListener('input',renderCCProveedores);
   $('emg-venta').addEventListener('change',mostrarPreviewGarantia);
   $('btn-emitir-garantia').addEventListener('click',()=>emitirGarantia());
-  // Garantías — paneles colapsables
-  $('btn-emitir-cert')?.addEventListener('click',()=>{
-    const p=$('panel-emitir-cert');p.style.display=p.style.display==='none'?'block':'none';
-    if(p.style.display==='block')refreshEmitirGarantiaSelect();
+  // Garantías — tabs
+  window.garSwitchTab=function(tab){
+    document.querySelectorAll('.gar-tab').forEach(b=>{
+      const active=b.dataset.tab===tab;
+      b.style.color=active?'var(--accent)':'var(--text2)';
+      b.style.borderBottom=active?'3px solid var(--accent)':'3px solid transparent';
+    });
+    $('gar-panel-ingresos').style.display=tab==='ingresos'?'block':'none';
+    $('gar-panel-emitir').style.display=tab==='emitir'?'block':'none';
+    $('gar-panel-verificar').style.display=tab==='verificar'?'block':'none';
+    if(tab==='emitir')refreshEmitirGarantiaSelect();
+  }
+  document.querySelectorAll('.gar-tab').forEach(btn=>btn.addEventListener('click',()=>garSwitchTab(btn.dataset.tab)));
+
+  // Filtros ingresos garantía
+  $('btn-toggle-filtros-gar')?.addEventListener('click',()=>{
+    const p=$('panel-filtros-gar'),a=$('filtros-gar-arrow'),open=p.style.display!=='none';
+    p.style.display=open?'none':'block';if(a)a.textContent=open?'▼':'▲';
   });
-  $('btn-verificar-cert')?.addEventListener('click',()=>{
-    const p=$('panel-verificar-cert');p.style.display=p.style.display==='none'?'block':'none';
+  ['gf-cliente','gf-codigo','gf-equipo'].forEach(id=>$(id)?.addEventListener('input',renderIngresoGarantias));
+  ['gf-tipo','gf-estado'].forEach(id=>$(id)?.addEventListener('change',renderIngresoGarantias));
+  $('btn-limpiar-filtros-gar')?.addEventListener('click',()=>{
+    ['gf-cliente','gf-codigo','gf-equipo'].forEach(id=>{if($(id))$(id).value='';});
+    ['gf-tipo','gf-estado'].forEach(id=>{if($(id))$(id).value='';});
+    renderIngresoGarantias();
   });
   // Wizard ingreso garantía
   $('btn-nuevo-ingreso-garantia')?.addEventListener('click',abrirIngresoGarantia);
@@ -2185,7 +2218,7 @@ function showPage(name){
   if(name==='ventas'){renderVentas();refreshClienteSelects();}
   if(name==='stock')renderStock();
   if(name==='cuentacorriente')renderCC();
-  if(name==='garantias'){refreshEmitirGarantiaSelect();$('gconf-dias').value=diasGarantiaConfigurados();renderIngresoGarantias();}
+  if(name==='garantias'){refreshEmitirGarantiaSelect();$('gconf-dias').value=diasGarantiaConfigurados();renderIngresoGarantias();garSwitchTab('ingresos');}
   if(name==='tecnicos'){renderTecnicos();refreshRepSelects();}
   if(name==='proveedores')renderProveedores();
   if(name==='cc-proveedores')renderCCProveedores();
@@ -4718,8 +4751,19 @@ async function guardarIngresoGarantia(){
 function renderIngresoGarantias(){
   const el=$('tabla-ingresos-garantia');if(!el)return;
   const badge=$('badge-ingresos-garantia');
-  const ingresos=Object.entries(S.ingresosGarantia||{}).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||''));
-  if(badge)badge.textContent=ingresos.length;
+  let ingresos=Object.entries(S.ingresosGarantia||{}).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||''));
+  // Filtros
+  const fCliente=($('gf-cliente')?.value||'').toLowerCase().trim();
+  const fCodigo=($('gf-codigo')?.value||'').toUpperCase().trim();
+  const fEquipo=($('gf-equipo')?.value||'').toLowerCase().trim();
+  const fTipo=$('gf-tipo')?.value||'';
+  const fEstado=$('gf-estado')?.value||'';
+  if(fCliente)ingresos=ingresos.filter(([,i])=>(i.clienteNombre||'').toLowerCase().includes(fCliente));
+  if(fCodigo)ingresos=ingresos.filter(([,i])=>(i.codigo||'').toUpperCase().includes(fCodigo));
+  if(fEquipo)ingresos=ingresos.filter(([,i])=>(i.modelo||'').toLowerCase().includes(fEquipo)||(i.nuevoEquipo?.modelo||'').toLowerCase().includes(fEquipo));
+  if(fTipo)ingresos=ingresos.filter(([,i])=>i.tipo===fTipo);
+  if(fEstado)ingresos=ingresos.filter(([,i])=>(i.estado||'en_proceso')===fEstado);
+  if(badge)badge.textContent=ingresos.length+'/'+Object.keys(S.ingresosGarantia||{}).length;
   if(!ingresos.length){el.innerHTML='<div class="empty-state"><div class="big">🛡️</div><p>Sin ingresos por garantía registrados.</p></div>';return;}
   const ESTADOS_ING={en_proceso:'⏳ En proceso',listo:'✅ Listo — en oficina',entregado:'🏠 Entregado al cliente'};
   let rows='';
