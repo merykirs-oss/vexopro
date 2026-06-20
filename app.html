@@ -822,7 +822,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 <div id="page-equipo" class="page">
   <div class="page-header"><h2>👤 Equipo</h2><p>Gestioná los accesos de tu equipo. Primero creá un rol, después asignalo a un usuario.</p></div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start">
+  <div style="display:grid;grid-template-columns:minmax(340px,1fr) minmax(320px,1fr);gap:18px;align-items:start">
 
     <!-- ── COLUMNA IZQUIERDA: Roles ── -->
     <div style="display:flex;flex-direction:column;gap:14px">
@@ -832,7 +832,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
           <label style="font-size:11px;color:#7a9e8e;font-weight:600;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:5px">Nombre del rol</label>
           <input type="text" id="er-nombre" placeholder="Ej: Vendedor, Supervisor..." style="width:100%;background:#f2faf6;border:1px solid #c3e6d3;border-radius:6px;padding:9px 12px;font-size:13px;color:#1a2e24;outline:none;font-family:inherit;box-sizing:border-box">
         </div>
-        <div style="display:grid;grid-template-columns:1fr 155px;gap:12px">
+        <div style="display:grid;grid-template-columns:1fr minmax(130px,155px);gap:12px">
           <div>
             <div style="font-size:10px;font-weight:700;color:#7a9e8e;text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Módulos — Ver / Editar</div>
             <div id="er-modulos-container" style="display:flex;flex-direction:column;gap:3px"></div>
@@ -1258,7 +1258,7 @@ function initApp(){
 
   // Solo el dueño carga el módulo de equipo
   if(currentUserRole==='owner'){
-    onValue(dbRef('roles'),s=>{S.roles=s.val()||{};renderRoles();renderErRoles();});
+    onValue(dbRef('roles'),s=>{S.roles=s.val()||{};renderRoles();});
     onValue(ref(db,'empleados'),s=>{
       // Filtrar solo los empleados de este negocio
       const todos=s.val()||{};
