@@ -3127,25 +3127,24 @@ function wizVentaGoTo(n){
         return met?'<span class="tag tag-blue" style="font-size:11px">'+met.l+' '+(met.moneda==='USD'?fmt(monto):fmtARS(monto))+'</span>':'';
       }).filter(Boolean).join(' ');
       const condicion=$('v-condicion')?.value==='fiado'?'<span class="tag tag-red">A pagar</span>':'<span class="tag tag-green">Contado</span>';
-      rf.innerHTML=\`
-        <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">
-          <div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Cliente</div>
-          <div style="font-weight:600;font-size:15px">\${clienteNombre}</div>
-          \${clienteTel?'<div style="font-size:12px;color:var(--text2)">'+clienteTel+'</div>':''}
-        </div>
-        <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">
-          <div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px">Equipos</div>
-          \${equiposHtml||'<div style="color:var(--text3)">—</div>'}
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
-          <div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Total</div><div style="font-family:var(--mono);font-size:18px;font-weight:800;color:#0ca678">\${tot}</div></div>
-          <div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Ganancia</div><div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--accent)">\${gan}</div></div>
-          <div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Condición</div><div style="margin-top:2px">\${condicion}</div></div>
-        </div>
-        \${metStr?'<div style="margin-bottom:8px"><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Pago</div>'+metStr+'</div>':''}
-        \${pag!=='—'?'<div style="font-size:12px;color:var(--text2)">Pagado: '+pag+'</div>':''}
-        \${diff?'<div style="margin-top:4px">'+diff+'</div>':''}
-      \`;
+      rf.innerHTML=
+        '<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">'+
+          '<div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Cliente</div>'+
+          '<div style="font-weight:600;font-size:15px">'+clienteNombre+'</div>'+
+          (clienteTel?'<div style="font-size:12px;color:var(--text2)">'+clienteTel+'</div>':'')+
+        '</div>'+
+        '<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">'+
+          '<div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px">Equipos</div>'+
+          (equiposHtml||'<div style="color:var(--text3)">—</div>')+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">'+
+          '<div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Total</div><div style="font-family:var(--mono);font-size:18px;font-weight:800;color:#0ca678">'+tot+'</div></div>'+
+          '<div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Ganancia</div><div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--accent)">'+gan+'</div></div>'+
+          '<div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Condición</div><div style="margin-top:2px">'+condicion+'</div></div>'+
+        '</div>'+
+        (metStr?'<div style="margin-bottom:8px"><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Pago</div>'+metStr+'</div>':'')+
+        (pag!=='—'?'<div style="font-size:12px;color:var(--text2)">Pagado: '+pag+'</div>':'')+
+        (diff?'<div style="margin-top:4px">'+diff+'</div>':'');
     }
   }
 }
