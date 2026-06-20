@@ -492,14 +492,11 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
             <option value="fiado">🔴 A pagar</option>
           </select>
         </div>
-        <div class="form-group"><label>Canal</label>
+        <div class="form-group"><label>Canal / Punto de venta</label>
           <select id="vf-canal">
             <option value="">Todos</option>
-            <option value="local">🏪 Local</option>
-            <option value="instagram">📸 Instagram</option>
-            <option value="whatsapp">💬 WhatsApp</option>
-            <option value="mercadolibre">🛍️ MercadoLibre</option>
-            <option value="otro">📦 Otro</option>
+            <option value="online">🌐 Online</option>
+            <option value="mayorista">📦 Mayorista</option>
           </select>
         </div>
         <div class="form-group"><label>Método de pago</label>
@@ -1518,6 +1515,20 @@ function initApp(){
     const abierto=panel.style.display!=='none';
     panel.style.display=abierto?'none':'block';
     if(arrow)arrow.textContent=abierto?'▼':'▲';
+    // Llenar locales en el select de canal
+    if(!abierto){
+      const sel=$('vf-canal');
+      if(sel){
+        const cur=sel.value;
+        sel.innerHTML='<option value="">Todos</option><option value="online">🌐 Online</option><option value="mayorista">📦 Mayorista</option>';
+        Object.entries(S.locales).forEach(([k,l])=>{
+          const op=document.createElement('option');
+          op.value=k;op.textContent=(l.icono||'🏪')+' '+l.nombre;
+          if(k===cur)op.selected=true;
+          sel.appendChild(op);
+        });
+      }
+    }
   });
   ['vf-desde','vf-hasta','vf-cliente','vf-equipo','vf-cond','vf-canal','vf-metodo','vf-garantia'].forEach(id=>{
     $(id)?.addEventListener('input',renderVentas);
@@ -2758,7 +2769,7 @@ function renderVentas(){
     .filter(([,v])=>!fCliente||(S.clientes[v.clienteId]?.nombre||'').toLowerCase().includes(fCliente))
     .filter(([,v])=>!fEquipo||v.items.some(i=>(i.modelo||'').toLowerCase().includes(fEquipo)))
     .filter(([,v])=>!fCond||v.condicion===fCond)
-    .filter(([,v])=>!fCanal||v.canal===fCanal)
+    .filter(([,v])=>!fCanal||(fCanal==='online'||fCanal==='mayorista'?v.canal===fCanal:v.localId===fCanal))
     .filter(([,v])=>!fMetodo||(v.metodos||[]).some(m=>m.v===fMetodo)||v.metodo===fMetodo)
     .filter(([k,v])=>{
       if(!fGarantia)return true;
