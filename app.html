@@ -300,7 +300,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     <button id="nav-cuentacorriente" data-page="cuentacorriente">💳 Cta. Corriente</button>
     <div class="nav-sep">Servicio</div>
     <button id="nav-garantias" data-page="garantias">🔧 Garantías</button>
-    <button id="nav-tecnicos" data-page="tecnicos">👨‍🔧 Técnicos</button>
+    <button id="nav-tecnicos" data-page="tecnicos">🔧 Reparaciones</button>
     <div class="nav-sep">Finanzas</div>
     <button id="nav-proveedores" data-page="proveedores">🏢 Proveedores</button>
     <button id="nav-cc-proveedores" data-page="cc-proveedores">📑 Cta. Cte. Proveedores</button>
@@ -748,47 +748,137 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 </div>
 
 <div id="page-tecnicos" class="page">
-  <div class="page-header"><h2>👨‍🔧 Técnicos</h2></div>
+  <div class="page-header"><h2>🔧 Reparaciones</h2><p>Gestioná las reparaciones de equipos, propios y de terceros.</p></div>
   <div id="stats-tecnicos" class="stats-row"></div>
-  <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
-    <button class="btn btn-secondary btn-sm" id="btn-toggle-filtros-tec">🔍 Filtrar reparaciones <span id="filtros-tec-arrow">▼</span></button>
+
+  <!-- FILTRO + BOTÓN NUEVA REP -->
+  <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+    <button class="btn btn-secondary btn-sm" id="btn-toggle-filtros-tec">🔍 Filtrar <span id="filtros-tec-arrow">▼</span></button>
+    <button class="btn btn-primary" id="btn-nueva-reparacion">🔧 Nueva reparación</button>
   </div>
+
   <div id="panel-filtros-tec" style="display:none;margin-bottom:16px">
     <div class="form-card" style="padding:16px 20px;margin-bottom:0">
       <div class="form-grid" style="margin-bottom:10px">
         <div class="form-group"><label>Técnico</label><select id="tf-tecnico"><option value="">Todos</option></select></div>
-        <div class="form-group"><label>Estado</label><select id="tf-estado"><option value="">Todos</option><option value="enviado">Enviado</option><option value="en_proceso">En proceso</option><option value="listo">Listo</option><option value="entregado">Entregado</option></select></div>
+        <div class="form-group"><label>Estado</label><select id="tf-estado"><option value="">Todos</option><option value="recibido">📥 Recibido</option><option value="enviado">📤 Enviado al técnico</option><option value="en_reparacion">🔧 En reparación</option><option value="listo">✅ Listo</option><option value="entregado">🏠 Entregado al cliente</option></select></div>
         <div class="form-group"><label>Desde</label><input type="date" id="tf-desde"></div>
         <div class="form-group"><label>Hasta</label><input type="date" id="tf-hasta"></div>
+        <div class="form-group"><label>Origen</label><select id="tf-origen"><option value="">Todos</option><option value="sistema">Del sistema</option><option value="externo">Externo</option></select></div>
       </div>
       <button class="btn btn-secondary btn-sm" id="btn-limpiar-filtro-tec">Limpiar filtros</button>
     </div>
   </div>
+
+  <!-- REPARACIONES PENDIENTES -->
+  <div class="table-card">
+    <h3>Reparaciones <span id="badge-reparaciones" class="tag tag-blue"></span></h3>
+    <div id="tabla-reparaciones"></div>
+  </div>
+
+  <!-- TÉCNICOS -->
   <div class="form-card">
-    <h3>➕ Nuevo Técnico</h3>
+    <h3>➕ Nuevo técnico</h3>
     <div class="form-grid">
-      <div class="form-group"><label>Nombre</label><input type="text" id="tec-nombre"></div>
-      <div class="form-group"><label>Teléfono</label><input type="text" id="tec-tel"></div>
-      <div class="form-group"><label>Especialidad</label><input type="text" id="tec-esp" placeholder="Ej: iPhone"></div>
+      <div class="form-group"><label>Nombre *</label><input type="text" id="tec-nombre" placeholder="Nombre del técnico"></div>
+      <div class="form-group"><label>Teléfono</label><input type="text" id="tec-tel" placeholder="+54 9 11..."></div>
+      <div class="form-group"><label>Especialidad</label><input type="text" id="tec-esp" placeholder="Ej: iPhone, Samsung..."></div>
+      <div class="form-group"><label>Tipo</label><select id="tec-tipo"><option value="interno">Interno</option><option value="externo">Externo</option></select></div>
     </div>
-    <div class="form-actions"><button class="btn btn-primary" id="btn-save-tecnico">Guardar</button></div>
+    <div class="form-actions"><button class="btn btn-primary" id="btn-save-tecnico">Guardar técnico</button></div>
     <div id="tec-alert"></div>
   </div>
-  <div class="form-card">
-    <h3>🔩 Enviar a reparación</h3>
-    <div class="form-grid">
-      <div class="form-group"><label>Fecha envío</label><input type="date" id="rep-fecha"></div>
-      <div class="form-group"><label>Garantía</label><select id="rep-garantia"><option value="">— Seleccionar —</option></select></div>
-      <div class="form-group"><label>Técnico</label><select id="rep-tecnico"><option value="">— Seleccionar —</option></select></div>
-      <div class="form-group"><label>Costo reparación (USD)</label><input type="number" id="rep-costo" placeholder="0.00" min="0"></div>
-    </div>
-    <div class="form-group"><label>Diagnóstico / Notas</label><input type="text" id="rep-notas" placeholder="Ej: cambio de pantalla..."></div>
-    <div class="form-actions"><button class="btn btn-primary" id="btn-save-rep">Registrar</button></div>
-    <div id="rep-alert"></div>
-  </div>
-  <div class="table-card"><h3>Reparaciones <span id="badge-reparaciones" class="tag tag-blue"></span></h3><div id="tabla-reparaciones"></div></div>
   <div class="table-card"><h3>Técnicos <span id="badge-tecnicos" class="tag tag-blue"></span></h3><div id="tabla-tecnicos"></div></div>
 </div>
+
+<!-- MODAL WIZARD NUEVA REPARACIÓN -->
+<div class="modal-overlay" id="modal-wizard-rep">
+  <div class="modal" style="max-width:600px;padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:92vh">
+    <div class="wiz-header">
+      <button class="wiz-close" id="btn-cerrar-wizard-rep">✕</button>
+      <h3 style="margin:0;font-size:18px;color:#fff">🔧 Nueva Reparación</h3>
+      <div class="wiz-steps">
+        <div class="wiz-step-dot rwiz" data-rdot="1"></div>
+        <div class="wiz-step-dot rwiz" data-rdot="2"></div>
+        <div class="wiz-step-dot rwiz" data-rdot="3"></div>
+      </div>
+      <div class="wiz-labels"><span>Origen</span><span>Equipo</span><span>Técnico</span></div>
+    </div>
+    <div class="wiz-body">
+
+      <!-- PASO 1: ORIGEN -->
+      <div class="wiz-step rwiz-step" data-rwiz-step="1">
+        <div class="wiz-step-title"><span class="num">1</span> ¿De dónde viene el equipo?</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px">
+          <button class="rep-origen-btn btn" data-origen="sistema" style="padding:24px 16px;border:2px solid var(--border);border-radius:12px;background:var(--surface2);font-size:14px;flex-direction:column;gap:8px;height:auto">
+            <span style="font-size:32px">📱</span>
+            <span style="font-weight:600">Del sistema</span>
+            <span style="font-size:12px;color:var(--text2)">Equipo vendido por el negocio</span>
+          </button>
+          <button class="rep-origen-btn btn" data-origen="externo" style="padding:24px 16px;border:2px solid var(--border);border-radius:12px;background:var(--surface2);font-size:14px;flex-direction:column;gap:8px;height:auto">
+            <span style="font-size:32px">🚶</span>
+            <span style="font-weight:600">Cliente externo</span>
+            <span style="font-size:12px;color:var(--text2)">Equipo no registrado en el sistema</span>
+          </button>
+        </div>
+        <div id="rep-alert-1" style="margin-top:12px"></div>
+      </div>
+
+      <!-- PASO 2A: EQUIPO DEL SISTEMA -->
+      <div class="wiz-step rwiz-step" data-rwiz-step="2a" style="display:none">
+        <div class="wiz-step-title"><span class="num">2</span> Seleccioná la venta</div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label>Buscar por cliente o equipo</label>
+          <input type="text" id="rep-buscar-venta" placeholder="Escribí para filtrar...">
+        </div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label>Venta</label>
+          <select id="rep-venta-sel" size="6" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px;font-family:var(--sans);font-size:13px">
+            <option value="">— Seleccioná una venta —</option>
+          </select>
+        </div>
+        <div id="rep-venta-preview" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:13px;margin-top:8px"></div>
+        <div id="rep-alert-2a" style="margin-top:12px"></div>
+      </div>
+
+      <!-- PASO 2B: EQUIPO EXTERNO -->
+      <div class="wiz-step rwiz-step" data-rwiz-step="2b" style="display:none">
+        <div class="wiz-step-title"><span class="num">2</span> Datos del cliente y equipo</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Nombre cliente *</label><input type="text" id="rep-ext-nombre" placeholder="Ej: Juan Pérez"></div>
+          <div class="form-group"><label>Teléfono</label><input type="text" id="rep-ext-tel" placeholder="+54 9 11..."></div>
+          <div class="form-group"><label>Modelo equipo *</label><input type="text" id="rep-ext-modelo" placeholder="Ej: iPhone 13 Pro"></div>
+          <div class="form-group"><label>IMEI / Serie</label><input type="text" id="rep-ext-imei" placeholder="Opcional"></div>
+          <div class="form-group"><label>Color</label><input type="text" id="rep-ext-color" placeholder="Ej: Negro"></div>
+        </div>
+        <div id="rep-alert-2b" style="margin-top:12px"></div>
+      </div>
+
+      <!-- PASO 3: TÉCNICO + PROBLEMA -->
+      <div class="wiz-step rwiz-step" data-rwiz-step="3" style="display:none">
+        <div class="wiz-step-title"><span class="num">3</span> Técnico y problema</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Fecha ingreso</label><input type="date" id="rep-fecha"></div>
+          <div class="form-group"><label>Técnico *</label><select id="rep-tecnico"><option value="">— Seleccionar —</option></select></div>
+          <div class="form-group"><label>Costo estimado (USD)</label><input type="number" id="rep-costo" placeholder="0.00" min="0" step="0.01"></div>
+          <div class="form-group"><label>¿Tiene garantía vigente?</label><select id="rep-en-garantia"><option value="no">No</option><option value="si">Sí</option></select></div>
+        </div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label>Descripción del problema *</label>
+          <textarea id="rep-problema" rows="3" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 12px;font-family:var(--sans);font-size:13px;outline:none;width:100%;resize:vertical;box-sizing:border-box" placeholder="Ej: No enciende, pantalla rota, botón de volumen trabado..."></textarea>
+        </div>
+        <div id="rep-alert-3" style="margin-top:12px"></div>
+      </div>
+
+    </div>
+    <div class="wiz-footer">
+      <button class="btn btn-secondary" id="wizRepBack">← Atrás</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-primary" id="wizRepNext">Siguiente →</button>
+    </div>
+  </div>
+</div>
+
 
 
 <div id="page-proveedores" class="page">
@@ -1335,7 +1425,7 @@ const arsToUsd = n => dolar.venta>0?n/dolar.venta:0;
 const usdToArs = n => n*dolar.venta;
 const metodoARS = m => ['efectivo_ars','mercadopago','transferencia','mixto_usd_ars','mixto_usd_mp'].includes(m);
 const CAPS = ['128GB','256GB','512GB','1TB','64GB'];
-const REP_ESTADOS = {enviado:'📤 Enviado al técnico',reparando:'🔧 En reparación',volvio:'📦 Volvió a oficina',entregado:'✅ Entregado al cliente'};
+// REP_ESTADOS defined in reparaciones section below
 
 
 
@@ -1725,9 +1815,19 @@ function initApp(){
   $('btn-verificar-garantia').addEventListener('click',verificarGarantia);
   $('ver-codigo').addEventListener('keydown',e=>{if(e.key==='Enter')verificarGarantia();});
 
-  // Botones tecnicos
-  $('btn-save-tecnico').addEventListener('click',saveTecnico);
-  $('btn-save-rep').addEventListener('click',saveReparacion);
+  // Reparaciones
+  $('btn-save-tecnico')?.addEventListener('click',saveTecnico);
+  $('btn-nueva-reparacion')?.addEventListener('click',abrirWizardRep);
+  $('btn-cerrar-wizard-rep')?.addEventListener('click',()=>closeModal('modal-wizard-rep'));
+  $('wizRepNext')?.addEventListener('click',repNext);
+  $('wizRepBack')?.addEventListener('click',repBack);
+  document.querySelectorAll('.rep-origen-btn').forEach(btn=>btn.addEventListener('click',()=>{
+    repOrigen=btn.dataset.origen;
+    document.querySelectorAll('.rep-origen-btn').forEach(b=>{b.style.borderColor='var(--border)';b.style.background='var(--surface2)';});
+    btn.style.borderColor='var(--accent)';btn.style.background='var(--accent-dim)';
+  }));
+  $('rep-buscar-venta')?.addEventListener('input',e=>fillRepVentaSelect(e.target.value));
+  $('rep-venta-sel')?.addEventListener('change',onRepVentaChange);
 
   // Modal pago
   $('btn-cerrar-pago').addEventListener('click',()=>closeModal('modal-pago'));
@@ -4487,82 +4587,223 @@ function generarCertificadoPDF({codigo,cliente,item,fechaCompra,vencimiento,dias
   doc.save('Garantia_'+codigo+'.pdf');
 }
 
-// ─── TÉCNICOS ────────────────────────────────────────────────
-function refreshRepSelects(){
-  const sG=$('rep-garantia');if(!sG)return;
-  const cG=sG.value;sG.innerHTML='<option value="">— Seleccionar equipo —</option>';
-  const hoy=today();
-  Object.entries(S.garantias).filter(([,g])=>g.fechaVencimiento>=hoy).forEach(([k,g])=>{
-    const cl=S.clientes[g.clienteId];
-    sG.innerHTML+='<option value="'+k+'"'+(k===cG?' selected':'')+'>'+(g.codigo||'?')+' — '+g.modelo+' '+(g.capacidad||'')+' — '+(cl?.nombre||'?')+'</option>';
-  });
-  const sT=$('rep-tecnico');if(!sT)return;
-  const cT=sT.value;sT.innerHTML='<option value="">— Seleccionar técnico —</option>';
-  Object.entries(S.tecnicos).forEach(([k,t])=>sT.innerHTML+='<option value="'+k+'"'+(k===cT?' selected':'')+'>'+t.nombre+'</option>');
+// ─── REPARACIONES ────────────────────────────────────────────
+const REP_ESTADOS={
+  recibido:'📥 Recibido',
+  enviado:'📤 Enviado al técnico',
+  en_reparacion:'🔧 En reparación',
+  listo:'✅ Listo — Volvió a oficina',
+  entregado:'🏠 Entregado al cliente'
+};
+
+let repOrigen='sistema';
+let repVentaSelId=null;
+
+function abrirWizardRep(){
+  repOrigen='sistema';repVentaSelId=null;
+  if($('rep-fecha'))$('rep-fecha').value=today();
+  if($('rep-costo'))$('rep-costo').value='';
+  if($('rep-problema'))$('rep-problema').value='';
+  if($('rep-en-garantia'))$('rep-en-garantia').value='no';
+  if($('rep-buscar-venta'))$('rep-buscar-venta').value='';
+  if($('rep-venta-preview'))$('rep-venta-preview').style.display='none';
+  if($('rep-ext-nombre'))$('rep-ext-nombre').value='';
+  if($('rep-ext-tel'))$('rep-ext-tel').value='';
+  if($('rep-ext-modelo'))$('rep-ext-modelo').value='';
+  if($('rep-ext-imei'))$('rep-ext-imei').value='';
+  if($('rep-ext-color'))$('rep-ext-color').value='';
+  document.querySelectorAll('.rep-origen-btn').forEach(b=>{b.style.borderColor='var(--border)';b.style.background='var(--surface2)';});
+  rwizGoTo(1);
+  openModal('modal-wizard-rep');
 }
+
+function rwizGoTo(paso){
+  document.querySelectorAll('.rwiz-step').forEach(s=>s.style.display='none');
+  if(paso===2){
+    const sub=repOrigen==='sistema'?'2a':'2b';
+    const el=document.querySelector('.rwiz-step[data-rwiz-step="'+sub+'"]');
+    if(el)el.style.display='block';
+    if(repOrigen==='sistema')fillRepVentaSelect('');
+  }else{
+    const el=document.querySelector('.rwiz-step[data-rwiz-step="'+paso+'"]');
+    if(el)el.style.display='block';
+  }
+  document.querySelectorAll('.wiz-step-dot.rwiz').forEach(d=>{
+    const dn=+d.dataset.rdot;
+    d.classList.remove('active','done');
+    if(dn===paso)d.classList.add('active');
+    else if(dn<paso)d.classList.add('done');
+  });
+  const back=$('wizRepBack'),next=$('wizRepNext');
+  if(back)back.style.visibility=paso===1?'hidden':'visible';
+  if(next)next.textContent=paso===3?'✅ Guardar':'Siguiente →';
+  if(paso===3){
+    const sel=$('rep-tecnico');if(!sel)return;
+    sel.innerHTML='<option value="">— Seleccionar —</option>';
+    Object.entries(S.tecnicos).forEach(([k,t])=>{
+      sel.innerHTML+=`<option value="${k}">${t.nombre}${t.tipo==='externo'?' (Ext)':''}</option>`;
+    });
+  }
+}
+
+function repNext(){
+  const paso=+document.querySelector('.rwiz-step:not([style*="display: none"],[style*="display:none"])')?.dataset?.rwizStep?.replace('a','').replace('b','')||1;
+  if(paso===1){
+    if(!repOrigen){showAlert('rep-alert-1','Seleccioná el origen',false);return;}
+    rwizGoTo(2);
+  }else if(paso===2){
+    if(repOrigen==='sistema'){
+      if(!repVentaSelId){showAlert('rep-alert-2a','Seleccioná una venta',false);return;}
+    }else{
+      if(!$('rep-ext-nombre')?.value.trim()||!$('rep-ext-modelo')?.value.trim()){
+        showAlert('rep-alert-2b','Completá nombre y modelo',false);return;
+      }
+    }
+    rwizGoTo(3);
+  }else{
+    guardarReparacion();
+  }
+}
+
+function repBack(){
+  const visible=document.querySelector('.rwiz-step:not([style*="display: none"],[style*="display:none"])');
+  const s=visible?.dataset?.rwizStep||'1';
+  if(s==='2a'||s==='2b')rwizGoTo(1);
+  else if(s==='3')rwizGoTo(2);
+}
+
+function fillRepVentaSelect(filtro){
+  const sel=$('rep-venta-sel');if(!sel)return;
+  sel.innerHTML='<option value="">— Seleccioná una venta —</option>';
+  const q=(filtro||'').toLowerCase();
+  Object.entries(S.ventas)
+    .sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||''))
+    .forEach(([k,v])=>{
+      const cl=S.clientes[v.clienteId];
+      const equipos=v.items.map(i=>i.modelo+(i.capacidad&&i.capacidad!=='N/A'?' '+i.capacidad:'')).join(', ');
+      const txt=fmtD(v.fecha)+' · '+(cl?.nombre||'—')+' · '+equipos;
+      if(q&&!txt.toLowerCase().includes(q))return;
+      const op=document.createElement('option');op.value=k;op.textContent=txt;sel.appendChild(op);
+    });
+}
+
+function onRepVentaChange(){
+  const k=$('rep-venta-sel')?.value;
+  repVentaSelId=k||null;
+  const preview=$('rep-venta-preview');
+  if(!k||!preview){if(preview)preview.style.display='none';return;}
+  const v=S.ventas[k];if(!v){preview.style.display='none';return;}
+  const cl=S.clientes[v.clienteId];
+  const equipos=v.items.map(i=>'<strong>'+i.modelo+'</strong>'+(i.capacidad&&i.capacidad!=='N/A'?' '+i.capacidad:'')+(i.color?' · '+i.color:'')+(i.imei?' · IMEI '+i.imei:'')+(i.bateria?' · 🔋'+i.bateria+'%':'')).join('<br>');
+  const garantia=Object.values(S.garantias).find(g=>g.ventaId===k);
+  const hoy=today();
+  const garTag=garantia?(garantia.fechaVencimiento>=hoy?
+    '<span class="tag tag-green">✅ Garantía vigente hasta '+fmtD(garantia.fechaVencimiento)+'</span>':
+    '<span class="tag tag-red">❌ Garantía vencida '+fmtD(garantia.fechaVencimiento)+'</span>'):
+    '<span class="tag tag-yellow">Sin certificado de garantía</span>';
+  preview.style.display='block';
+  preview.innerHTML='<div style="margin-bottom:6px"><strong>'+(cl?.nombre||'—')+'</strong>'+(cl?.tel?' · '+cl.tel:'')+'</div><div style="margin-bottom:6px">'+equipos+'</div><div>'+garTag+'</div>';
+  if(garantia&&garantia.fechaVencimiento>=hoy&&$('rep-en-garantia'))$('rep-en-garantia').value='si';
+}
+
+async function guardarReparacion(){
+  const fecha=$('rep-fecha')?.value;
+  const tecnicoId=$('rep-tecnico')?.value;
+  const costo=parseFloat($('rep-costo')?.value)||0;
+  const problema=$('rep-problema')?.value.trim();
+  const enGarantia=$('rep-en-garantia')?.value==='si';
+  if(!fecha){showAlert('rep-alert-3','Ingresá la fecha',false);return;}
+  if(!tecnicoId){showAlert('rep-alert-3','Seleccioná un técnico',false);return;}
+  if(!problema){showAlert('rep-alert-3','Describí el problema',false);return;}
+  let data={fecha,tecnicoId,costo,problema,enGarantia,estado:'recibido',origen:repOrigen};
+  if(repOrigen==='sistema'){
+    const v=S.ventas[repVentaSelId]||{};
+    const cl=S.clientes[v.clienteId]||{};
+    const it=(v.items||[])[0]||{};
+    data={...data,ventaId:repVentaSelId,clienteNombre:cl.nombre||'—',clienteTel:cl.tel||'',
+      modelo:it.modelo||'',capacidad:it.capacidad||'',color:it.color||'',imei:it.imei||''};
+    const gar=Object.entries(S.garantias).find(([,g])=>g.ventaId===repVentaSelId);
+    if(gar)data.garantiaId=gar[0];
+  }else{
+    data={...data,
+      clienteNombre:$('rep-ext-nombre')?.value.trim()||'',
+      clienteTel:$('rep-ext-tel')?.value.trim()||'',
+      modelo:$('rep-ext-modelo')?.value.trim()||'',
+      imei:$('rep-ext-imei')?.value.trim()||'',
+      color:$('rep-ext-color')?.value.trim()||''};
+  }
+  await push(dbRef('reparaciones'),data);
+  closeModal('modal-wizard-rep');
+}
+
+function refreshRepSelects(){} // legacy — no-op
+
 function saveTecnico(){
-  const nombre=$('tec-nombre').value.trim();
+  const nombre=$('tec-nombre')?.value.trim();
   if(!nombre){showAlert('tec-alert','Ingresá el nombre',false);return;}
-  push(dbRef('tecnicos'),{nombre,tel:$('tec-tel').value.trim(),especialidad:$('tec-esp').value.trim()})
-    .then(()=>{showAlert('tec-alert','✅ "'+nombre+'" guardado');$('tec-nombre').value='';$('tec-tel').value='';$('tec-esp').value='';})
+  push(dbRef('tecnicos'),{nombre,tel:$('tec-tel')?.value.trim()||'',especialidad:$('tec-esp')?.value.trim()||'',tipo:$('tec-tipo')?.value||'externo'})
+    .then(()=>{showAlert('tec-alert','✅ "'+nombre+'" guardado');if($('tec-nombre'))$('tec-nombre').value='';if($('tec-tel'))$('tec-tel').value='';if($('tec-esp'))$('tec-esp').value='';})
     .catch(()=>showAlert('tec-alert','Error',false));
 }
-function saveReparacion(){
-  const fecha=$('rep-fecha').value,gId=$('rep-garantia').value,tId=$('rep-tecnico').value;
-  const costo=parseFloat($('rep-costo').value)||0,notas=$('rep-notas').value.trim();
-  if(!fecha||!gId||!tId){showAlert('rep-alert','Completá todos los campos',false);return;}
-  push(dbRef('reparaciones'),{fecha,garantiaId:gId,tecnicoId:tId,costo,notas,estado:'enviado'})
-    .then(()=>{
-      update(dbRef('garantias/'+gId),{estado:'en_reparacion'});
-      showAlert('rep-alert','✅ Registrada');
-      $('rep-garantia').value='';$('rep-tecnico').value='';$('rep-costo').value='';$('rep-notas').value='';
-    }).catch(()=>showAlert('rep-alert','Error',false));
-}
+
 function renderTecnicos(){
-  refreshRepSelects();
+  const totalReps=Object.keys(S.reparaciones).length;
+  const pendientes=Object.values(S.reparaciones).filter(r=>r.estado!=='entregado').length;
   const tg=Object.values(S.reparaciones).reduce((s,r)=>s+(r.costo||0),0);
-  $('stats-tecnicos').innerHTML=
+  if($('stats-tecnicos'))$('stats-tecnicos').innerHTML=
     '<div class="stat-card sc-blue"><div class="lbl">Técnicos</div><div class="val">'+Object.keys(S.tecnicos).length+'</div></div>'+
-    '<div class="stat-card sc-yellow"><div class="lbl">Reparaciones</div><div class="val">'+Object.keys(S.reparaciones).length+'</div></div>'+
-    '<div class="stat-card sc-red"><div class="lbl">Gasto total</div><div class="val">'+fmt(tg)+'</div></div>';
-  $('badge-reparaciones').textContent=Object.keys(S.reparaciones).length;
-  $('badge-tecnicos').textContent=Object.keys(S.tecnicos).length;
-  const elR=$('tabla-reparaciones');
-  // Filtros técnicos
+    '<div class="stat-card sc-yellow"><div class="lbl">Pendientes</div><div class="val">'+pendientes+'</div></div>'+
+    '<div class="stat-card sc-blue"><div class="lbl">Total</div><div class="val">'+totalReps+'</div></div>'+
+    '<div class="stat-card sc-red"><div class="lbl">Costo total</div><div class="val">'+fmt(tg)+'</div></div>';
+  if($('badge-reparaciones'))$('badge-reparaciones').textContent=pendientes+' pendientes';
+  if($('badge-tecnicos'))$('badge-tecnicos').textContent=Object.keys(S.tecnicos).length;
+  const tfTecSel=$('tf-tecnico');
+  if(tfTecSel){const cur=tfTecSel.value;tfTecSel.innerHTML='<option value="">Todos</option>';Object.entries(S.tecnicos).forEach(([k,t])=>{const op=document.createElement('option');op.value=k;op.textContent=t.nombre;if(k===cur)op.selected=true;tfTecSel.appendChild(op);});}
   const tfTec=$('tf-tecnico')?.value||'';
   const tfEst=$('tf-estado')?.value||'';
   const tfDesde=$('tf-desde')?.value||'';
   const tfHasta=$('tf-hasta')?.value||'';
-  // Llenar select técnicos
-  const tfTecSel=$('tf-tecnico');
-  if(tfTecSel){const cur=tfTecSel.value;tfTecSel.innerHTML='<option value="">Todos</option>';Object.entries(S.tecnicos).forEach(([k,t])=>{const op=document.createElement('option');op.value=k;op.textContent=t.nombre;if(k===cur)op.selected=true;tfTecSel.appendChild(op);});}
+  const tfOrigen=$('tf-origen')?.value||'';
   let reps=Object.entries(S.reparaciones).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||''));
   if(tfTec)reps=reps.filter(([,r])=>r.tecnicoId===tfTec);
-  if(tfEst)reps=reps.filter(([,r])=>(r.estado||'enviado')===tfEst);
+  if(tfEst)reps=reps.filter(([,r])=>(r.estado||'recibido')===tfEst);
   if(tfDesde)reps=reps.filter(([,r])=>(r.fecha||'')>=tfDesde);
   if(tfHasta)reps=reps.filter(([,r])=>(r.fecha||'')<=tfHasta);
-  if(!reps.length){elR.innerHTML='<div class="empty-state"><div class="big">🔩</div><p>Sin reparaciones.</p></div>';}
+  if(tfOrigen)reps=reps.filter(([,r])=>(r.origen||'sistema')===tfOrigen);
+  const elR=$('tabla-reparaciones');if(!elR)return;
+  if(!reps.length){elR.innerHTML='<div class="empty-state"><div class="big">🔧</div><p>Sin reparaciones.</p></div>';}
   else{
     let rows='';
     reps.forEach(([k,r])=>{
-      const g=S.garantias[r.garantiaId],t=S.tecnicos[r.tecnicoId],cl=g?S.clientes[g.clienteId]:null;
-      const est=r.estado||'enviado';
+      const t=S.tecnicos[r.tecnicoId];
+      const est=r.estado||'recibido';
       const estOpts=Object.entries(REP_ESTADOS).map(([v,lbl])=>'<option value="'+v+'"'+(v===est?' selected':'')+'>'+lbl+'</option>').join('');
-      rows+='<tr><td class="mono" style="font-size:11px">'+fmtD(r.fecha)+'</td><td>'+(g?'<span class="tag tag-purple" style="font-size:10px">'+g.codigo+'</span> <strong>'+g.modelo+'</strong> <span class="tag tag-blue">'+g.capacidad+'</span>':'—')+'</td><td>'+(cl?.nombre||'—')+'</td><td>'+(t?.nombre||'—')+'</td><td class="mono" style="color:var(--red)">'+fmt(r.costo)+'</td><td><select class="rep-estado-sel" data-rep-key="'+k+'" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font-size:12px;font-family:var(--sans)">'+estOpts+'</select></td><td style="font-size:12px;color:var(--text2)">'+( r.notas||'—')+'</td><td><button class="btn btn-danger btn-sm" data-del-rep="'+k+'">🗑</button></td></tr>';
+      const garTag=r.enGarantia?'<span class="tag tag-green" style="font-size:10px">🛡️ Garantía</span>':'';
+      const origenTag=r.origen==='externo'?'<span class="tag tag-yellow" style="font-size:10px">Externo</span>':'';
+      rows+='<tr><td class="mono" style="font-size:11px">'+fmtD(r.fecha)+'</td>'
+        +'<td><strong>'+(r.modelo||'—')+'</strong>'+(r.capacidad?' <span class="tag tag-blue" style="font-size:10px">'+r.capacidad+'</span>':'')+(r.color?'<div style="font-size:11px;color:var(--text2)">'+r.color+'</div>':'')+(r.imei?'<div style="font-size:10px;color:var(--text3);font-family:var(--mono)">'+r.imei+'</div>':'')+'</td>'
+        +'<td>'+(r.clienteNombre||'—')+(r.clienteTel?'<div style="font-size:11px;color:var(--text2)">'+r.clienteTel+'</div>':'')+'</td>'
+        +'<td>'+(t?.nombre||'—')+'</td>'
+        +'<td style="font-size:12px;color:var(--text2)">'+(r.problema||'—')+'</td>'
+        +'<td class="mono" style="color:var(--red)">'+(r.costo?fmt(r.costo):'—')+'</td>'
+        +'<td>'+garTag+' '+origenTag+'</td>'
+        +'<td><select class="rep-estado-sel" data-rep-key="'+k+'" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font-size:12px;font-family:var(--sans)">'+estOpts+'</select></td>'
+        +'<td><button class="btn btn-danger btn-sm" data-del-rep="'+k+'">🗑</button></td></tr>';
     });
-    elR.innerHTML='<table><thead><tr><th>Fecha</th><th>Equipo</th><th>Cliente</th><th>Técnico</th><th>Costo</th><th>Estado</th><th>Notas</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+    elR.innerHTML='<table><thead><tr><th>Fecha</th><th>Equipo</th><th>Cliente</th><th>Técnico</th><th>Problema</th><th>Costo</th><th></th><th>Estado</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
     elR.querySelectorAll('.rep-estado-sel').forEach(sel=>sel.addEventListener('change',()=>update(dbRef('reparaciones/'+sel.dataset.repKey),{estado:sel.value})));
     elR.querySelectorAll('[data-del-rep]').forEach(btn=>btn.addEventListener('click',()=>{if(confirm('¿Eliminar?'))remove(dbRef('reparaciones/'+btn.dataset.delRep));}));
   }
-  const elT=$('tabla-tecnicos');
+  const elT=$('tabla-tecnicos');if(!elT)return;
   const tecs=Object.entries(S.tecnicos);
   if(!tecs.length){elT.innerHTML='<div class="empty-state"><div class="big">👨‍🔧</div><p>Sin técnicos.</p></div>';return;}
   let rowsT='';
   tecs.forEach(([k,t])=>{
     const rt=Object.values(S.reparaciones).filter(r=>r.tecnicoId===k);
-    rowsT+='<tr><td><strong>'+t.nombre+'</strong></td><td>'+(t.tel||'—')+'</td><td>'+(t.especialidad||'—')+'</td><td class="mono" style="color:var(--blue)">'+rt.length+'</td><td class="mono" style="color:var(--red)">'+fmt(rt.reduce((s,r)=>s+(r.costo||0),0))+'</td><td style="display:flex;gap:4px"><button class="btn btn-secondary btn-sm" data-edit-tec="'+k+'">✏️</button><button class="btn btn-danger btn-sm" data-del-tec="'+k+'">🗑</button></td></tr>';
+    const tipoTag=t.tipo==='interno'?'<span class="tag tag-blue" style="font-size:10px">Interno</span>':'<span class="tag tag-yellow" style="font-size:10px">Externo</span>';
+    rowsT+='<tr><td><strong>'+t.nombre+'</strong> '+tipoTag+'</td><td>'+(t.tel||'—')+'</td><td>'+(t.especialidad||'—')+'</td><td class="mono" style="color:var(--blue)">'+rt.length+'</td><td class="mono" style="color:var(--red)">'+fmt(rt.reduce((s,r)=>s+(r.costo||0),0))+'</td><td style="display:flex;gap:4px"><button class="btn btn-secondary btn-sm" data-edit-tec="'+k+'">✏️</button><button class="btn btn-danger btn-sm" data-del-tec="'+k+'">🗑</button></td></tr>';
   });
-  elT.innerHTML='<table><thead><tr><th>Nombre</th><th>Teléfono</th><th>Especialidad</th><th>Reparaciones</th><th>Total</th><th></th></tr></thead><tbody>'+rowsT+'</tbody></table>';
+  elT.innerHTML='<table><thead><tr><th>Nombre</th><th>Teléfono</th><th>Especialidad</th><th>Reparaciones</th><th>Costo total</th><th></th></tr></thead><tbody>'+rowsT+'</tbody></table>';
   elT.querySelectorAll('[data-edit-tec]').forEach(btn=>btn.addEventListener('click',()=>{
     const k=btn.dataset.editTec,t=S.tecnicos[k];if(!t)return;
     $('edit-tec-key').value=k;$('edit-tec-nombre').value=t.nombre||'';$('edit-tec-tel').value=t.tel||'';$('edit-tec-esp').value=t.especialidad||'';
