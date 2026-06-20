@@ -960,6 +960,32 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     <div id="cfg-ventas-alert"></div>
   </div>
 
+  <!-- DÓLAR -->
+  <div class="form-card">
+    <h3>💵 Cotización del dólar</h3>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px">Por defecto el sistema usa el dólar blue automático. Si preferís usar tu propia cotización, activala acá.</p>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+        <input type="checkbox" id="cfg-dolar-manual" style="accent-color:var(--accent);width:16px;height:16px">
+        Usar cotización manual
+      </label>
+    </div>
+    <div id="cfg-dolar-manual-fields" style="display:none">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Cotización compra (ARS)</label>
+          <input type="number" id="cfg-dolar-compra" placeholder="Ej: 1200" min="1" step="1">
+        </div>
+        <div class="form-group">
+          <label>Cotización venta (ARS)</label>
+          <input type="number" id="cfg-dolar-venta" placeholder="Ej: 1250" min="1" step="1">
+        </div>
+      </div>
+    </div>
+    <div class="form-actions"><button class="btn btn-primary" id="btn-save-cfg-dolar">Guardar</button></div>
+    <div id="cfg-dolar-alert"></div>
+  </div>
+
 </div>
 
 <!-- PÁGINA EQUIPO (solo dueños) -->
@@ -1390,7 +1416,7 @@ function initApp(){
   onValue(dbRef('ventas'),s=>{S.ventas=s.val()||{};renderVentas();renderStock();renderCC();renderInicio();renderClientes();});
   onValue(dbRef('clientes'),s=>{S.clientes=s.val()||{};renderClientes();refreshClienteSelects();});
   onValue(dbRef('garantias'),s=>{S.garantias=s.val()||{};refreshRepSelects();refreshEmitirGarantiaSelect();});
-  onValue(dbRef('config'),s=>{S.config=s.val()||{};if($('gconf-dias'))$('gconf-dias').value=diasGarantiaConfigurados();if($('page-config')?.classList.contains('active'))renderConfig();renderCatalogoEstado();});
+  onValue(dbRef('config'),s=>{S.config=s.val()||{};if($('gconf-dias'))$('gconf-dias').value=diasGarantiaConfigurados();if($('page-config')?.classList.contains('active'))renderConfig();renderCatalogoEstado();fetchDolar();});
   onValue(dbRef('tecnicos'),s=>{S.tecnicos=s.val()||{};renderTecnicos();refreshRepSelects();});
   onValue(dbRef('reparaciones'),s=>{S.reparaciones=s.val()||{};renderTecnicos();});
   onValue(dbRef('pagos'),s=>{S.pagos=s.val()||{};renderCC();});
@@ -1555,6 +1581,10 @@ function initApp(){
   $('btn-save-cfg-negocio')?.addEventListener('click',saveConfigNegocio);
   $('btn-save-cfg-garantia')?.addEventListener('click',saveConfigGarantia);
   $('btn-save-cfg-ventas')?.addEventListener('click',saveConfigVentas);
+  $('btn-save-cfg-dolar')?.addEventListener('click',saveConfigDolar);
+  $('cfg-dolar-manual')?.addEventListener('change',e=>{
+    if($('cfg-dolar-manual-fields'))$('cfg-dolar-manual-fields').style.display=e.target.checked?'block':'none';
+  });
   $('btn-toggle-catalogo')?.addEventListener('click',toggleCatalogo);
   $('btn-copiar-link-catalogo')?.addEventListener('click',copiarLinkCatalogo);
   $('emg-venta').addEventListener('change',mostrarPreviewGarantia);
@@ -1760,6 +1790,16 @@ function closeSidebarMobile(){$('sidebar')?.classList.remove('open');$('sidebar-
 
 // ─── DÓLAR ────────────────────────────────────────────────────
 async function fetchDolar(){
+  // Si hay cotización manual configurada, usarla
+  if(S.config?.dolarManual===true&&S.config?.dolarManualVenta>0){
+    dolar={compra:S.config.dolarManualCompra||0,venta:S.config.dolarManualVenta,oficial:S.config.dolarManualVenta};
+    $('dolar-compra').textContent=fmtARS(dolar.compra);
+    $('dolar-venta').textContent=fmtARS(dolar.venta);
+    $('dolar-oficial').textContent='Manual';
+    $('dolar-hora').textContent='⚙️ Manual';
+    calcTotalVenta();
+    return;
+  }
   try{
     const[r1,r2]=await Promise.all([fetch('https://dolarapi.com/v1/dolares/blue'),fetch('https://dolarapi.com/v1/dolares/oficial')]);
     const b=await r1.json(),o=await r2.json();
@@ -3143,6 +3183,12 @@ function renderConfig(){
   }
   // Ventas
   if($('cfg-msg-venta'))$('cfg-msg-venta').value=cfg.msgVenta||'';
+  // Dólar manual
+  const dolarManual=cfg.dolarManual===true;
+  if($('cfg-dolar-manual'))$('cfg-dolar-manual').checked=dolarManual;
+  if($('cfg-dolar-manual-fields'))$('cfg-dolar-manual-fields').style.display=dolarManual?'block':'none';
+  if($('cfg-dolar-compra'))$('cfg-dolar-compra').value=cfg.dolarManualCompra||'';
+  if($('cfg-dolar-venta'))$('cfg-dolar-venta').value=cfg.dolarManualVenta||'';
 }
 
 async function saveConfigNegocio(){
@@ -3178,6 +3224,24 @@ async function saveConfigVentas(){
   const msg=$('cfg-msg-venta').value.trim();
   await update(dbRef('config'),{msgVenta:msg});
   showAlert('cfg-ventas-alert','✅ Configuración de ventas guardada');
+}
+
+async function saveConfigDolar(){
+  const manual=$('cfg-dolar-manual')?.checked||false;
+  const compra=parseFloat($('cfg-dolar-compra')?.value)||0;
+  const venta=parseFloat($('cfg-dolar-venta')?.value)||0;
+  if(manual&&(!compra||!venta)){showAlert('cfg-dolar-alert','Ingresá ambas cotizaciones',false);return;}
+  await update(dbRef('config'),{dolarManual:manual,dolarManualCompra:compra,dolarManualVenta:venta});
+  // Aplicar inmediatamente
+  if(manual&&compra&&venta){
+    dolar.compra=compra;dolar.venta=venta;
+    $('dolar-compra').textContent=fmtARS(compra);
+    $('dolar-venta').textContent=fmtARS(venta);
+    $('dolar-hora').textContent='Manual';
+  }else{
+    fetchDolar();
+  }
+  showAlert('cfg-dolar-alert','✅ Cotización guardada');
 }
 
 // ─── CATÁLOGO PÚBLICO ────────────────────────────────────────
