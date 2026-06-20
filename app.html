@@ -632,7 +632,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
       <div class="form-grid" style="margin-bottom:10px">
         <div class="form-group"><label>Modelo</label><input type="text" id="sf-modelo" placeholder="Ej: iPhone 15..."></div>
         <div class="form-group"><label>Punto de venta</label><select id="sf-local"><option value="">Todos</option></select></div>
-        <div class="form-group"><label>Estado</label><select id="sf-estado-stock"><option value="">Todos</option><option value="disponible">✅ Con stock</option><option value="sin_stock">❌ Sin stock</option><option value="bajo">⚠️ Stock bajo (≤2)</option></select></div>
+        <div class="form-group"><label>Estado</label><select id="sf-estado-stock"><option value="">Todos</option><option value="disponible">✅ Disponible</option><option value="vendido">❌ Vendido</option><option value="bajo">⚠️ Stock bajo (≤2)</option><option value="en_camino">🚚 En camino</option></select></div>
         <div class="form-group"><label>Categoría</label><select id="sf-categoria"><option value="">Todas</option><option value="iphone">iPhone</option><option value="ipad">iPad</option><option value="mac">Mac</option><option value="watch">Watch</option><option value="accesorio">Accesorio</option><option value="android">Android</option><option value="otro">Otro</option></select></div>
       </div>
       <button class="btn btn-secondary btn-sm" id="btn-limpiar-filtro-stock">Limpiar filtros</button>
@@ -2990,53 +2990,108 @@ function renderVentas(){
 
 // ─── STOCK ────────────────────────────────────────────────────
 function renderStock(){
-  const map={};
-  Object.entries(S.compras).forEach(([ck,c])=>c.items.forEach(it=>{
-    // Cada itemId es una unidad o lote distinto — se muestra por separado si tiene color/IMEI/grado propios
-    const key=it.itemId||(ck+'||'+it.modelo+'||'+it.capacidad+'||'+(it.color||'')+'||'+(it.imei||''));
-    const d=getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId);
-    map[key]={modelo:it.modelo,cap:it.capacidad,color:it.color||'',estado:it.estado||'',grado:it.grado||'',tipo:it.tipo||'',imei:it.imei||'',ref:c.ref||fmtD(c.fecha),proveedor:c.proveedor||'',costo:it.precio,precioVenta:it.precioVenta||0,comprado:it.cantidad||1,disp:d,fecha:c.fecha,enCamino:c.estadoEntrega==='en_camino',localId:c.localId||'',compraKey:ck};
-  }));
-  const rows=Object.values(map).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
-  const tc=rows.reduce((s,r)=>s+r.comprado,0),td=rows.reduce((s,r)=>s+r.disp,0),tv=rows.reduce((s,r)=>s+r.disp*r.costo,0);
-  const tEnCamino=rows.filter(r=>r.enCamino).reduce((s,r)=>s+r.comprado,0);
+  // Construir lista de equipos INDIVIDUALES (una fila por unidad)
+  const rows=[];
+  Object.entries(S.compras).forEach(([ck,c])=>{
+    c.items.forEach(it=>{
+      const disp=getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId);
+      rows.push({
+        modelo:it.modelo,cap:it.capacidad,color:it.color||'',estado:it.estado||'',
+        grado:it.grado||'',tipo:it.tipo||'',imei:it.imei||'',bateria:it.bateria||'',
+        ref:c.ref||fmtD(c.fecha),proveedor:c.proveedor||'',fecha:c.fecha,
+        costo:it.precio,precioVenta:it.precioVenta||0,
+        cantidad:it.cantidad||1,disp,
+        enCamino:c.estadoEntrega==='en_camino',
+        localId:c.localId||'',compraKey:ck,itemId:it.itemId||'',
+        categoria:it.categoria||'iphone'
+      });
+    });
+  });
+  rows.sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+
+  // Stats totales (antes de filtrar)
+  const tc=rows.reduce((s,r)=>s+r.cantidad,0);
+  const td=rows.reduce((s,r)=>s+r.disp,0);
+  const tv=Object.entries(S.compras).reduce((s,[ck,c])=>s+c.items.reduce((a,it)=>a+getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId)*it.precio,0),0);
+  const tEnCamino=rows.filter(r=>r.enCamino).reduce((s,r)=>s+r.cantidad,0);
   $('stats-stock').innerHTML=
-    '<div class="stat-card sc-blue"><div class="lbl">Unidades / lotes</div><div class="val">'+rows.length+'</div></div>'+
+    '<div class="stat-card sc-blue"><div class="lbl">Equipos en stock</div><div class="val">'+td+'</div></div>'+
     '<div class="stat-card sc-blue"><div class="lbl">Total comprado</div><div class="val">'+tc+'</div></div>'+
-    '<div class="stat-card sc-green"><div class="lbl">Disponible</div><div class="val">'+td+'</div></div>'+
-    '<div class="stat-card sc-yellow"><div class="lbl">Valor en stock</div><div class="val">'+fmt(tv)+'</div></div>'+
+    '<div class="stat-card sc-yellow"><div class="lbl">Valor disponible</div><div class="val">'+fmt(tv)+'</div></div>'+
     (tEnCamino?'<div class="stat-card sc-yellow"><div class="lbl">🚚 En camino</div><div class="val">'+tEnCamino+'</div></div>':'');
-  // Filtros stock
+
+  // Llenar select de locales en filtro
+  const sfLocalSel=$('sf-local');
+  if(sfLocalSel){
+    const cur=sfLocalSel.value;
+    sfLocalSel.innerHTML='<option value="">Todos</option>';
+    Object.entries(S.locales).forEach(([k,l])=>{const op=document.createElement('option');op.value=k;op.textContent=(l.icono||'🏪')+' '+l.nombre;if(k===cur)op.selected=true;sfLocalSel.appendChild(op);});
+  }
+
+  // Filtros
   const sfModelo=($('sf-modelo')?.value||'').toLowerCase().trim();
   const sfLocal=$('sf-local')?.value||'';
   const sfEstado=$('sf-estado-stock')?.value||'';
   const sfCat=$('sf-categoria')?.value||'';
-  // Llenar select de locales
-  const sfLocalSel=$('sf-local');
-  if(sfLocalSel&&sfLocalSel.options.length<=1){
-    Object.entries(S.locales).forEach(([k,l])=>{const op=document.createElement('option');op.value=k;op.textContent=(l.icono||'🏪')+' '+l.nombre;sfLocalSel.appendChild(op);});
-  }
   let filteredRows=rows;
-  if(sfModelo)filteredRows=filteredRows.filter(r=>(r.modelo||'').toLowerCase().includes(sfModelo));
+  if(sfModelo)filteredRows=filteredRows.filter(r=>(r.modelo||'').toLowerCase().includes(sfModelo)||
+    (r.imei||'').toLowerCase().includes(sfModelo)||(r.color||'').toLowerCase().includes(sfModelo));
   if(sfLocal)filteredRows=filteredRows.filter(r=>r.localId===sfLocal);
-  if(sfCat)filteredRows=filteredRows.filter(r=>(r.categoria||'iphone')===sfCat);
-  if(sfEstado==='disponible')filteredRows=filteredRows.filter(r=>r.disp>0);
-  if(sfEstado==='sin_stock')filteredRows=filteredRows.filter(r=>r.disp===0);
+  if(sfCat)filteredRows=filteredRows.filter(r=>r.categoria===sfCat);
+  if(sfEstado==='disponible')filteredRows=filteredRows.filter(r=>r.disp>0&&!r.enCamino);
+  if(sfEstado==='sin_stock')filteredRows=filteredRows.filter(r=>r.disp===0&&!r.enCamino);
   if(sfEstado==='bajo')filteredRows=filteredRows.filter(r=>r.disp>0&&r.disp<=2);
+  if(sfEstado==='en_camino')filteredRows=filteredRows.filter(r=>r.enCamino);
+
   const el=$('tabla-stock');
-  if(!filteredRows.length){el.innerHTML='<div class="empty-state"><div class="big">📊</div><p>'+(sfModelo||sfLocal||sfEstado||sfCat?'Sin resultados para ese filtro.':'Cargá compras para ver el stock.')+'</p></div>';return;}
+  if(!filteredRows.length){
+    el.innerHTML='<div class="empty-state"><div class="big">📊</div><p>'+(sfModelo||sfLocal||sfEstado||sfCat?'Sin resultados.':'Cargá compras para ver el stock.')+'</p></div>';
+    renderCatalogoEstado();return;
+  }
+
   let tr='';
   filteredRows.forEach(r=>{
-    const pct=r.comprado?Math.round(((r.comprado-r.disp)/r.comprado)*100):0;
-    const tag=r.enCamino?'<span class="tag tag-yellow">🚚 En camino</span>':r.disp===0?'<span class="tag tag-red">Sin stock</span>':r.disp<=2?'<span class="tag tag-yellow">'+r.disp+' u.</span>':'<span class="tag tag-green">'+r.disp+' u.</span>';
-    const bar=r.enCamino?'':'<div style="background:var(--surface3);border-radius:4px;height:5px;width:80px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:6px"><div style="background:'+(r.disp===0?'var(--red)':r.disp<=2?'var(--yellow)':'var(--accent)')+';height:100%;width:'+pct+'%"></div></div>';
-    const detalle=[r.tipo,r.color,r.grado,r.estado].filter(Boolean).join(' · ');
-    const imeiTag=r.imei?'<div style="font-size:10px;color:var(--text3);font-family:var(--mono)">IMEI '+r.imei+'</div>':'';
-    const localOpts='<option value="">'+(r.localId?'Sin asignar':'Sin asignar')+'</option>'+Object.entries(S.locales).map(([k,l])=>'<option value="'+k+'"'+(r.localId===k?' selected':'')+'>'+l.icono+' '+l.nombre+'</option>').join('');
-    const localSel='<select class="stock-local-sel" data-compra-key="'+r.compraKey+'" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font-size:12px;font-family:var(--sans);max-width:140px">'+localOpts+'</select>';
-    tr+='<tr><td><strong>'+r.modelo+'</strong>'+(detalle?'<div style="font-size:11px;color:var(--text2)">'+detalle+'</div>':'')+imeiTag+'</td><td><span class="tag tag-blue">'+r.cap+'</span></td><td style="font-size:12px;color:var(--text2)">'+r.ref+'</td><td style="font-size:12px;color:var(--text2)">'+(r.proveedor||'—')+'</td><td class="mono" style="color:var(--yellow)">'+fmt(r.costo)+'</td><td class="mono" style="color:#0ca678">'+(r.precioVenta?fmt(r.precioVenta):'<span style="color:var(--text3)">—</span>')+'</td><td class="mono" style="color:var(--blue)">'+r.comprado+'</td><td class="mono" style="color:var(--text2)">'+(r.comprado-r.disp)+'</td><td>'+tag+bar+'</td><td>'+localSel+'</td></tr>';
+    // Estado del equipo
+    let statusTag;
+    if(r.enCamino) statusTag='<span class="tag tag-yellow">🚚 En camino</span>';
+    else if(r.disp===0) statusTag='<span class="tag tag-red">Vendido</span>';
+    else statusTag='<span class="tag tag-green">Disponible</span>';
+
+    // Detalles en una línea
+    const detalles=[
+      r.grado?'Grado '+r.grado:'',
+      r.estado||'',
+      r.tipo||'',
+    ].filter(Boolean).join(' · ');
+
+    // IMEI e info bateria
+    const imeiStr=r.imei?'<div style="font-size:11px;color:var(--text3);font-family:var(--mono)">IMEI: '+r.imei+'</div>':'';
+    const batStr=r.bateria?'<span style="font-size:11px;color:var(--accent)">🔋'+r.bateria+'%</span>':'';
+
+    // Local selector
+    const localOpts='<option value=""'+(r.localId?'':' selected')+'>Sin asignar</option>'+
+      Object.entries(S.locales).map(([k,l])=>'<option value="'+k+'"'+(r.localId===k?' selected':'')+'>'+l.icono+' '+l.nombre+'</option>').join('');
+    const localSel='<select class="stock-local-sel" data-compra-key="'+r.compraKey+'" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font-size:12px;font-family:var(--sans);max-width:150px">'+localOpts+'</select>';
+
+    tr+=`<tr>
+      <td>
+        <strong>${r.modelo}</strong>
+        ${r.cap&&r.cap!=='N/A'?'<span class="tag tag-blue" style="margin-left:4px">'+r.cap+'</span>':''}
+        ${r.color?'<span style="font-size:11px;color:var(--text2);margin-left:4px">'+r.color+'</span>':''}
+        ${detalles?'<div style="font-size:11px;color:var(--text3)">'+detalles+'</div>':''}
+        ${imeiStr}
+      </td>
+      <td>${batStr||'—'}</td>
+      <td style="font-size:12px;color:var(--text2)">${r.proveedor||'—'}</td>
+      <td style="font-size:11px;color:var(--text2)">${r.ref}</td>
+      <td class="mono" style="color:var(--yellow)">${fmt(r.costo)}</td>
+      <td class="mono" style="color:#0ca678">${r.precioVenta?fmt(r.precioVenta):'<span style="color:var(--text3)">—</span>'}</td>
+      <td>${statusTag}</td>
+      <td>${localSel}</td>
+    </tr>`;
   });
-  el.innerHTML='<table><thead><tr><th>Modelo / Detalle</th><th>Cap.</th><th>Pedido</th><th>Proveedor</th><th>Costo c/u</th><th>Precio venta</th><th>Comprado</th><th>Vendido</th><th>Stock</th><th>Punto de venta</th></tr></thead><tbody>'+tr+'</tbody></table>';
+
+  el.innerHTML='<table><thead><tr><th>Equipo</th><th>Batería</th><th>Proveedor</th><th>Referencia</th><th>Costo</th><th>Precio venta</th><th>Estado</th><th>Punto de venta</th></tr></thead><tbody>'+tr+'</tbody></table>';
   el.querySelectorAll('.stock-local-sel').forEach(sel=>sel.addEventListener('change',()=>{
     update(dbRef('compras/'+sel.dataset.compraKey),{localId:sel.value});
   }));
