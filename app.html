@@ -903,7 +903,6 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
   <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">
     <button class="btn btn-secondary btn-sm" id="btn-toggle-filtros-tec">🔍 Filtrar <span id="filtros-tec-arrow">▼</span></button>
     <div style="display:flex;gap:8px">
-      <button class="btn btn-secondary" id="btn-toggle-db-tecnicos">👨‍🔧 Técnicos</button>
       <button class="btn btn-primary" id="btn-nueva-reparacion">🔧 Nueva reparación externa</button>
     </div>
   </div>
@@ -930,8 +929,11 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     <div id="tabla-reparaciones"></div>
   </div>
 
-  <!-- BASE DE DATOS TÉCNICOS (colapsable) -->
-  <div id="panel-db-tecnicos" style="display:none;margin-top:4px">
+  <!-- BASE DE DATOS TÉCNICOS (colapsable) — debajo de la tabla -->
+  <div style="margin-top:16px">
+    <button class="btn btn-secondary" id="btn-toggle-db-tecnicos" style="display:flex;align-items:center;gap:8px">👨‍🔧 Técnicos <span id="db-tec-arrow" style="font-size:11px;transition:transform 0.2s">▼</span></button>
+  </div>
+  <div id="panel-db-tecnicos" style="display:none;margin-top:12px">
     <button class="btn btn-secondary" id="btn-toggle-nuevo-tecnico" style="margin-bottom:12px">➕ Nuevo técnico</button>
     <div id="form-nuevo-tecnico" style="display:none">
       <div class="form-card">
@@ -2043,7 +2045,8 @@ function initApp(){
     const p=$('panel-db-tecnicos');
     const open=p.style.display!=='none';
     p.style.display=open?'none':'block';
-    $('btn-toggle-db-tecnicos').textContent=open?'👨‍🔧 Técnicos':'✕ Cerrar técnicos';
+    const arrow=$('db-tec-arrow');
+    if(arrow)arrow.style.transform=open?'rotate(0deg)':'rotate(180deg)';
   });
   $('btn-toggle-nuevo-tecnico')?.addEventListener('click',()=>{
     const f=$('form-nuevo-tecnico');
