@@ -313,6 +313,8 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     <button id="nav-informes" data-page="informes">📈 Informes</button>
     <div class="nav-sep" id="nav-sep-equipo" style="display:none">Negocio</div>
     <button id="nav-equipo" data-page="equipo" style="display:none">👤 Equipo</button>
+    <div class="nav-sep" id="nav-sep-admin" style="display:none">Admin</div>
+    <button id="nav-admin" data-page="admin" style="display:none">⚙️ Panel Admin</button>
   </nav>
   <div style="padding:8px 16px">
     <a href="https://wa.me/5491132133878?text=Hola!%20Necesito%20soporte%20con%20VexoPRO" target="_blank" style="display:flex;align-items:center;gap:8px;background:#25D366;color:#fff;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;text-decoration:none;justify-content:center">
@@ -815,9 +817,6 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
   </div>
 </div>
 
-</main>
-</div>
-
 <!-- PÁGINA EQUIPO (solo dueños) -->
 <div id="page-equipo" class="page">
   <div class="page-header"><h2>👤 Equipo</h2><p>Gestioná roles y accesos de tu equipo. Primero creá un rol, después asignalo a un usuario.</p></div>
@@ -846,14 +845,10 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     </div>
     <div id="er-alert"></div>
   </div>
-
-  <!-- LISTA ROLES -->
   <div class="table-card">
     <h3>Roles creados <span id="badge-roles" class="tag tag-purple"></span></h3>
     <div id="tabla-roles"></div>
   </div>
-
-  <!-- CREAR USUARIO -->
   <div class="form-card">
     <h3>➕ Nuevo usuario</h3>
     <div class="form-grid">
@@ -867,13 +862,22 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     </div>
     <div id="eu-alert"></div>
   </div>
-
-  <!-- LISTA USUARIOS -->
   <div class="table-card">
     <h3>Usuarios del equipo <span id="badge-equipo" class="tag tag-blue"></span></h3>
     <div id="tabla-equipo"></div>
   </div>
+</div>
 
+<!-- PÁGINA ADMIN (solo Mery) -->
+<div id="page-admin" class="page">
+  <div class="page-header"><h2>⚙️ Panel Admin</h2><p>Gestión de suscriptores de VexoPRO.</p></div>
+  <div class="table-card">
+    <h3>Usuarios registrados <span id="badge-admin" class="tag tag-blue"></span></h3>
+    <div id="tabla-admin"></div>
+  </div>
+</div>
+
+</main>
 </div>
 
 <div class="modal-overlay" id="modal-pago">
@@ -1009,8 +1013,8 @@ let S = {compras:{},ventas:{},clientes:{},garantias:{},tecnicos:{},reparaciones:
 let currentUser=null;
 let currentUserRole=null; // 'owner' | 'employee'
 let currentUserPermisos=null; // {modulos:{ventas:true,...}, locales:['all']|[localId,...], puedeEscribir:{ventas:true,...}}
-let ownerUid=null; // uid del dueño del negocio (para empleados = su jefe; para dueños = él mismo)
-let ownerData=null; // datos del dueño (incluye pagado, trial, etc)
+let ownerUid=null;
+let ownerData=null; // uid del dueño del negocio (para empleados = su jefe; para dueños = él mismo)
 
 function tienePermiso(modulo){
   if(currentUserRole==='owner')return true;
@@ -1257,6 +1261,11 @@ function initApp(){
     const sepEquipo=$('nav-sep-equipo'),btnEquipo=$('nav-equipo');
     if(sepEquipo)sepEquipo.style.display='';
     if(btnEquipo)btnEquipo.style.display='';
+    // Mostrar panel admin solo para la cuenta maestra
+    if(currentUser?.email==='merykirs@gmail.com'){
+      $('nav-sep-admin').style.display='';
+      $('nav-admin').style.display='';
+    }
   }
 
   // Ocultar módulos en sidebar según permisos del empleado
@@ -1503,15 +1512,9 @@ function showPage(name){
   if(name==='costos')renderCostos();
   if(name==='informes')renderInformes();
   if(name==='gestion-locales')renderGestionLocales();
+  if(name==='admin')renderAdmin();
   if(name==='equipo'){
     if(ownerData?.pagado!==true && ownerData?.trial!==false){
-      // No es usuario pago — mostrar pantalla de upgrade
-      document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-      document.querySelectorAll('nav button[data-page]').forEach(b=>b.classList.remove('active'));
-      $('page-equipo').classList.add('active');
-      $('nav-equipo')?.classList.add('active');
-      closeSidebarMobile();
-      window.scrollTo(0,0);
       $('page-equipo').innerHTML=`
         <div class="page-header"><h2>👤 Equipo</h2><p>Gestioná roles y accesos de tu equipo.</p></div>
         <div class="form-card" style="text-align:center;padding:48px 32px">
@@ -1527,9 +1530,9 @@ function showPage(name){
             <a href="vexpro_suscripcion.html" target="_blank" style="font-size:13px;color:var(--text3);text-decoration:underline">Ver planes y precios</a>
           </div>
         </div>`;
-      return;
+    } else {
+      renderErModulos();renderErLocales();renderRoles();renderEquipo();
     }
-    renderErModulos();renderErLocales();renderRoles();renderEquipo();
   }
 }
 function openSidebarMobile(){$('sidebar')?.classList.add('open');$('sidebar-overlay')?.classList.add('open');}
@@ -2839,9 +2842,7 @@ const MODULOS_ETIQUETAS=[
   {key:'informes',label:'📈 Informes'},
 ];
 
-function showPageEquipo(){
-  showPage('equipo');
-}
+function showPageEquipo(){showPage('equipo');}
 
 // Render checkboxes de módulos al crear rol
 function renderErModulos(){
@@ -3000,6 +3001,51 @@ function renderEquipo(){
       remove(ref(db,'usuarios/'+btn.dataset.delEmp));
     }
   }));
+}
+
+// ─── ADMIN ───────────────────────────────────────────────────
+async function renderAdmin(){
+  const tabla=$('tabla-admin'),badge=$('badge-admin');
+  if(!tabla)return;
+  tabla.innerHTML='<div class="empty-state"><div class="big">⏳</div><p>Cargando usuarios...</p></div>';
+  try{
+    const snap=await get(ref(db,'usuarios'));
+    const todos=snap.val()||{};
+    const ents=Object.entries(todos).filter(([,u])=>u.role!=='employee');
+    if(badge)badge.textContent=ents.length;
+    if(!ents.length){tabla.innerHTML='<div class="empty-state"><div class="big">👤</div><p>No hay usuarios registrados.</p></div>';return;}
+    let rows='';
+    ents.forEach(([uid,u])=>{
+      const pagado=u.pagado===true||u.trial===false;
+      const inicio=u.trialStart?new Date(u.trialStart).toLocaleDateString('es-AR'):'—';
+      const estadoTag=pagado
+        ?'<span class="tag tag-green">✅ Activo</span>'
+        :'<span class="tag tag-yellow">⏳ Trial</span>';
+      rows+=`<tr>
+        <td><strong>${u.email||uid}</strong></td>
+        <td style="font-size:12px;color:var(--text2)">${u.negocio||'—'}</td>
+        <td>${estadoTag}</td>
+        <td style="font-size:12px;color:var(--text2)">${inicio}</td>
+        <td style="display:flex;gap:4px">
+          ${!pagado?`<button class="btn btn-primary btn-sm" data-activar="${uid}">✅ Activar</button>`:''}
+          ${pagado?`<button class="btn btn-secondary btn-sm" data-desactivar="${uid}">🚫 Desactivar</button>`:''}
+        </td>
+      </tr>`;
+    });
+    tabla.innerHTML='<table><thead><tr><th>Email</th><th>Negocio</th><th>Estado</th><th>Desde</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+    tabla.querySelectorAll('[data-activar]').forEach(btn=>btn.addEventListener('click',async()=>{
+      if(!confirm('¿Activar suscripción para este usuario?'))return;
+      await update(ref(db,'usuarios/'+btn.dataset.activar),{pagado:true,trial:false});
+      renderAdmin();
+    }));
+    tabla.querySelectorAll('[data-desactivar]').forEach(btn=>btn.addEventListener('click',async()=>{
+      if(!confirm('¿Desactivar suscripción? El usuario perderá acceso al sistema.'))return;
+      await update(ref(db,'usuarios/'+btn.dataset.desactivar),{pagado:false,trial:true});
+      renderAdmin();
+    }));
+  }catch(e){
+    tabla.innerHTML='<div class="empty-state"><p>Error al cargar usuarios.</p></div>';
+  }
 }
 
 // ─── CAJA ────────────────────────────────────────────────────
