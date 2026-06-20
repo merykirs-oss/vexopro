@@ -1140,7 +1140,14 @@ document.addEventListener('click',e=>{
 });
 
 // ─── TRIAL LOGIC ─────────────────────────────────────────────
+const ADMIN_EMAIL='merykirs@gmail.com';
+
 function checkTrial(userData){
+  // Cuenta maestra: siempre acceso completo
+  if(currentUser?.email===ADMIN_EMAIL){
+    $('trial-banner-sidebar').innerHTML='';
+    return true;
+  }
   // Acceso completo SOLO si está marcado como pagado, o si explícitamente trial=false (cuenta manual sin trial)
   if(userData.pagado===true||userData.trial===false){
     $('trial-banner-sidebar').innerHTML='';
@@ -1262,7 +1269,7 @@ function initApp(){
     if(sepEquipo)sepEquipo.style.display='';
     if(btnEquipo)btnEquipo.style.display='';
     // Mostrar panel admin solo para la cuenta maestra
-    if(currentUser?.email==='merykirs@gmail.com'){
+    if(currentUser?.email===ADMIN_EMAIL){
       $('nav-sep-admin').style.display='';
       $('nav-admin').style.display='';
     }
@@ -1514,7 +1521,7 @@ function showPage(name){
   if(name==='gestion-locales')renderGestionLocales();
   if(name==='admin')renderAdmin();
   if(name==='equipo'){
-    if(ownerData?.pagado!==true && ownerData?.trial!==false){
+    if(currentUser?.email!==ADMIN_EMAIL && ownerData?.pagado!==true && ownerData?.trial!==false){
       $('page-equipo').innerHTML=`
         <div class="page-header"><h2>👤 Equipo</h2><p>Gestioná roles y accesos de tu equipo.</p></div>
         <div class="form-card" style="text-align:center;padding:48px 32px">
