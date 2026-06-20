@@ -2187,105 +2187,138 @@ function stockOptions(exclVK=null,categoriaFiltro=null,localFiltro=null){
 // ─── COMPRAS ─────────────────────────────────────────────────
 function makeCompraItemEl(id,data=null,cat=null){
   const categoria=cat||compraCategoria||data?.categoria||'iphone';
-  const w=document.createElement('div');w.id='ci-'+id;
-  w.style.cssText='background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px';
-  w.dataset.categoria=categoria;
-  const grid=document.createElement('div');
-  grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;align-items:start';
-  const fg=(lbl,el)=>{const d=document.createElement('div');d.className='form-group';const l=document.createElement('label');l.textContent=lbl;d.append(l,el);return d;};
-  const inp=(type,id2,ph,extra={})=>{const i=document.createElement('input');i.type=type;i.id=id2;i.placeholder=ph;Object.assign(i,extra);return i;};
-  const mkSel=(id2,opts,val)=>{const s=document.createElement('select');s.id=id2;opts.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;if(o===val)op.selected=true;s.appendChild(op);});return s;};
   const COLORES=['Negro','Blanco','Azul','Verde','Rojo','Amarillo','Violeta','Rosa','Naranja','Gris','Plata','Natural','Titanio','Starlight','Midnight','Gold','Desert Titanium'];
+  const usaUnidades=(categoria==='iphone'||categoria==='ipad');
+  const ph={iphone:'Ej: iPhone 15 Pro',ipad:'Ej: iPad Pro M4',mac:'Ej: MacBook Air M3',watch:'Ej: Series 10',audio:'Ej: AirPods Pro 2',accesorio:'Ej: Funda MagSafe',otro:'Nombre del producto'};
+
+  const w=document.createElement('div');w.id='ci-'+id;
+  w.style.cssText='background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px';
+  w.dataset.categoria=categoria;
+
+  const inp=(type,id2,ph2,extra={})=>{const i=document.createElement('input');i.type=type;i.id=id2;i.placeholder=ph2;Object.assign(i,extra);i.style.cssText='background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 12px;font-family:var(--sans);font-size:13px;outline:none;width:100%;box-sizing:border-box';return i;};
+  const mkSel=(id2,opts,val)=>{const s=document.createElement('select');s.id=id2;s.style.cssText='background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 12px;font-family:var(--sans);font-size:13px;outline:none;width:100%';opts.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;if(o===val)op.selected=true;s.appendChild(op);});return s;};
+  const fg=(lbl,el)=>{const d=document.createElement('div');d.className='form-group';const l=document.createElement('label');l.textContent=lbl;d.append(l,el);return d;};
   const hidden=(id2,val)=>{const h=document.createElement('input');h.type='hidden';h.id=id2;h.value=val||'';w.appendChild(h);};
-  const btn=document.createElement('button');btn.className='btn btn-danger btn-remove-row';btn.textContent='✕';
-  btn.addEventListener('click',()=>{w.remove();compraItems=compraItems.filter(i=>i!==id);});
 
-  const fields=[];
-  const ph={iphone:'Ej: iPhone 15 Pro',ipad:'Ej: iPad Pro M4',mac:'Ej: MacBook Air M3',watch:'Ej: Series 10',audio:'Ej: AirPods Pro 2',accesorio:'Ej: Funda transparente con MagSafe',otro:'Nombre del producto'};
+  // ── FILA 1: Modelo + Capacidad/Tamaño + Cantidad + Precio costo ──
+  const row1=document.createElement('div');
+  row1.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:10px;align-items:end;margin-bottom:12px';
 
-  if(categoria==='accesorio'){
-    // Para accesorios: Tipo, Color, Descripción (sin Modelo ni Estado)
-    fields.push(fg('Tipo',mkSel('ci-tipo-'+id,['Funda','Cable','Cargador','Vidrio templado','Otro'],data?.tipo||'Funda')));
-    fields.push(fg('Color',mkSel('ci-color-'+id,COLORES,data?.color||'Negro')));
-    fields.push(fg('Descripción',inp('text','ci-modelo-'+id,ph.accesorio,{value:data?.modelo||''})));
-    hidden('ci-estado-'+id,'Sellado');
-    hidden('ci-cap-'+id,data?.capacidad||'N/A');
-  }else{
-    fields.push(fg('Modelo',inp('text','ci-modelo-'+id,ph[categoria]||'Modelo',{value:data?.modelo||''})));
-    fields.push(fg('Color',mkSel('ci-color-'+id,COLORES,data?.color||'Negro')));
-    fields.push(fg('Estado',mkSel('ci-estado-'+id,['Sellado','Usado'],data?.estado||'Sellado')));
-    hidden('ci-tipo-'+id,'');
-  }
+  const modeloEl=inp('text','ci-modelo-'+id,ph[categoria]||'Modelo',{value:data?.modelo||''});
+  row1.appendChild(fg('Modelo',modeloEl));
 
+  // Capacidad según categoría
+  let capEl;
   if(categoria==='iphone'||categoria==='ipad'){
-    fields.push(fg('Capacidad',mkSel('ci-cap-'+id,['64GB','128GB','256GB','512GB','1TB'],data?.capacidad||'128GB')));
-    fields.push(fg('Grado',mkSel('ci-grado-'+id,['A+','A','A-','AB','B+'],data?.grado||'A')));
+    capEl=mkSel('ci-cap-'+id,['64GB','128GB','256GB','512GB','1TB'],data?.capacidad||'128GB');
   }else if(categoria==='mac'){
-    fields.push(fg('Almacenamiento',mkSel('ci-cap-'+id,['256GB','512GB','1TB','2TB'],data?.capacidad||'256GB')));
-    fields.push(fg('RAM',mkSel('ci-ram-'+id,['8GB','16GB','24GB','32GB','36GB','48GB','64GB','96GB','128GB'],data?.ram||'8GB')));
-    fields.push(fg('N° Serie',inp('text','ci-serie-'+id,'XXXXXXXXXX',{value:data?.serie||''})));
-    fields.push(fg('Ciclos batería',inp('number','ci-ciclos-'+id,'0',{value:data?.ciclos||'',min:0})));
+    capEl=mkSel('ci-cap-'+id,['256GB','512GB','1TB','2TB'],data?.capacidad||'256GB');
   }else if(categoria==='watch'){
-    fields.push(fg('Tamaño',mkSel('ci-cap-'+id,['40mm','41mm','42mm','44mm','45mm','46mm','49mm'],data?.capacidad||'41mm')));
-  }else if(categoria==='accesorio'){
-    // ya manejado arriba
+    capEl=mkSel('ci-cap-'+id,['40mm','41mm','42mm','44mm','45mm','46mm','49mm'],data?.capacidad||'41mm');
   }else{
-    hidden('ci-cap-'+id,data?.capacidad||'N/A');
+    capEl=inp('text','ci-cap-'+id,'N/A',{value:data?.capacidad||'N/A'});
   }
+  row1.appendChild(fg(categoria==='mac'?'Almacenamiento':categoria==='watch'?'Tamaño':'Capacidad',capEl));
 
-  if(categoria!=='mac'){hidden('ci-ram-'+id,'');hidden('ci-serie-'+id,'');hidden('ci-ciclos-'+id,'');}
-  if(categoria!=='iphone'&&categoria!=='ipad'){hidden('ci-grado-'+id,'');}
+  const cantEl=inp('number','ci-cant-'+id,'1',{value:data?.cantidad||1,min:1,style:''});
+  cantEl.style.cssText='background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 12px;font-family:var(--sans);font-size:13px;outline:none;width:100%;box-sizing:border-box';
+  row1.appendChild(fg('Cantidad',cantEl));
 
-  const cantEl=inp('number','ci-cant-'+id,'1',{value:data?.cantidad||1,min:1});
-  fields.push(fg('Cantidad',cantEl));
   const precEl=inp('number','ci-precio-'+id,'0',{value:data?.precio||'',min:0,step:0.01});
   precEl.addEventListener('input',calcTotalCompra);
-  fields.push(fg('Precio costo c/u (USD)',precEl));
-  const precVtaEl=inp('number','ci-precio-vta-'+id,'0',{value:data?.precioVenta||'',min:0,step:0.01});
-  fields.push(fg('Precio de venta (USD)',precVtaEl));
+  row1.appendChild(fg('Costo c/u (USD)',precEl));
 
-  const usaUnidades=(categoria==='iphone'||categoria==='ipad');
-  if(usaUnidades){
-    fields.push(fg('IMEI (unidad 1)',inp('text','ci-imei-'+id,'15 dígitos',{value:data?.unidades?.[0]?.imei||data?.imei||'',maxLength:20})));
-    fields.push(fg('% Batería (unidad 1)',inp('number','ci-bat-'+id,'%',{value:data?.unidades?.[0]?.bateria||data?.bateria||'',min:0,max:100})));
+  // Botón eliminar
+  const btnDel=document.createElement('button');btnDel.className='btn btn-danger btn-remove-row';btnDel.textContent='✕';
+  btnDel.addEventListener('click',()=>{w.remove();compraItems=compraItems.filter(i=>i!==id);calcTotalCompra();});
+  const btnWrap=document.createElement('div');btnWrap.appendChild(btnDel);
+  row1.appendChild(btnWrap);
+  w.appendChild(row1);
+
+  // RAM/Serie/Ciclos para Mac (ocultos para otros)
+  if(categoria==='mac'){
+    const rowMac=document.createElement('div');rowMac.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px';
+    rowMac.appendChild(fg('RAM',mkSel('ci-ram-'+id,['8GB','16GB','24GB','32GB','36GB','48GB','64GB'],data?.ram||'8GB')));
+    rowMac.appendChild(fg('N° Serie',inp('text','ci-serie-'+id,'XXXXXXXXXX',{value:data?.serie||''})));
+    rowMac.appendChild(fg('Ciclos batería',inp('number','ci-ciclos-'+id,'0',{value:data?.ciclos||'',min:0})));
+    w.appendChild(rowMac);
   }else{
-    hidden('ci-imei-'+id,'');hidden('ci-bat-'+id,'');
+    hidden('ci-ram-'+id,'');hidden('ci-serie-'+id,'');hidden('ci-ciclos-'+id,'');
   }
+  hidden('ci-tipo-'+id,data?.tipo||'');
 
-  fields.push(btn);
-  fields.forEach(f=>grid.appendChild(f));
-  w.appendChild(grid);
-
-  // Contenedor de unidades extra (cuando cantidad > 1, una fila de IMEI+batería por cada unidad adicional)
+  // ── TARJETAS POR UNIDAD ──
   const unidadesBox=document.createElement('div');
   unidadesBox.id='ci-unidades-'+id;
-  unidadesBox.style.cssText='margin-top:10px';
   w.appendChild(unidadesBox);
 
-  function renderUnidadesExtra(){
+  function renderUnidades(){
     const cant=parseInt(cantEl.value)||1;
     unidadesBox.innerHTML='';
-    if(!usaUnidades||cant<=1)return;
+    // Título
     const titulo=document.createElement('div');
-    titulo.style.cssText='font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px';
-    titulo.textContent='IMEI, batería y color de cada unidad adicional ('+(cant-1)+')';
+    titulo.style.cssText='font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;padding-top:4px;border-top:1px solid var(--border)';
+    titulo.textContent='Detalle por unidad ('+cant+')';
     unidadesBox.appendChild(titulo);
-    for(let u=1;u<cant;u++){
-      const row=document.createElement('div');
-      row.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:6px';
-      const dataU=data?.unidades?.[u];
-      const imeiU=inp('text','ci-imei-'+id+'-'+u,'IMEI unidad '+(u+1),{value:dataU?.imei||'',maxLength:20});
-      const batU=inp('number','ci-bat-'+id+'-'+u,'% Batería',{value:dataU?.bateria||'',min:0,max:100});
-      const colorU=document.createElement('select');
-      colorU.id='ci-color-'+id+'-'+u;
-      colorU.style.cssText='background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 12px;font-family:var(--sans);font-size:13px;outline:none';
-      COLORES.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;if(c===(dataU?.color||'Negro'))o.selected=true;colorU.appendChild(o);});
-      row.append(imeiU,batU,colorU);
-      unidadesBox.appendChild(row);
+
+    for(let u=0;u<cant;u++){
+      const dataU=u===0?data:data?.unidades?.[u];
+      const card=document.createElement('div');
+      card.style.cssText='background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px';
+
+      const numLabel=document.createElement('div');
+      numLabel.style.cssText='font-size:11px;font-weight:700;color:var(--accent);margin-bottom:8px';
+      numLabel.textContent='Unidad '+(u+1);
+      card.appendChild(numLabel);
+
+      const gridU=document.createElement('div');
+      // Columnas según categoría
+      if(usaUnidades){
+        gridU.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:8px';
+      }else if(categoria==='mac'){
+        gridU.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px';
+      }else{
+        gridU.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px';
+      }
+
+      // Color
+      const colorEl=mkSel('ci-color-'+id+'-'+u,COLORES,dataU?.color||data?.color||'Negro');
+      gridU.appendChild(fg('Color',colorEl));
+
+      // Estado
+      const estadoEl=mkSel('ci-estado-'+id+'-'+u,['Sellado','Usado'],dataU?.estado||data?.estado||'Sellado');
+      gridU.appendChild(fg('Estado',estadoEl));
+
+      // Grado (solo iPhone/iPad)
+      if(categoria==='iphone'||categoria==='ipad'){
+        const gradoEl=mkSel('ci-grado-'+id+'-'+u,['A+','A','A-','AB','B+'],dataU?.grado||data?.grado||'A');
+        gridU.appendChild(fg('Grado',gradoEl));
+        // IMEI
+        const imeiEl=inp('text','ci-imei-'+id+'-'+u,'15 dígitos',{value:dataU?.imei||'',maxLength:20});
+        gridU.appendChild(fg('IMEI',imeiEl));
+        // Batería
+        const batEl=inp('number','ci-bat-'+id+'-'+u,'%',{value:dataU?.bateria||'',min:0,max:100});
+        gridU.appendChild(fg('% Batería',batEl));
+      }else{
+        // Para no-iPhone: solo Color y Estado ya están, agregar grado si aplica
+        if(categoria==='mac'){
+          hidden('ci-grado-'+id+'-'+u,'');hidden('ci-imei-'+id+'-'+u,'');hidden('ci-bat-'+id+'-'+u,'');
+        }else{
+          hidden('ci-grado-'+id+'-'+u,'');hidden('ci-imei-'+id+'-'+u,'');hidden('ci-bat-'+id+'-'+u,'');
+        }
+      }
+
+      // Precio de venta (puede variar por unidad)
+      const pvEl=inp('number','ci-pvta-'+id+'-'+u,'0',{value:dataU?.precioVenta||data?.precioVenta||'',min:0,step:0.01});
+      gridU.appendChild(fg('Precio venta (USD)',pvEl));
+
+      card.appendChild(gridU);
+      unidadesBox.appendChild(card);
     }
   }
-  cantEl.addEventListener('input',()=>{calcTotalCompra();renderUnidadesExtra();});
-  setTimeout(renderUnidadesExtra,0);
+
+  cantEl.addEventListener('input',()=>{calcTotalCompra();renderUnidades();});
+  setTimeout(renderUnidades,0);
 
   return w;
 }
@@ -2385,32 +2418,24 @@ function saveCompra(){
     const el=document.getElementById('ci-'+id);
     const modelo=$('ci-modelo-'+id)?.value.trim();
     const capacidad=$('ci-cap-'+id)?.value||'N/A';
-    const color=$('ci-color-'+id)?.value||'';
-    const estado=$('ci-estado-'+id)?.value||'Sellado';
     const ram=$('ci-ram-'+id)?.value||'';
     const serie=$('ci-serie-'+id)?.value.trim()||'';
     const ciclos=$('ci-ciclos-'+id)?.value||'';
+    const tipo=$('ci-tipo-'+id)?.value||'';
     const cantidad=parseInt($('ci-cant-'+id)?.value)||1;
     const precio=parseFloat($('ci-precio-'+id)?.value);
-    const precioVenta=parseFloat($('ci-precio-vta-'+id)?.value)||0;
-    const grado=$('ci-grado-'+id)?.value||'';
-    const tipo=$('ci-tipo-'+id)?.value||'';
     const categoria=el?.dataset.categoria||compraCategoria;
     if(!modelo){showAlert('c-alert','Completá todos los modelos',false);return;}
     if(!precio||precio<=0){showAlert('c-alert','Completá todos los precios',false);return;}
-    const usaUnidades=(categoria==='iphone'||categoria==='ipad');
-    if(usaUnidades&&cantidad>1){
-      // Una unidad de stock independiente por cada IMEI cargado
-      for(let u=0;u<cantidad;u++){
-        const imeiU=(u===0?$('ci-imei-'+id)?.value.trim():$('ci-imei-'+id+'-'+u)?.value.trim())||'';
-        const batU=(u===0?$('ci-bat-'+id)?.value:$('ci-bat-'+id+'-'+u)?.value)||'';
-        const colorU=u===0?color:($('ci-color-'+id+'-'+u)?.value||color);
-        items.push({itemId:uid(),modelo,capacidad,color:colorU,estado,ram,serie,ciclos,cantidad:1,precio,precioVenta,imei:imeiU,bateria:batU,grado,tipo,categoria});
-      }
-    }else{
-      const imei=$('ci-imei-'+id)?.value.trim()||'';
-      const bateria=$('ci-bat-'+id)?.value||'';
-      items.push({itemId:uid(),modelo,capacidad,color,estado,ram,serie,ciclos,cantidad,precio,precioVenta,imei,bateria,grado,tipo,categoria});
+    // Leer una tarjeta por unidad
+    for(let u=0;u<cantidad;u++){
+      const color=$('ci-color-'+id+'-'+u)?.value||'Negro';
+      const estado=$('ci-estado-'+id+'-'+u)?.value||'Sellado';
+      const grado=$('ci-grado-'+id+'-'+u)?.value||'';
+      const imei=$('ci-imei-'+id+'-'+u)?.value.trim()||'';
+      const bateria=$('ci-bat-'+id+'-'+u)?.value||'';
+      const precioVenta=parseFloat($('ci-pvta-'+id+'-'+u)?.value)||0;
+      items.push({itemId:uid(),modelo,capacidad,color,estado,ram,serie,ciclos,cantidad:1,precio,precioVenta,imei,bateria,grado,tipo,categoria});
     }
   }
   if(!items.length){showAlert('c-alert','Agregá al menos un equipo',false);return;}
