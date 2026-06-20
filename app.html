@@ -1299,7 +1299,7 @@ function initApp(){
   onValue(dbRef('ventas'),s=>{S.ventas=s.val()||{};renderVentas();renderStock();renderCC();renderInicio();renderClientes();});
   onValue(dbRef('clientes'),s=>{S.clientes=s.val()||{};renderClientes();refreshClienteSelects();});
   onValue(dbRef('garantias'),s=>{S.garantias=s.val()||{};refreshRepSelects();refreshEmitirGarantiaSelect();});
-  onValue(dbRef('config'),s=>{S.config=s.val()||{};if($('gconf-dias'))$('gconf-dias').value=diasGarantiaConfigurados();if($('page-config')?.classList.contains('active'))renderConfig();});
+  onValue(dbRef('config'),s=>{S.config=s.val()||{};if($('gconf-dias'))$('gconf-dias').value=diasGarantiaConfigurados();if($('page-config')?.classList.contains('active'))renderConfig();renderCatalogoEstado();});
   onValue(dbRef('tecnicos'),s=>{S.tecnicos=s.val()||{};renderTecnicos();refreshRepSelects();});
   onValue(dbRef('reparaciones'),s=>{S.reparaciones=s.val()||{};renderTecnicos();});
   onValue(dbRef('pagos'),s=>{S.pagos=s.val()||{};renderCC();});
