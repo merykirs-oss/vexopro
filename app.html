@@ -870,40 +870,80 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 </div>
 
 <div id="page-informes" class="page">
-  <div class="page-header"><h2>📈 Informes</h2><p>Panorama general del negocio y comparación entre meses.</p></div>
+  <div class="page-header"><h2>📈 Informes</h2><p>Métricas completas de tu negocio.</p></div>
 
-  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-    <span style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px">Período:</span>
-    <button class="btn btn-secondary btn-sm inff active-filter" data-filtro="mes">Este mes</button>
-    <button class="btn btn-secondary btn-sm inff" data-filtro="trimestre">Últimos 3 meses</button>
-    <button class="btn btn-secondary btn-sm inff" data-filtro="anio">Este año</button>
-    <button class="btn btn-secondary btn-sm inff" data-filtro="todo">Todo</button>
-    <button class="btn btn-secondary btn-sm inff" data-filtro="personalizado">📅 Personalizado</button>
+  <!-- FILTROS PERÍODO + LOCAL -->
+  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px">Período:</span>
+      <button class="btn btn-secondary btn-sm inff active-filter" data-filtro="mes">Este mes</button>
+      <button class="btn btn-secondary btn-sm inff" data-filtro="trimestre">3 meses</button>
+      <button class="btn btn-secondary btn-sm inff" data-filtro="anio">Este año</button>
+      <button class="btn btn-secondary btn-sm inff" data-filtro="todo">Todo</button>
+      <button class="btn btn-secondary btn-sm inff" data-filtro="personalizado">📅 Personalizado</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px">Local:</span>
+      <select id="inf-local" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px 10px;font-size:12px;font-family:var(--sans);outline:none">
+        <option value="">Todos los locales</option>
+      </select>
+    </div>
   </div>
-  <div id="inf-rango-personalizado" style="display:none;gap:10px;align-items:end;margin-bottom:18px;flex-wrap:wrap">
+  <div id="inf-rango-personalizado" style="display:none;gap:10px;align-items:end;margin-bottom:16px;flex-wrap:wrap">
     <div class="form-group" style="margin-bottom:0"><label>Desde</label><input type="date" id="inf-desde"></div>
     <div class="form-group" style="margin-bottom:0"><label>Hasta</label><input type="date" id="inf-hasta"></div>
     <button class="btn btn-primary btn-sm" id="btn-aplicar-rango-informes">Aplicar</button>
   </div>
 
-  <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px">Panorama general</div>
-  <div id="stats-informes" class="stats-row" style="margin-bottom:28px"></div>
+  <!-- RESUMEN EJECUTIVO -->
+  <div style="font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px">📊 Resumen ejecutivo</div>
+  <div id="stats-informes" class="stats-row" style="margin-bottom:24px"></div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px">
+  <!-- TENDENCIA + STOCK -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
     <div class="table-card" style="padding:18px 20px">
-      <h3 style="border:none;padding:0 0 12px 0">💰 Ventas y ganancia (últimos 6 meses)</h3>
+      <h3 style="border:none;padding:0 0 12px 0">💰 Ventas vs Ganancia (6 meses)</h3>
       <div id="grafico-ventas-tendencia"></div>
     </div>
     <div class="table-card" style="padding:18px 20px">
-      <h3 style="border:none;padding:0 0 12px 0">📦 Stock e inventario</h3>
+      <h3 style="border:none;padding:0 0 12px 0">📦 Estado del stock</h3>
       <div id="resumen-stock-informe"></div>
     </div>
   </div>
 
-  <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px;margin-top:8px">Comparar un mes con otro</div>
+  <!-- POR PUNTO DE VENTA -->
+  <div style="font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px">🏪 Por punto de venta</div>
+  <div id="inf-por-local" class="stats-row" style="margin-bottom:24px"></div>
+
+  <!-- POR PRODUCTO -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+    <div class="table-card">
+      <h3>📱 Top modelos vendidos</h3>
+      <div id="inf-top-modelos"></div>
+    </div>
+    <div class="table-card">
+      <h3>🏆 Modelos más rentables</h3>
+      <div id="inf-top-rentables"></div>
+    </div>
+  </div>
+
+  <!-- POR CLIENTE -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+    <div class="table-card">
+      <h3>👥 Top clientes</h3>
+      <div id="inf-top-clientes"></div>
+    </div>
+    <div class="table-card">
+      <h3>💳 Por método de pago</h3>
+      <div id="inf-metodos-pago"></div>
+    </div>
+  </div>
+
+  <!-- COMPARACIÓN -->
+  <div style="font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px">🔁 Comparar períodos</div>
   <div class="form-card">
     <div class="form-grid">
-      <div class="form-group"><label>Métrica a comparar</label><select id="cmp-metrica"><option value="ventas">🛒 Ventas (total USD)</option><option value="ganancia">💰 Ganancia (USD)</option><option value="marketing">📢 Gastos de Marketing</option><option value="financiero">💳 Costos financieros</option><option value="costos">📋 Costos totales (todas las categorías)</option></select></div>
+      <div class="form-group"><label>Métrica</label><select id="cmp-metrica"><option value="ventas">🛒 Ventas</option><option value="ganancia">💰 Ganancia</option><option value="marketing">📢 Marketing</option><option value="financiero">💳 Costos financieros</option><option value="costos">📋 Costos totales</option></select></div>
       <div class="form-group"><label>Mes A</label><input type="month" id="cmp-mes-a"></div>
       <div class="form-group"><label>Mes B</label><input type="month" id="cmp-mes-b"></div>
     </div>
@@ -1726,6 +1766,7 @@ function initApp(){
     renderInformes();
   });
   $('btn-comparar-meses').addEventListener('click',compararMeses);
+  $('inf-local')?.addEventListener('change',renderInformes);
 
   // Puntos de Venta
   $('btn-save-local').addEventListener('click',saveLocal);
@@ -1759,7 +1800,7 @@ function showPage(name){
   if(name==='cc-proveedores')renderCCProveedores();
   if(name==='caja')renderCaja();
   if(name==='costos')renderCostos();
-  if(name==='informes')renderInformes();
+  if(name==='informes'){renderInformes();refreshInfLocalSelect();}
   if(name==='gestion-locales')renderGestionLocales();
   if(name==='admin')renderAdmin();
   if(name==='config')renderConfig();
@@ -3616,37 +3657,141 @@ function getInformesRango(){
 function costoEnUSD(c){
   return c.moneda==='USD'?c.monto:(dolar.venta>0?c.monto/dolar.venta:0);
 }
-function renderInformes(){
-  const{desde,hasta}=getInformesRango();
-  const enRango=fecha=>!desde||(fecha>=desde&&fecha<=hasta);
+function refreshInfLocalSelect(){
+  const sel=$('inf-local');if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Todos los locales</option>';
+  Object.entries(S.locales).forEach(([k,l])=>{
+    const op=document.createElement('option');op.value=k;op.textContent=(l.icono||'🏪')+' '+l.nombre;
+    if(k===cur)op.selected=true;sel.appendChild(op);
+  });
+}
 
-  const ventasR=Object.values(S.ventas).filter(v=>enRango(v.fecha));
+function renderInformes(){
+  refreshInfLocalSelect();
+  const{desde,hasta}=getInformesRango();
+  const localFiltro=$('inf-local')?.value||'';
+  const enRango=fecha=>!desde||(fecha>=desde&&fecha<=hasta);
+  const enLocal=v=>!localFiltro||(v.localId||'')===localFiltro;
+
+  const ventasR=Object.values(S.ventas).filter(v=>enRango(v.fecha)&&enLocal(v));
   const totalVentas=ventasR.reduce((s,v)=>s+(v.totalUSD||0),0);
   const totalGanancia=ventasR.reduce((s,v)=>s+(v.gananciaUSD||0),0);
   const unidadesVendidas=ventasR.reduce((s,v)=>s+v.items.reduce((a,i)=>a+(i.cantidad||1),0),0);
+  const ticketProm=ventasR.length?totalVentas/ventasR.length:0;
+  const margenPct=totalVentas>0?(totalGanancia/totalVentas*100):0;
 
   const costosR=Object.values(S.costos).filter(c=>enRango(c.fecha)||c.frecuencia==='mensual');
   const totalGastos=costosR.reduce((s,c)=>s+costoEnUSD(c),0);
   const totalMarketing=costosR.filter(c=>c.categoria==='marketing').reduce((s,c)=>s+costoEnUSD(c),0);
   const totalFinanciero=costosR.filter(c=>c.categoria==='financiero').reduce((s,c)=>s+costoEnUSD(c),0);
+  const margenNeto=totalGanancia-totalGastos;
 
   const stockDisp=calcStockDisp();
   const valorStock=Object.entries(S.compras).reduce((s,[ck,c])=>s+c.items.reduce((a,it)=>a+getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId)*it.precio,0),0);
 
-  const margenNeto=totalGanancia-totalGastos;
-
+  // ── Resumen ejecutivo
   $('stats-informes').innerHTML=
-    '<div class="stat-card sc-green"><div class="lbl">Ventas totales</div><div class="val">'+fmt(totalVentas)+'</div></div>'+
-    '<div class="stat-card sc-green"><div class="lbl">Ganancia bruta</div><div class="val">'+fmt(totalGanancia)+'</div></div>'+
+    '<div class="stat-card sc-green"><div class="lbl">Ventas totales</div><div class="val">'+fmt(totalVentas)+'</div><div class="sub">'+ventasR.length+' operaciones</div></div>'+
+    '<div class="stat-card sc-green"><div class="lbl">Ganancia bruta</div><div class="val">'+fmt(totalGanancia)+'</div><div class="sub">Margen '+margenPct.toFixed(1)+'%</div></div>'+
     '<div class="stat-card sc-red"><div class="lbl">Gastos totales</div><div class="val">'+fmt(totalGastos)+'</div></div>'+
     '<div class="stat-card '+(margenNeto>=0?'sc-green':'sc-red')+'"><div class="lbl">Margen neto</div><div class="val">'+fmt(margenNeto)+'</div></div>'+
     '<div class="stat-card sc-blue"><div class="lbl">Unidades vendidas</div><div class="val">'+unidadesVendidas+'</div></div>'+
+    '<div class="stat-card sc-yellow"><div class="lbl">Ticket promedio</div><div class="val">'+fmt(ticketProm)+'</div></div>'+
     '<div class="stat-card sc-yellow"><div class="lbl">Marketing</div><div class="val">'+fmt(totalMarketing)+'</div></div>'+
-    '<div class="stat-card sc-yellow"><div class="lbl">Costos financieros</div><div class="val">'+fmt(totalFinanciero)+'</div></div>'+
-    '<div class="stat-card sc-blue"><div class="lbl">Stock disponible</div><div class="val">'+stockDisp+' u.</div><div class="sub">'+fmt(valorStock)+' en valor</div></div>';
+    '<div class="stat-card sc-blue"><div class="lbl">Stock disponible</div><div class="val">'+stockDisp+' u.</div><div class="sub">'+fmt(valorStock)+'</div></div>';
 
   renderTendenciaVentas();
   renderResumenStockInforme();
+  renderInfPorLocal(ventasR);
+  renderInfTopModelos(ventasR);
+  renderInfTopRentables(ventasR);
+  renderInfTopClientes(ventasR);
+  renderInfMetodos(ventasR);
+}
+
+function renderInfPorLocal(ventasR){
+  const el=$('inf-por-local');if(!el)return;
+  if(!Object.keys(S.locales).length){el.innerHTML='<div style="color:var(--text3);font-size:13px;padding:8px">No hay puntos de venta creados.</div>';return;}
+  let html='';
+  Object.entries(S.locales).forEach(([k,l])=>{
+    const vs=ventasR.filter(v=>(v.localId||'')===k);
+    const vTotal=vs.reduce((s,v)=>s+(v.totalUSD||0),0);
+    const gTotal=vs.reduce((s,v)=>s+(v.gananciaUSD||0),0);
+    const stockL=Object.entries(S.compras).filter(([,c])=>c.localId===k).reduce((s,[ck,c])=>s+c.items.reduce((a,it)=>a+getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId),0),0);
+    html+='<div class="stat-card sc-blue"><div class="lbl">'+(l.icono||'🏪')+' '+l.nombre+'</div><div class="val">'+fmt(vTotal)+'</div><div class="sub">Ganancia: '+fmt(gTotal)+' · Stock: '+stockL+' u.</div></div>';
+  });
+  // Sin local asignado
+  const vsSin=ventasR.filter(v=>!v.localId);
+  if(vsSin.length){
+    const vTotal=vsSin.reduce((s,v)=>s+(v.totalUSD||0),0);
+    html+='<div class="stat-card"><div class="lbl">Sin local asignado</div><div class="val">'+fmt(vTotal)+'</div><div class="sub">'+vsSin.length+' ventas</div></div>';
+  }
+  el.innerHTML=html;
+}
+
+function renderInfTopModelos(ventasR){
+  const el=$('inf-top-modelos');if(!el)return;
+  const map={};
+  ventasR.forEach(v=>v.items.forEach(i=>{
+    const k=i.modelo;if(!k)return;
+    if(!map[k])map[k]={modelo:k,cant:0,total:0};
+    map[k].cant+=i.cantidad||1;map[k].total+=i.precioUSD*(i.cantidad||1)||0;
+  }));
+  const top=Object.values(map).sort((a,b)=>b.cant-a.cant).slice(0,8);
+  if(!top.length){el.innerHTML='<div class="empty-state"><div class="big">📱</div><p>Sin datos</p></div>';return;}
+  el.innerHTML='<table><thead><tr><th>Modelo</th><th>Unidades</th><th>Total</th></tr></thead><tbody>'+
+    top.map(r=>'<tr><td><strong>'+r.modelo+'</strong></td><td class="mono" style="color:var(--blue)">'+r.cant+'</td><td class="mono" style="color:#0ca678">'+fmt(r.total)+'</td></tr>').join('')+
+    '</tbody></table>';
+}
+
+function renderInfTopRentables(ventasR){
+  const el=$('inf-top-rentables');if(!el)return;
+  const map={};
+  ventasR.forEach(v=>v.items.forEach(i=>{
+    const k=i.modelo;if(!k)return;
+    if(!map[k])map[k]={modelo:k,ganancia:0,cant:0};
+    map[k].ganancia+=(i.ganancia||0);map[k].cant+=i.cantidad||1;
+  }));
+  const top=Object.values(map).sort((a,b)=>b.ganancia-a.ganancia).slice(0,8);
+  if(!top.length){el.innerHTML='<div class="empty-state"><div class="big">🏆</div><p>Sin datos</p></div>';return;}
+  el.innerHTML='<table><thead><tr><th>Modelo</th><th>Ganancia total</th><th>x unidad</th></tr></thead><tbody>'+
+    top.map(r=>'<tr><td><strong>'+r.modelo+'</strong></td><td class="mono" style="color:#0ca678">'+fmt(r.ganancia)+'</td><td class="mono" style="color:var(--text2)">'+fmt(r.cant?r.ganancia/r.cant:0)+'</td></tr>').join('')+
+    '</tbody></table>';
+}
+
+function renderInfTopClientes(ventasR){
+  const el=$('inf-top-clientes');if(!el)return;
+  const map={};
+  ventasR.forEach(v=>{
+    const k=v.clienteId;if(!k)return;
+    if(!map[k])map[k]={nombre:S.clientes[k]?.nombre||'—',total:0,cant:0};
+    map[k].total+=v.totalUSD||0;map[k].cant++;
+  });
+  const top=Object.values(map).sort((a,b)=>b.total-a.total).slice(0,8);
+  if(!top.length){el.innerHTML='<div class="empty-state"><div class="big">👥</div><p>Sin datos</p></div>';return;}
+  el.innerHTML='<table><thead><tr><th>Cliente</th><th>Total comprado</th><th>Operaciones</th></tr></thead><tbody>'+
+    top.map(r=>'<tr><td><strong>'+r.nombre+'</strong></td><td class="mono" style="color:#0ca678">'+fmt(r.total)+'</td><td class="mono" style="color:var(--text2)">'+r.cant+'</td></tr>').join('')+
+    '</tbody></table>';
+}
+
+function renderInfMetodos(ventasR){
+  const el=$('inf-metodos-pago');if(!el)return;
+  const map={};
+  ventasR.forEach(v=>{
+    (v.metodos||[]).forEach(m=>{
+      const k=m.label||m.v;if(!k)return;
+      if(!map[k])map[k]={label:k,totalUSD:0,totalARS:0,cant:0};
+      if(m.moneda==='USD')map[k].totalUSD+=m.monto||0;
+      else map[k].totalARS+=m.monto||0;
+      map[k].cant++;
+    });
+  });
+  const rows=Object.values(map).sort((a,b)=>b.totalUSD-a.totalUSD);
+  if(!rows.length){el.innerHTML='<div class="empty-state"><div class="big">💳</div><p>Sin datos</p></div>';return;}
+  el.innerHTML='<table><thead><tr><th>Método</th><th>Total USD</th><th>Total ARS</th><th>Usos</th></tr></thead><tbody>'+
+    rows.map(r=>'<tr><td><strong>'+r.label+'</strong></td><td class="mono" style="color:#0ca678">'+(r.totalUSD?fmt(r.totalUSD):'—')+'</td><td class="mono" style="color:var(--blue)">'+(r.totalARS?fmtARS(r.totalARS):'—')+'</td><td class="mono" style="color:var(--text2)">'+r.cant+'</td></tr>').join('')+
+    '</tbody></table>';
 }
 // Gráfico de barras SVG simple para los últimos 6 meses: ventas vs ganancia
 function renderTendenciaVentas(){
