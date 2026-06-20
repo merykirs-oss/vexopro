@@ -883,7 +883,10 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
   <!-- FILTRO + BOTÓN NUEVA REP -->
   <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">
     <button class="btn btn-secondary btn-sm" id="btn-toggle-filtros-tec">🔍 Filtrar <span id="filtros-tec-arrow">▼</span></button>
-    <button class="btn btn-primary" id="btn-nueva-reparacion">🔧 Nueva reparación externa</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary" id="btn-toggle-db-tecnicos">👨‍🔧 Técnicos</button>
+      <button class="btn btn-primary" id="btn-nueva-reparacion">🔧 Nueva reparación externa</button>
+    </div>
   </div>
 
   <div id="panel-filtros-tec" style="display:none;margin-bottom:16px">
@@ -899,28 +902,33 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     </div>
   </div>
 
-  <!-- REPARACIONES PENDIENTES -->
+  <!-- PANTALLAZO POR TÉCNICO (solo los que tienen algo activo) -->
+  <div id="tec-pantallazo" style="margin-bottom:20px"></div>
+
+  <!-- REPARACIONES COMPLETAS -->
   <div class="table-card">
-    <h3>Reparaciones <span id="badge-reparaciones" class="tag tag-blue"></span></h3>
+    <h3>Todas las reparaciones <span id="badge-reparaciones" class="tag tag-blue"></span></h3>
     <div id="tabla-reparaciones"></div>
   </div>
 
-  <!-- TÉCNICOS -->
-  <button class="btn btn-secondary" id="btn-toggle-nuevo-tecnico" style="margin-bottom:12px">➕ Nuevo técnico</button>
-  <div id="form-nuevo-tecnico" style="display:none">
-  <div class="form-card">
-    <h3>➕ Nuevo técnico</h3>
-    <div class="form-grid">
-      <div class="form-group"><label>Nombre *</label><input type="text" id="tec-nombre" placeholder="Nombre del técnico"></div>
-      <div class="form-group"><label>Teléfono</label><input type="text" id="tec-tel" placeholder="+54 9 11..."></div>
-      <div class="form-group"><label>Especialidad</label><input type="text" id="tec-esp" placeholder="Ej: iPhone, Samsung..."></div>
-      <div class="form-group"><label>Tipo</label><select id="tec-tipo"><option value="interno">Interno</option><option value="externo">Externo</option></select></div>
+  <!-- BASE DE DATOS TÉCNICOS (colapsable) -->
+  <div id="panel-db-tecnicos" style="display:none;margin-top:4px">
+    <button class="btn btn-secondary" id="btn-toggle-nuevo-tecnico" style="margin-bottom:12px">➕ Nuevo técnico</button>
+    <div id="form-nuevo-tecnico" style="display:none">
+      <div class="form-card">
+        <h3>➕ Nuevo técnico</h3>
+        <div class="form-grid">
+          <div class="form-group"><label>Nombre *</label><input type="text" id="tec-nombre" placeholder="Nombre del técnico"></div>
+          <div class="form-group"><label>Teléfono</label><input type="text" id="tec-tel" placeholder="+54 9 11..."></div>
+          <div class="form-group"><label>Especialidad</label><input type="text" id="tec-esp" placeholder="Ej: iPhone, Samsung..."></div>
+          <div class="form-group"><label>Tipo</label><select id="tec-tipo"><option value="interno">Interno</option><option value="externo">Externo</option></select></div>
+        </div>
+        <div class="form-actions"><button class="btn btn-primary" id="btn-save-tecnico">Guardar técnico</button></div>
+        <div id="tec-alert"></div>
+      </div>
     </div>
-    <div class="form-actions"><button class="btn btn-primary" id="btn-save-tecnico">Guardar técnico</button></div>
-    <div id="tec-alert"></div>
+    <div class="table-card"><h3>Técnicos <span id="badge-tecnicos" class="tag tag-blue"></span></h3><div id="tabla-tecnicos"></div></div>
   </div>
-  </div>
-  <div class="table-card"><h3>Técnicos <span id="badge-tecnicos" class="tag tag-blue"></span></h3><div id="tabla-tecnicos"></div></div>
 </div>
 
 <!-- MODAL WIZARD NUEVA REPARACIÓN -->
@@ -1998,6 +2006,12 @@ function initApp(){
 
   // Reparaciones
   $('btn-save-tecnico')?.addEventListener('click',saveTecnico);
+  $('btn-toggle-db-tecnicos')?.addEventListener('click',()=>{
+    const p=$('panel-db-tecnicos');
+    const open=p.style.display!=='none';
+    p.style.display=open?'none':'block';
+    $('btn-toggle-db-tecnicos').textContent=open?'👨‍🔧 Técnicos':'✕ Cerrar técnicos';
+  });
   $('btn-toggle-nuevo-tecnico')?.addEventListener('click',()=>{
     const f=$('form-nuevo-tecnico');
     const open=f.style.display!=='none';
@@ -3060,11 +3074,45 @@ function wizVentaGoTo(n){
       const pag=$('v-pagado')?.textContent||'—';
       const diff=$('v-pagado-diff')?.innerHTML||'';
       const gan=$('v-ganancia')?.textContent||'—';
-      rf.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-        <div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Total</div><div style="font-family:var(--mono);font-size:20px;font-weight:800;color:#0ca678">${tot}</div></div>
-        <div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Pagado</div><div style="font-family:var(--mono);font-size:14px;color:var(--blue)">${pag}</div>${diff?'<div style="margin-top:4px">'+diff+'</div>':''}</div>
-        <div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Ganancia</div><div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--accent)">${gan}</div></div>
-      </div>`;
+      // Cliente
+      const clienteId=$('v-cliente')?.value;
+      const cl=clienteId&&clienteId!=='__nuevo__'?S.clientes[clienteId]:null;
+      const clienteNombre=cl?.nombre||$('v-nuevo-nombre')?.value||'—';
+      const clienteTel=cl?.tel||'';
+      // Equipos
+      const equiposHtml=ventaItems.map(id=>{
+        const selEq=$('vi-eq-'+id);if(!selEq?.value)return '';
+        try{const d=JSON.parse(selEq.value);const it=d.itemData||d;const cant=parseInt($('vi-cant-'+id)?.value)||1;
+          return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span><strong>'+(it.modelo||'—')+'</strong>'+(it.capacidad&&it.capacidad!=='N/A'?' <span style="color:var(--text2)">'+it.capacidad+'</span>':'')+(it.color?' · '+it.color:'')+(it.imei?' · IMEI '+it.imei:'')+'</span><span style="font-family:var(--mono);color:#0ca678">'+fmt(parseFloat($('vi-prec-'+id)?.value||0)*cant)+'</span></div>';
+        }catch(e){return '';}
+      }).filter(Boolean).join('');
+      // Métodos de pago
+      const metStr=metodoItems.map(id=>{
+        const sel=$('mi-tipo-'+id);const monto=parseFloat($('mi-monto-'+id)?.value)||0;
+        if(!sel||!monto)return '';
+        const met=METODOS.find(m=>m.v===sel.value);
+        return met?'<span class="tag tag-blue" style="font-size:11px">'+met.l+' '+(met.moneda==='USD'?fmt(monto):fmtARS(monto))+'</span>':'';
+      }).filter(Boolean).join(' ');
+      const condicion=$('v-condicion')?.value==='fiado'?'<span class="tag tag-red">A pagar</span>':'<span class="tag tag-green">Contado</span>';
+      rf.innerHTML=\`
+        <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Cliente</div>
+          <div style="font-weight:600;font-size:15px">\${clienteNombre}</div>
+          \${clienteTel?'<div style="font-size:12px;color:var(--text2)">'+clienteTel+'</div>':''}
+        </div>
+        <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px">Equipos</div>
+          \${equiposHtml||'<div style="color:var(--text3)">—</div>'}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+          <div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Total</div><div style="font-family:var(--mono);font-size:18px;font-weight:800;color:#0ca678">\${tot}</div></div>
+          <div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Ganancia</div><div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--accent)">\${gan}</div></div>
+          <div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Condición</div><div style="margin-top:2px">\${condicion}</div></div>
+        </div>
+        \${metStr?'<div style="margin-bottom:8px"><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Pago</div>'+metStr+'</div>':''}
+        \${pag!=='—'?'<div style="font-size:12px;color:var(--text2)">Pagado: '+pag+'</div>':''}
+        \${diff?'<div style="margin-top:4px">'+diff+'</div>':''}
+      \`;
     }
   }
 }
@@ -3187,12 +3235,7 @@ async function saveVenta(){
         push(dbRef('costos'),{fecha,desc:'Comisión '+m.label+' ('+m.comisionPct+'%) - Venta',categoria:'financiero',moneda:'USD',monto:m.comisionMontoUSD,frecuencia:'unica',auto:true,ventaId:ref.key});
       });
       // Si la venta incluye un dispositivo con garantía, ofrecer emitir el certificado ahora mismo
-      const tieneDispositivo=items.some(i=>categoriasConGarantia().includes(i.categoria||'iphone'));
-      if(tieneDispositivo){
-        ventaRecienGuardadaId=ref.key;
-        $('v-post-msg-garantia').textContent='Este equipo tiene garantía disponible.';
-        $('v-post-guardado').style.display='flex';
-      }
+      closeModal('modal-wizard-venta');
       resetVentaForm();
     })
     .catch(()=>showAlert('v-alert','Error al guardar',false));
@@ -4653,7 +4696,7 @@ async function guardarIngresoGarantia(){
       color:gar.color||'',imei:gar.imei||''
     });
     // Registrar ingreso en garantías
-    await push(dbRef('ingresosGarantia'),{fecha:repFecha,garantiaId:garGarantiaKey,tipo:'reparacion',codigo:gar.codigo,clienteNombre:cl.nombre||'—',modelo:gar.modelo||'',estado:'en_proceso'});
+    await push(dbRef('ingresosGarantia'),{fecha:repFecha,garantiaId:garGarantiaKey,tipo:'reparacion',codigo:gar.codigo,clienteNombre:cl.nombre||'—',modelo:gar.modelo||'',descripcion:problema,estado:'en_proceso'});
     closeModal('modal-ingreso-garantia');
     renderTecnicos();renderIngresoGarantias();
 
@@ -4678,21 +4721,46 @@ function renderIngresoGarantias(){
   const ingresos=Object.entries(S.ingresosGarantia||{}).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||''));
   if(badge)badge.textContent=ingresos.length;
   if(!ingresos.length){el.innerHTML='<div class="empty-state"><div class="big">🛡️</div><p>Sin ingresos por garantía registrados.</p></div>';return;}
+  const ESTADOS_ING={en_proceso:'⏳ En proceso',listo:'✅ Listo — en oficina',entregado:'🏠 Entregado al cliente'};
   let rows='';
   ingresos.forEach(([k,ing])=>{
     const tipoTag=ing.tipo==='cambio'?'<span class="tag tag-blue">🔄 Cambio</span>':'<span class="tag tag-yellow">🔧 Reparación</span>';
-    const estadoTag=ing.estado==='entregado'?'<span class="tag tag-green">✅ Entregado</span>':ing.estado==='en_proceso'?'<span class="tag tag-yellow">⏳ En proceso</span>':'<span class="tag">—</span>';
+    const estadoOpts=Object.entries(ESTADOS_ING).map(([v,lbl])=>`<option value="${v}"${(ing.estado||'en_proceso')===v?' selected':''}>${lbl}</option>`).join('');
+    const equipoInfo=ing.nuevoEquipo?`<strong>${ing.modelo||'—'}</strong><div style="font-size:11px;color:var(--text2)">→ ${ing.nuevoEquipo.modelo}</div>`:`<strong>${ing.modelo||'—'}</strong>`;
     rows+=`<tr>
       <td class="mono" style="font-size:11px">${fmtD(ing.fecha)}</td>
       <td><span class="tag tag-purple" style="font-size:10px">${ing.codigo||'—'}</span></td>
       <td>${ing.clienteNombre||'—'}</td>
-      <td><strong>${ing.modelo||'—'}</strong>${ing.nuevoEquipo?'<div style="font-size:11px;color:var(--text2)">→ '+ing.nuevoEquipo.modelo+'</div>':''}</td>
+      <td>${equipoInfo}</td>
       <td>${tipoTag}</td>
-      <td>${estadoTag}</td>
+      <td><select class="ing-estado-sel" data-ing-key="${k}" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font-size:12px;font-family:var(--sans)">${estadoOpts}</select></td>
+      <td style="font-size:12px;color:var(--text2);max-width:180px">
+        <div id="ing-desc-view-${k}" style="cursor:pointer" title="Click para editar">${ing.descripcion||'<span style="color:var(--text3)">Sin descripción</span>'}</div>
+        <div id="ing-desc-edit-${k}" style="display:none">
+          <input type="text" value="${(ing.descripcion||'').replace(/"/g,'&quot;')}" id="ing-desc-inp-${k}" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font-size:12px;font-family:var(--sans);width:100%;box-sizing:border-box">
+          <div style="display:flex;gap:4px;margin-top:4px">
+            <button class="btn btn-primary btn-sm ing-desc-save" data-ing-key="${k}" style="padding:3px 8px;font-size:11px">✓</button>
+            <button class="btn btn-secondary btn-sm ing-desc-cancel" data-ing-key="${k}" style="padding:3px 8px;font-size:11px">✕</button>
+          </div>
+        </div>
+      </td>
       <td><button class="btn btn-danger btn-sm" data-del-ing="${k}">🗑</button></td>
     </tr>`;
   });
-  el.innerHTML='<table><thead><tr><th>Fecha</th><th>Código</th><th>Cliente</th><th>Equipo</th><th>Tipo</th><th>Estado</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  el.innerHTML='<table><thead><tr><th>Fecha</th><th>Código</th><th>Cliente</th><th>Equipo</th><th>Tipo</th><th>Estado</th><th>Descripción / Falla</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  // Estado selector
+  el.querySelectorAll('.ing-estado-sel').forEach(sel=>sel.addEventListener('change',()=>update(dbRef('ingresosGarantia/'+sel.dataset.ingKey),{estado:sel.value})));
+  // Descripción: click to edit
+  ingresos.forEach(([k])=>{
+    const view=$('ing-desc-view-'+k),editBox=$('ing-desc-edit-'+k);
+    if(view)view.addEventListener('click',()=>{view.style.display='none';editBox.style.display='block';$('ing-desc-inp-'+k)?.focus();});
+    el.querySelector(`.ing-desc-cancel[data-ing-key="${k}"]`)?.addEventListener('click',()=>{editBox.style.display='none';view.style.display='block';});
+    el.querySelector(`.ing-desc-save[data-ing-key="${k}"]`)?.addEventListener('click',()=>{
+      const val=$('ing-desc-inp-'+k)?.value.trim()||'';
+      update(dbRef('ingresosGarantia/'+k),{descripcion:val});
+    });
+  });
+  // Eliminar
   el.querySelectorAll('[data-del-ing]').forEach(btn=>btn.addEventListener('click',()=>{if(confirm('¿Eliminar?'))remove(dbRef('ingresosGarantia/'+btn.dataset.delIng));}));
 }
 
@@ -5091,6 +5159,45 @@ function saveTecnico(){
     .catch(()=>showAlert('tec-alert','Error',false));
 }
 
+function renderPantallazoTecnicos(){
+  const el=$('tec-pantallazo');if(!el)return;
+  // Para cada técnico con reparaciones activas (no entregadas)
+  const tecConActivas=Object.entries(S.tecnicos).map(([k,t])=>{
+    const activas=Object.entries(S.reparaciones).filter(([,r])=>r.tecnicoId===k&&r.estado!=='entregado');
+    return{key:k,tec:t,activas};
+  }).filter(x=>x.activas.length>0);
+
+  if(!tecConActivas.length){el.innerHTML='';return;}
+
+  const ESTADO_COLOR={recibido:'tag-blue',enviado:'tag-yellow',en_reparacion:'tag-yellow',listo:'tag-green',entregado:'tag-green'};
+  let html='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:4px">';
+  tecConActivas.forEach(({tec,activas})=>{
+    const tipoTag=tec.tipo==='interno'?'<span class="tag tag-blue" style="font-size:10px">Interno</span>':'<span class="tag tag-yellow" style="font-size:10px">Externo</span>';
+    const items=activas.map(([,r])=>{
+      const estTag=`<span class="tag ${ESTADO_COLOR[r.estado]||''}" style="font-size:10px">${REP_ESTADOS[r.estado]||r.estado}</span>`;
+      const garTag=r.enGarantia?'<span class="tag tag-purple" style="font-size:10px">🛡️</span>':'';
+      return `<div style="padding:8px 0;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:3px">
+        <div style="font-size:13px;font-weight:600">${r.modelo||'—'}${r.capacidad?' <span style="color:var(--text2);font-weight:400">'+r.capacidad+'</span>':''}</div>
+        <div style="font-size:11px;color:var(--text2)">${r.clienteNombre||'—'} · ${fmtD(r.fecha)}</div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">${estTag}${garTag}</div>
+        ${r.problema?'<div style="font-size:11px;color:var(--text3);font-style:italic">'+r.problema+'</div>':''}
+      </div>`;
+    }).join('');
+    html+=`<div class="table-card" style="padding:14px 16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div>
+          <div style="font-weight:700;font-size:14px">${tec.nombre} ${tipoTag}</div>
+          ${tec.tel?'<div style="font-size:11px;color:var(--text2)">'+tec.tel+'</div>':''}
+        </div>
+        <span class="tag tag-red" style="font-size:12px">${activas.length} activa${activas.length>1?'s':''}</span>
+      </div>
+      ${items}
+    </div>`;
+  });
+  html+='</div>';
+  el.innerHTML=html;
+}
+
 function renderTecnicos(){
   const totalReps=Object.keys(S.reparaciones).length;
   const pendientes=Object.values(S.reparaciones).filter(r=>r.estado!=='entregado').length;
@@ -5102,6 +5209,7 @@ function renderTecnicos(){
     '<div class="stat-card sc-red"><div class="lbl">Costo total</div><div class="val">'+fmt(tg)+'</div></div>';
   if($('badge-reparaciones'))$('badge-reparaciones').textContent=pendientes+' pendientes';
   if($('badge-tecnicos'))$('badge-tecnicos').textContent=Object.keys(S.tecnicos).length;
+  renderPantallazoTecnicos();
   const tfTecSel=$('tf-tecnico');
   if(tfTecSel){const cur=tfTecSel.value;tfTecSel.innerHTML='<option value="">Todos</option>';Object.entries(S.tecnicos).forEach(([k,t])=>{const op=document.createElement('option');op.value=k;op.textContent=t.nombre;if(k===cur)op.selected=true;tfTecSel.appendChild(op);});}
   const tfTec=$('tf-tecnico')?.value||'';
