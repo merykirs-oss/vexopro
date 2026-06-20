@@ -821,22 +821,22 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 <div id="page-equipo" class="page">
   <div class="page-header"><h2>👤 Equipo</h2><p>Gestioná roles y accesos de tu equipo. Primero creá un rol, después asignalo a un usuario.</p></div>
 
-  <!-- SECCIÓN 1: CREAR ROL -->
+  <!-- CREAR ROL -->
   <div class="form-card">
     <h3>🎭 Nuevo rol</h3>
     <div class="form-grid">
       <div class="form-group"><label>Nombre del rol *</label><input type="text" id="er-nombre" placeholder="Ej: Vendedor, Supervisor..."></div>
     </div>
-    <div class="form-group">
-      <label>Módulos habilitados <span style="font-weight:400;color:var(--text3);font-size:11px">(Ver / ✏️ Editar)</span></label>
-      <div id="er-modulos-container" style="display:flex;flex-direction:column;gap:4px;margin-top:6px"></div>
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">Módulos habilitados — Ver / ✏️ Editar</div>
+      <div id="er-modulos-container" style="display:flex;flex-direction:column;gap:4px"></div>
     </div>
-    <div class="form-group">
-      <label>Puntos de venta</label>
-      <div id="er-locales-container" style="display:flex;flex-direction:column;gap:4px;margin-top:6px">
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px">
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">Puntos de venta</div>
+      <div id="er-locales-container" style="display:flex;flex-direction:column;gap:4px">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px">
           <input type="checkbox" id="er-local-all" checked style="accent-color:var(--accent);width:14px;height:14px;flex-shrink:0">
-          <span>Todos los locales</span>
+          <span style="color:var(--text)">Todos los locales</span>
         </label>
       </div>
     </div>
@@ -846,24 +846,20 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     <div id="er-alert"></div>
   </div>
 
-  <!-- SECCIÓN 2: LISTA DE ROLES -->
+  <!-- LISTA ROLES -->
   <div class="table-card">
     <h3>Roles creados <span id="badge-roles" class="tag tag-purple"></span></h3>
     <div id="tabla-roles"></div>
   </div>
 
-  <!-- SECCIÓN 3: CREAR USUARIO -->
+  <!-- CREAR USUARIO -->
   <div class="form-card">
     <h3>➕ Nuevo usuario</h3>
     <div class="form-grid">
       <div class="form-group"><label>Nombre *</label><input type="text" id="eu-nombre" placeholder="Ej: Juan Pérez"></div>
       <div class="form-group"><label>Email *</label><input type="email" id="eu-email" placeholder="empleado@email.com"></div>
       <div class="form-group"><label>Contraseña *</label><input type="password" id="eu-pass" placeholder="Mínimo 6 caracteres"></div>
-      <div class="form-group"><label>Rol asignado *</label>
-        <select id="eu-rol">
-          <option value="">— Seleccionar rol —</option>
-        </select>
-      </div>
+      <div class="form-group"><label>Rol asignado *</label><select id="eu-rol"><option value="">— Seleccionar rol —</option></select></div>
     </div>
     <div class="form-actions">
       <button class="btn btn-primary" id="btn-crear-usuario">Crear usuario</button>
@@ -871,7 +867,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     <div id="eu-alert"></div>
   </div>
 
-  <!-- SECCIÓN 4: LISTA DE USUARIOS -->
+  <!-- LISTA USUARIOS -->
   <div class="table-card">
     <h3>Usuarios del equipo <span id="badge-equipo" class="tag tag-blue"></span></h3>
     <div id="tabla-equipo"></div>
@@ -2823,21 +2819,21 @@ function showPageEquipo(){
   renderErModulos();renderErLocales();renderRoles();renderEquipo();
 }
 
+// Render checkboxes de módulos al crear rol
 function renderErModulos(){
   const cont=$('er-modulos-container');if(!cont)return;
   cont.innerHTML='';
   MODULOS_ETIQUETAS.forEach(m=>{
     const row=document.createElement('div');
-    row.style.cssText='display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;gap:12px';
-    row.innerHTML=`
-      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;flex:1;color:var(--text)">
-        <input type="checkbox" class="er-mod-check" data-mod="${m.key}" style="accent-color:var(--accent);width:14px;height:14px;flex-shrink:0">
-        <span>${m.label}</span>
-      </label>
-      <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2);cursor:pointer;flex-shrink:0">
-        <input type="checkbox" class="er-write-check" data-mod="${m.key}" style="accent-color:var(--accent);width:13px;height:13px" disabled>
-        <span>✏️ editar</span>
-      </label>`;
+    row.style.cssText='display:flex;align-items:center;justify-content:space-between;background:#f2faf6;border:1px solid #c3e6d3;border-radius:6px;padding:6px 9px;gap:6px';
+    row.innerHTML=`<label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;flex:1;color:#1a2e24">
+      <input type="checkbox" class="er-mod-check" data-mod="${m.key}" style="accent-color:#2d7a4f;width:13px;height:13px;flex-shrink:0">
+      <span>${m.label}</span>
+    </label>
+    <label style="display:flex;align-items:center;gap:3px;font-size:10px;color:#7a9e8e;cursor:pointer;white-space:nowrap;flex-shrink:0">
+      <input type="checkbox" class="er-write-check" data-mod="${m.key}" style="accent-color:#2d7a4f;width:11px;height:11px" disabled>
+      <span>✏️</span>
+    </label>`;
     cont.appendChild(row);
     row.querySelector('.er-mod-check').addEventListener('change',e=>{
       const wb=row.querySelector('.er-write-check');
@@ -2847,22 +2843,26 @@ function renderErModulos(){
   });
 }
 
+// Render checkboxes de locales al crear rol
 function renderErLocales(){
   const cont=$('er-locales-container');if(!cont)return;
   const allCheck=$('er-local-all');
+  // Quitar locales dinámicos anteriores
   cont.querySelectorAll('.er-local-item').forEach(e=>e.remove());
   Object.entries(S.locales).forEach(([k,l])=>{
     const lbl=document.createElement('label');
     lbl.className='er-local-item';
-    lbl.style.cssText='display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px';
-    lbl.innerHTML=`<input type="checkbox" class="er-local-check" data-local="${k}" style="accent-color:var(--accent);width:14px;height:14px;flex-shrink:0">${l.icono||'🏪'} ${l.nombre}`;
+    lbl.style.cssText='display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer';
+    lbl.innerHTML=`<input type="checkbox" class="er-local-check" data-local="${k}" style="accent-color:var(--accent)">${l.icono} ${l.nombre}`;
     cont.appendChild(lbl);
   });
+  // Al marcar "Todos", desmarcar específicos
   allCheck?.addEventListener('change',e=>{
     cont.querySelectorAll('.er-local-check').forEach(cb=>{cb.checked=false;cb.disabled=e.target.checked;});
   });
 }
 
+// Generar ID base36 único
 function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 
 async function crearRol(){
@@ -2878,10 +2878,8 @@ async function crearRol(){
   await set(dbRef('roles/'+rolId),{nombre,modulos,escritura,locales});
   showAlert('er-alert','✅ Rol "'+nombre+'" creado');
   $('er-nombre').value='';
-  document.querySelectorAll('.er-mod-check,.er-write-check').forEach(cb=>{cb.checked=false;cb.disabled=true;});
-  document.querySelectorAll('.er-mod-check').forEach(cb=>{cb.disabled=false;});
+  document.querySelectorAll('.er-mod-check,.er-write-check').forEach(cb=>{cb.checked=false;});
   if($('er-local-all'))$('er-local-all').checked=true;
-  document.querySelectorAll('.er-local-check').forEach(cb=>{cb.checked=false;cb.disabled=true;});
 }
 
 function renderRoles(){
@@ -2893,18 +2891,14 @@ function renderRoles(){
   let rows='';
   ent.forEach(([k,r])=>{
     const modCount=Object.keys(r.modulos||{}).length;
-    const localesStr=(r.locales||[]).includes('all')?'Todos los locales':(r.locales||[]).map(lId=>S.locales[lId]?.nombre||lId).join(', ');
-    rows+=`<tr>
-      <td><strong>${r.nombre}</strong></td>
-      <td>${modCount} módulo${modCount!==1?'s':''}</td>
-      <td style="font-size:12px;color:var(--text2)">${localesStr}</td>
-      <td><button class="btn btn-danger btn-sm" data-del-rol="${k}">🗑</button></td>
-    </tr>`;
+    const locales=(r.locales||[]).includes('all')?'Todos los locales':(r.locales||[]).map(lId=>S.locales[lId]?.nombre||lId).join(', ');
+    rows+=`<tr><td><strong>${r.nombre}</strong></td><td>${modCount} módulos</td><td style="font-size:12px;color:var(--text2)">${locales}</td><td><button class="btn btn-danger btn-sm" data-del-rol="${k}">🗑</button></td></tr>`;
   });
   tabla.innerHTML='<table><thead><tr><th>Rol</th><th>Acceso</th><th>Locales</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
   tabla.querySelectorAll('[data-del-rol]').forEach(btn=>btn.addEventListener('click',()=>{
     if(confirm('¿Eliminar este rol? Los usuarios con este rol perderán el acceso.'))remove(dbRef('roles/'+btn.dataset.delRol));
   }));
+  // Actualizar select de roles en el form de usuario
   refreshRolSelect();
 }
 
@@ -2923,8 +2917,12 @@ async function crearUsuario(){
   if(pass.length<6){showAlert('eu-alert','La contraseña debe tener al menos 6 caracteres',false);return;}
   if(!rolId){showAlert('eu-alert','Seleccioná un rol para este usuario',false);return;}
   try{
+    // Guardar auth del dueño temporalmente
+    const ownerAuth=auth.currentUser;
+    // Crear cuenta Firebase para el empleado
     const cred=await createUserWithEmailAndPassword(auth,email,pass);
     const empUid=cred.user.uid;
+    // Guardar datos del empleado en la colección global 'empleados'
     const snapOwnerData=await get(ref(db,'usuarios/'+ownerUid));
     const ownerData=snapOwnerData.val()||{};
     await set(ref(db,'empleados/'+empUid),{
@@ -2932,7 +2930,9 @@ async function crearUsuario(){
       negocioNombre:ownerData.negocio||'Mi Negocio',
       activo:true,creadoEn:today()
     });
+    // Marcar en usuarios Firebase como employee para que el login lo identifique
     await set(ref(db,'usuarios/'+empUid),{role:'employee',activo:true});
+    // Volver a loguear al dueño
     showAlert('eu-alert','✅ Usuario "'+nombre+'" creado correctamente');
     $('eu-nombre').value='';$('eu-email').value='';$('eu-pass').value='';$('eu-rol').value='';
   }catch(e){
