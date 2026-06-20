@@ -165,6 +165,8 @@ td,th{vertical-align:middle;padding:10px 14px}
   nav button{padding:11px 12px;font-size:14px}
   .item-row .form-group{min-width:110px}
   body{font-size:13px}
+  /* Equipo: colapsar a una columna en tablet/mobile */
+  #etab-usuarios > div, #etab-roles > div{grid-template-columns:1fr!important}
 }
 @media (max-width:480px){
   #main{padding:16px 10px 80px;padding-top:68px}
@@ -818,58 +820,58 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 
 <!-- PÁGINA EQUIPO (solo dueños) -->
 <div id="page-equipo" class="page">
-  <div class="page-header"><h2>👤 Equipo</h2><p>Gestioná los usuarios de tu negocio y sus permisos de acceso.</p></div>
+  <div class="page-header"><h2>👤 Equipo</h2><p>Gestioná los accesos de tu equipo. Primero creá un rol, después asignalo a un usuario.</p></div>
 
-  <!-- Tabs -->
-  <div style="display:flex;gap:8px;margin-bottom:24px;border-bottom:1px solid var(--border);padding-bottom:0">
-    <button class="equipo-tab active" data-etab="usuarios" style="padding:10px 18px;border:none;background:none;font-size:14px;font-weight:600;color:var(--accent);border-bottom:2px solid var(--accent);cursor:pointer">👥 Usuarios</button>
-    <button class="equipo-tab" data-etab="roles" style="padding:10px 18px;border:none;background:none;font-size:14px;font-weight:600;color:var(--text2);border-bottom:2px solid transparent;cursor:pointer">🎭 Roles y permisos</button>
-  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
 
-  <!-- Tab: Usuarios -->
-  <div id="etab-usuarios">
-    <div class="form-card">
-      <h3>➕ Crear usuario</h3>
-      <div class="form-grid">
+    <!-- COLUMNA IZQUIERDA: Roles -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="form-card" style="margin:0">
+        <h3 style="margin-bottom:14px;font-size:14px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;font-weight:700">🎭 Roles y permisos</h3>
+        <div class="form-group"><label>Nombre del rol</label><input type="text" id="er-nombre" placeholder="Ej: Vendedor, Supervisor..."></div>
+        <div style="display:grid;grid-template-columns:1fr 180px;gap:14px;margin-top:4px">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">Módulos — Ver / Editar</div>
+            <div id="er-modulos-container" style="display:flex;flex-direction:column;gap:4px"></div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">Puntos de venta</div>
+            <div id="er-locales-container" style="display:flex;flex-direction:column;gap:6px">
+              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;background:var(--surface2);padding:7px 9px;border-radius:6px;border:1px solid var(--border)">
+                <input type="checkbox" id="er-local-all" checked style="accent-color:var(--accent)">
+                <span>Todos los locales</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:8px;align-items:center">
+          <button class="btn btn-primary" id="btn-crear-rol">Guardar rol</button>
+        </div>
+        <div id="er-alert" style="margin-top:8px"></div>
+      </div>
+      <div class="table-card" style="margin:0">
+        <h3>Roles creados <span id="badge-roles" class="tag tag-purple"></span></h3>
+        <div id="tabla-roles"></div>
+      </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: Usuarios -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="form-card" style="margin:0">
+        <h3 style="margin-bottom:14px;font-size:14px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;font-weight:700">👥 Usuarios</h3>
         <div class="form-group"><label>Nombre</label><input type="text" id="eu-nombre" placeholder="Ej: Juan Pérez"></div>
         <div class="form-group"><label>Email</label><input type="email" id="eu-email" placeholder="empleado@email.com"></div>
         <div class="form-group"><label>Contraseña</label><input type="password" id="eu-pass" placeholder="Mínimo 6 caracteres"></div>
-        <div class="form-group"><label>Rol asignado</label><select id="eu-rol"><option value="">— Seleccionar rol —</option></select></div>
+        <div class="form-group"><label>Rol</label><select id="eu-rol"><option value="">— Seleccionar rol —</option></select></div>
+        <button class="btn btn-primary" id="btn-crear-usuario" style="width:100%;justify-content:center">Crear usuario</button>
+        <div id="eu-alert" style="margin-top:8px"></div>
       </div>
-      <div class="form-actions"><button class="btn btn-primary" id="btn-crear-usuario">Crear usuario</button></div>
-      <div id="eu-alert"></div>
-    </div>
-    <div class="table-card"><h3>Usuarios del equipo <span id="badge-equipo" class="tag tag-blue"></span></h3><div id="tabla-equipo"></div></div>
-  </div>
-
-  <!-- Tab: Roles -->
-  <div id="etab-roles" style="display:none">
-    <div class="form-card">
-      <h3>➕ Crear rol</h3>
-      <div class="form-group" style="max-width:320px;margin-bottom:18px"><label>Nombre del rol</label><input type="text" id="er-nombre" placeholder="Ej: Vendedor, Supervisor..."></div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:20px">
-        <!-- Módulos -->
-        <div>
-          <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px">Módulos accesibles</div>
-          <div id="er-modulos-container" style="display:flex;flex-direction:column;gap:6px"></div>
-        </div>
-        <!-- Locales -->
-        <div>
-          <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px">Puntos de venta</div>
-          <div id="er-locales-container" style="display:flex;flex-direction:column;gap:6px">
-            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
-              <input type="checkbox" id="er-local-all" checked style="accent-color:var(--accent)">
-              <span>Todos los locales</span>
-            </label>
-          </div>
-        </div>
+      <div class="table-card" style="margin:0">
+        <h3>Usuarios del equipo <span id="badge-equipo" class="tag tag-blue"></span></h3>
+        <div id="tabla-equipo"></div>
       </div>
-
-      <div class="form-actions"><button class="btn btn-primary" id="btn-crear-rol">Guardar rol</button></div>
-      <div id="er-alert"></div>
     </div>
-    <div class="table-card"><h3>Roles creados <span id="badge-roles" class="tag tag-purple"></span></h3><div id="tabla-roles"></div></div>
+
   </div>
 </div>
 
@@ -1473,19 +1475,9 @@ function initApp(){
     if(localActivo)renderPaginaLocal(localActivo);
   }));
 
-  // Equipo (solo dueños — los botones existen en el HTML pero se usan solo si hay rol owner)
+  // Equipo (solo dueños)
   $('btn-crear-rol')?.addEventListener('click',crearRol);
   $('btn-crear-usuario')?.addEventListener('click',crearUsuario);
-  document.querySelectorAll('.equipo-tab').forEach(tab=>tab.addEventListener('click',()=>{
-    document.querySelectorAll('.equipo-tab').forEach(t=>{
-      t.style.color='var(--text2)';t.style.borderBottomColor='transparent';
-    });
-    tab.style.color='var(--accent)';tab.style.borderBottomColor='var(--accent)';
-    const target=tab.dataset.etab;
-    $('etab-usuarios').style.display=target==='usuarios'?'block':'none';
-    $('etab-roles').style.display=target==='roles'?'block':'none';
-    if(target==='roles')renderErModulos();
-  }));
 
   setTimeout(()=>{addCompraItem();addVentaItem();addMetodoItem();addMetodoCompraItem();calcTotalCompra();},400);
 }
@@ -2833,23 +2825,21 @@ function renderErModulos(){
   cont.innerHTML='';
   MODULOS_ETIQUETAS.forEach(m=>{
     const row=document.createElement('div');
-    row.style.cssText='display:flex;align-items:center;gap:16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px';
-    row.innerHTML=`<label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;flex:1">
-      <input type="checkbox" class="er-mod-check" data-mod="${m.key}" style="accent-color:var(--accent)">
+    row.style.cssText='display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:7px 10px;gap:8px';
+    row.innerHTML=`<label style="display:flex;align-items:center;gap:7px;font-size:12.5px;cursor:pointer;flex:1">
+      <input type="checkbox" class="er-mod-check" data-mod="${m.key}" style="accent-color:var(--accent);width:14px;height:14px">
       <span>${m.label}</span>
     </label>
-    <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);cursor:pointer">
-      <input type="checkbox" class="er-write-check" data-mod="${m.key}" style="accent-color:var(--accent)">
-      <span>Editar</span>
+    <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);cursor:pointer;white-space:nowrap">
+      <input type="checkbox" class="er-write-check" data-mod="${m.key}" style="accent-color:var(--accent);width:12px;height:12px" disabled>
+      <span>✏️ editar</span>
     </label>`;
     cont.appendChild(row);
-    // Si se activa vista, habilitar checkbox de editar
     row.querySelector('.er-mod-check').addEventListener('change',e=>{
       const writeBox=row.querySelector('.er-write-check');
       if(!e.target.checked)writeBox.checked=false;
       writeBox.disabled=!e.target.checked;
     });
-    row.querySelector('.er-write-check').disabled=true;
   });
 }
 
