@@ -145,7 +145,7 @@ function buildStock(){
       // Si no tiene precioVenta, mostrar igual pero sin precio
       map[key]={
         modelo:it.modelo,cap:it.capacidad,color:it.color||'',
-        grado:it.grado||'',tipo:it.tipo||'',categoria:it.categoria||'',
+        grado:it.grado||'',tipo:it.tipo||'',categoria:it.categoria||'',bateria:it.bateria||it.unidades?.[0]?.bateria||'',
         precioVenta:it.precioVenta||0,disp,localNombre,
         compraKey:ck,itemId:it.itemId,
       };
@@ -165,7 +165,7 @@ function renderCatalogo(filtro=''){
   }
 
   grid.innerHTML=filtered.map(r=>{
-    const detalle=[r.cap&&r.cap!=='N/A'?r.cap:'',r.color,r.grado,r.tipo].filter(Boolean).join(' · ');
+    const detalle=[r.cap&&r.cap!=='N/A'?r.cap:'',r.color,r.grado,r.tipo,r.bateria?'🔋'+r.bateria+'%':''].filter(Boolean).join(' · ');
     const stockTag=r.disp<=2
       ?`<span class="prod-stock stock-low">⚠️ Últimas ${r.disp} unidades</span>`
       :`<span class="prod-stock stock-ok">✅ Disponible</span>`;
