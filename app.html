@@ -349,6 +349,35 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 
 <div id="page-compras" class="page">
   <div class="page-header"><h2>📦 Compras</h2></div>
+
+  <!-- BUSCADOR -->
+  <div class="form-card" style="margin-bottom:16px;padding:16px 20px">
+    <div class="form-grid" style="margin-bottom:10px">
+      <div class="form-group"><label>Proveedor</label><input type="text" id="cf-proveedor" placeholder="Ej: Sunrise..."></div>
+      <div class="form-group"><label>Equipo</label><input type="text" id="cf-equipo" placeholder="Ej: iPhone 15..."></div>
+      <div class="form-group"><label>Desde</label><input type="date" id="cf-desde"></div>
+      <div class="form-group"><label>Hasta</label><input type="date" id="cf-hasta"></div>
+      <div class="form-group"><label>Estado entrega</label>
+        <select id="cf-estado">
+          <option value="">Todos</option>
+          <option value="en_camino">🚚 En camino</option>
+          <option value="recibido">✅ Recibido</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Pago</label>
+        <select id="cf-pago">
+          <option value="">Todos</option>
+          <option value="pagado">✅ Pagado</option>
+          <option value="parcial">🟡 Parcial</option>
+          <option value="pendiente">🔴 Pendiente</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary btn-sm" id="btn-limpiar-filtro-compras">Limpiar filtros</button>
+    </div>
+  </div>
+
   <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
     <button class="btn btn-primary" id="btn-abrir-wizard-compra">＋ Nuevo pedido</button>
   </div>
@@ -1377,6 +1406,17 @@ function initApp(){
   $('btn-add-compra-item').addEventListener('click',()=>addCompraItem());
   $('btn-reset-compra').addEventListener('click',resetCompraForm);
   $('btn-abrir-wizard-compra').addEventListener('click',abrirWizardCompra);
+  // Filtros compras
+  ['cf-proveedor','cf-equipo','cf-desde','cf-hasta','cf-estado','cf-pago'].forEach(id=>{
+    $(id)?.addEventListener('input',renderCompras);
+    $(id)?.addEventListener('change',renderCompras);
+  });
+  $('btn-limpiar-filtro-compras')?.addEventListener('click',()=>{
+    ['cf-proveedor','cf-equipo','cf-desde','cf-hasta'].forEach(id=>{if($(id))$(id).value='';});
+    if($('cf-estado'))$('cf-estado').value='';
+    if($('cf-pago'))$('cf-pago').value='';
+    renderCompras();
+  });
   $('btn-cerrar-wizard-compra').addEventListener('click',cerrarWizardCompra);
   $('wizCompraBack').addEventListener('click',()=>wizCompraMove(-1));
   $('wizCompraNext').addEventListener('click',()=>wizCompraMove(1));
@@ -1944,15 +1984,19 @@ function makeCompraItemEl(id,data=null,cat=null){
     if(!usaUnidades||cant<=1)return;
     const titulo=document.createElement('div');
     titulo.style.cssText='font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px';
-    titulo.textContent='IMEI y batería de cada unidad adicional ('+(cant-1)+')';
+    titulo.textContent='IMEI, batería y color de cada unidad adicional ('+(cant-1)+')';
     unidadesBox.appendChild(titulo);
     for(let u=1;u<cant;u++){
       const row=document.createElement('div');
-      row.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px';
+      row.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:6px';
       const dataU=data?.unidades?.[u];
       const imeiU=inp('text','ci-imei-'+id+'-'+u,'IMEI unidad '+(u+1),{value:dataU?.imei||'',maxLength:20});
       const batU=inp('number','ci-bat-'+id+'-'+u,'% Batería',{value:dataU?.bateria||'',min:0,max:100});
-      row.append(imeiU,batU);
+      const colorU=document.createElement('select');
+      colorU.id='ci-color-'+id+'-'+u;
+      colorU.style.cssText='background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 12px;font-family:var(--sans);font-size:13px;outline:none';
+      COLORES.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;if(c===(dataU?.color||'Negro'))o.selected=true;colorU.appendChild(o);});
+      row.append(imeiU,batU,colorU);
       unidadesBox.appendChild(row);
     }
   }
@@ -2076,7 +2120,8 @@ function saveCompra(){
       for(let u=0;u<cantidad;u++){
         const imeiU=(u===0?$('ci-imei-'+id)?.value.trim():$('ci-imei-'+id+'-'+u)?.value.trim())||'';
         const batU=(u===0?$('ci-bat-'+id)?.value:$('ci-bat-'+id+'-'+u)?.value)||'';
-        items.push({itemId:uid(),modelo,capacidad,color,estado,ram,serie,ciclos,cantidad:1,precio,precioVenta,imei:imeiU,bateria:batU,grado,tipo,categoria});
+        const colorU=u===0?color:($('ci-color-'+id+'-'+u)?.value||color);
+        items.push({itemId:uid(),modelo,capacidad,color:colorU,estado,ram,serie,ciclos,cantidad:1,precio,precioVenta,imei:imeiU,bateria:batU,grado,tipo,categoria});
       }
     }else{
       const imei=$('ci-imei-'+id)?.value.trim()||'';
@@ -2110,10 +2155,23 @@ function saveCompra(){
     .catch(()=>showAlert('c-alert','Error al guardar',false));
 }
 function renderCompras(){
-  $('badge-compras').textContent=Object.keys(S.compras).length;
   const el=$('tabla-compras');
-  const ent=Object.entries(S.compras).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||''));
-  if(!ent.length){el.innerHTML='<div class="empty-state"><div class="big">📦</div><p>Sin compras.</p></div>';return;}
+  // Filtros
+  const fProv=($('cf-proveedor')?.value||'').toLowerCase().trim();
+  const fEquipo=($('cf-equipo')?.value||'').toLowerCase().trim();
+  const fDesde=$('cf-desde')?.value||'';
+  const fHasta=$('cf-hasta')?.value||'';
+  const fEstado=$('cf-estado')?.value||'';
+  let ent=Object.entries(S.compras).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||''));
+  if(fProv)ent=ent.filter(([,c])=>(c.proveedor||'').toLowerCase().includes(fProv));
+  if(fEquipo)ent=ent.filter(([,c])=>c.items.some(i=>(i.modelo||'').toLowerCase().includes(fEquipo)));
+  if(fDesde)ent=ent.filter(([,c])=>(c.fecha||'')>=fDesde);
+  if(fHasta)ent=ent.filter(([,c])=>(c.fecha||'')<=fHasta);
+  if(fEstado)ent=ent.filter(([,c])=>(c.estadoEntrega||'en_camino')===fEstado);
+  const fPago=$('cf-pago')?.value||'';
+  if(fPago)ent=ent.filter(([,c])=>(c.condicionPago||'pendiente')===fPago);
+  $('badge-compras').textContent=ent.length+'/'+Object.keys(S.compras).length;
+  if(!ent.length){el.innerHTML='<div class="empty-state"><div class="big">📦</div><p>Sin resultados.</p></div>';return;}
   let rows='';
   ent.forEach(([k,c])=>{
     const total=c.totalUSD!=null?c.totalUSD:c.items.reduce((s,i)=>s+(i.precio*(i.cantidad||1)),0);
