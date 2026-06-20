@@ -466,16 +466,66 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 
 <div id="page-ventas" class="page">
   <div class="page-header"><h2>🛒 Ventas</h2></div>
-  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+  <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;justify-content:space-between">
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
       <span style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.7px">Período:</span>
       <button class="btn btn-secondary btn-sm vf active-filter" data-filtro="hoy">Hoy</button>
       <button class="btn btn-secondary btn-sm vf" data-filtro="semana">Semana</button>
       <button class="btn btn-secondary btn-sm vf" data-filtro="mes">Este mes</button>
       <button class="btn btn-secondary btn-sm vf" data-filtro="todo">Todo</button>
+      <button class="btn btn-secondary btn-sm" id="btn-toggle-filtros-ventas">🔍 Filtrar <span id="filtros-ventas-arrow">▼</span></button>
     </div>
     <button class="btn btn-primary" id="btn-abrir-wizard-venta">＋ Nueva venta</button>
   </div>
+
+  <div id="panel-filtros-ventas" style="display:none;margin-bottom:16px">
+    <div class="form-card" style="padding:16px 20px;margin-bottom:0">
+      <div class="form-grid" style="margin-bottom:10px">
+        <div class="form-group"><label>Desde</label><input type="date" id="vf-desde"></div>
+        <div class="form-group"><label>Hasta</label><input type="date" id="vf-hasta"></div>
+        <div class="form-group"><label>Cliente</label><input type="text" id="vf-cliente" placeholder="Nombre del cliente..."></div>
+        <div class="form-group"><label>Equipo</label><input type="text" id="vf-equipo" placeholder="Ej: iPhone 15..."></div>
+        <div class="form-group"><label>Condición</label>
+          <select id="vf-cond">
+            <option value="">Todas</option>
+            <option value="contado">✅ Contado</option>
+            <option value="fiado">🔴 A pagar</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Canal</label>
+          <select id="vf-canal">
+            <option value="">Todos</option>
+            <option value="local">🏪 Local</option>
+            <option value="instagram">📸 Instagram</option>
+            <option value="whatsapp">💬 WhatsApp</option>
+            <option value="mercadolibre">🛍️ MercadoLibre</option>
+            <option value="otro">📦 Otro</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Método de pago</label>
+          <select id="vf-metodo">
+            <option value="">Todos</option>
+            <option value="efectivo_usd">Efectivo USD</option>
+            <option value="efectivo_ars">Efectivo ARS</option>
+            <option value="usdt">USDT</option>
+            <option value="transferencia_ars">Transferencia ARS</option>
+            <option value="transferencia_usd">Transferencia USD</option>
+            <option value="mercadopago">Mercado Pago</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Garantía</label>
+          <select id="vf-garantia">
+            <option value="">Todas</option>
+            <option value="emitida">✅ Certificado emitido</option>
+            <option value="pendiente">⏳ Sin certificado</option>
+            <option value="sin_garantia">➖ Sin garantía</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-secondary btn-sm" id="btn-limpiar-filtro-ventas">Limpiar filtros</button>
+    </div>
+  </div>
+
   <div id="stats-ventas" class="stats-row"></div>
   <div class="table-card"><h3>Historial <span id="badge-ventas" class="tag tag-green"></span></h3><div id="tabla-ventas"></div></div>
 </div>
@@ -1450,6 +1500,22 @@ function initApp(){
   });
   $('btn-reset-venta').addEventListener('click',resetVentaForm);
   $('btn-abrir-wizard-venta').addEventListener('click',abrirWizardVenta);
+  $('btn-toggle-filtros-ventas')?.addEventListener('click',()=>{
+    const panel=$('panel-filtros-ventas');
+    const arrow=$('filtros-ventas-arrow');
+    const abierto=panel.style.display!=='none';
+    panel.style.display=abierto?'none':'block';
+    if(arrow)arrow.textContent=abierto?'▼':'▲';
+  });
+  ['vf-desde','vf-hasta','vf-cliente','vf-equipo','vf-cond','vf-canal','vf-metodo','vf-garantia'].forEach(id=>{
+    $(id)?.addEventListener('input',renderVentas);
+    $(id)?.addEventListener('change',renderVentas);
+  });
+  $('btn-limpiar-filtro-ventas')?.addEventListener('click',()=>{
+    ['vf-desde','vf-hasta','vf-cliente','vf-equipo'].forEach(id=>{if($(id))$(id).value='';});
+    ['vf-cond','vf-canal','vf-metodo','vf-garantia'].forEach(id=>{if($(id))$(id).value='';});
+    renderVentas();
+  });
   $('btn-cerrar-wizard-venta').addEventListener('click',cerrarWizardVenta);
   $('wizVentaBack').addEventListener('click',()=>wizVentaMove(-1));
   $('wizVentaNext').addEventListener('click',()=>wizVentaMove(1));
@@ -2650,7 +2716,34 @@ function getVentasRango(){
 function renderVentas(){
   refreshClienteSelects();
   const{desde,hasta}=getVentasRango();
-  const fil=Object.entries(S.ventas).filter(([,v])=>!desde||v.fecha>=desde&&v.fecha<=hasta).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||''));
+  // Filtros adicionales
+  const fDesde=$('vf-desde')?.value||'';
+  const fHasta=$('vf-hasta')?.value||'';
+  const fCliente=($('vf-cliente')?.value||'').toLowerCase().trim();
+  const fEquipo=($('vf-equipo')?.value||'').toLowerCase().trim();
+  const fCond=$('vf-cond')?.value||'';
+  const fCanal=$('vf-canal')?.value||'';
+  const fMetodo=$('vf-metodo')?.value||'';
+  const fGarantia=$('vf-garantia')?.value||'';
+  let fil=Object.entries(S.ventas)
+    .filter(([,v])=>!desde||v.fecha>=desde&&v.fecha<=hasta)
+    .filter(([,v])=>!fDesde||v.fecha>=fDesde)
+    .filter(([,v])=>!fHasta||v.fecha<=fHasta)
+    .filter(([,v])=>!fCliente||(S.clientes[v.clienteId]?.nombre||'').toLowerCase().includes(fCliente))
+    .filter(([,v])=>!fEquipo||v.items.some(i=>(i.modelo||'').toLowerCase().includes(fEquipo)))
+    .filter(([,v])=>!fCond||v.condicion===fCond)
+    .filter(([,v])=>!fCanal||v.canal===fCanal)
+    .filter(([,v])=>!fMetodo||(v.metodos||[]).some(m=>m.v===fMetodo)||v.metodo===fMetodo)
+    .filter(([k,v])=>{
+      if(!fGarantia)return true;
+      const tieneDisp=v.items.some(i=>categoriasConGarantia().includes(i.categoria||'iphone'));
+      const emitida=tieneDisp&&Object.values(S.garantias).find(g=>g.ventaId===k);
+      if(fGarantia==='emitida')return !!emitida;
+      if(fGarantia==='pendiente')return tieneDisp&&!emitida;
+      if(fGarantia==='sin_garantia')return !tieneDisp;
+      return true;
+    })
+    .sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||''));
   const tv=fil.reduce((s,[,v])=>s+(v.totalUSD||0),0);
   const tg=fil.reduce((s,[,v])=>s+(v.gananciaUSD||0),0);
   const tu=fil.reduce((s,[,v])=>s+v.items.reduce((a,i)=>a+(i.cantidad||1),0),0);
