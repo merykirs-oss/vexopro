@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catálogo</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --accent:#2d7a4f;--accent-dim:rgba(45,122,79,0.10);
+  --border:#c3e6d3;--surface:#ffffff;--surface2:#f2faf6;
+  --text:#1a2e24;--text2:#4a6358;--text3:#7a9e8e;
+  --red:#e03131;--sans:'Inter',sans-serif;
+}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+body{font-family:var(--sans);background:#f5f5f5;color:var(--text);min-height:100vh}
+
+/* HEADER */
+#header{background:var(--accent);color:#fff;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+#header h1{font-size:20px;font-weight:700;letter-spacing:-0.5px}
+#header p{font-size:12px;opacity:0.85;margin-top:2px}
+#wsp-header{background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+
+/* SEARCH */
+#search-bar{background:#fff;border-bottom:1px solid var(--border);padding:14px 24px;position:sticky;top:0;z-index:10}
+#search-input{width:100%;max-width:500px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:14px;font-family:var(--sans);color:var(--text);outline:none}
+#search-input:focus{border-color:var(--accent)}
+
+/* GRID */
+#catalogo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;padding:24px;max-width:1200px;margin:0 auto}
+
+/* CARD */
+.prod-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px;transition:box-shadow 0.15s}
+.prod-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.08)}
+.prod-cat{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px}
+.prod-modelo{font-size:16px;font-weight:700;color:var(--text);line-height:1.2}
+.prod-detalle{font-size:12px;color:var(--text2);margin-top:2px}
+.prod-local{font-size:11px;color:var(--accent);background:var(--accent-dim);border-radius:4px;padding:2px 8px;display:inline-block;margin-top:4px}
+.prod-precio{font-size:22px;font-weight:700;color:var(--accent);font-family:monospace}
+.prod-stock{font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;display:inline-block}
+.stock-ok{background:rgba(12,166,120,0.12);color:#0ca678}
+.stock-low{background:rgba(230,119,0,0.12);color:#e67700}
+.btn-wsp{background:#25D366;color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;transition:background 0.15s;margin-top:4px}
+.btn-wsp:hover{background:#1da851}
+
+/* ESTADOS */
+#loading{text-align:center;padding:60px 20px;color:var(--text3)}
+#loading .big{font-size:40px;margin-bottom:12px}
+#error-box{text-align:center;padding:60px 20px;color:var(--red)}
+#empty-box{text-align:center;padding:60px 20px;color:var(--text3)}
+#empty-box .big{font-size:40px;margin-bottom:12px}
+
+/* FOOTER */
+#footer{text-align:center;padding:32px 20px;font-size:11px;color:var(--text3);border-top:1px solid var(--border);margin-top:24px}
+#footer a{color:var(--accent);text-decoration:none;font-weight:600}
+
+@media(max-width:600px){
+  #catalogo-grid{grid-template-columns:1fr 1fr;gap:10px;padding:12px}
+  .prod-card{padding:14px}
+  .prod-precio{font-size:18px}
+  #header{padding:14px 16px}
+}
+@media(max-width:400px){
+  #catalogo-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div>
+    <h1 id="nombre-negocio">Cargando...</h1>
+    <p>Catálogo de productos disponibles</p>
+  </div>
+  <a id="wsp-link-header" href="#" target="_blank" class="wsp-header" style="display:none">
+    💬 Consultanos
+  </a>
+</div>
+
+<div id="search-bar">
+  <input type="text" id="search-input" placeholder="🔍 Buscar modelo, color, capacidad...">
+</div>
+
+<div id="catalogo-grid">
+  <div id="loading">
+    <div class="big">⏳</div>
+    <p>Cargando catálogo...</p>
+  </div>
+</div>
+
+<div id="footer">
+  Powered by <a href="https://merykirs-oss.github.io/vexopro" target="_blank">VexoPRO</a>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+const FB={apiKey:"AIzaSyCML9H70ahDLVw-s2hM-4fYhx9CDeQHwTw",authDomain:"crm-celulares-fd633.firebaseapp.com",databaseURL:"https://crm-celulares-fd633-default-rtdb.firebaseio.com",projectId:"crm-celulares-fd633",storageBucket:"crm-celulares-fd633.firebasestorage.app",messagingSenderId:"253250858728",appId:"1:253250858728:web:7a37e22d8d8ed42ee7635d"};
+
+const app=initializeApp(FB);
+const db=getDatabase(app);
+
+const params=new URLSearchParams(location.search);
+const ownerUid=params.get('uid');
+const grid=document.getElementById('catalogo-grid');
+
+if(!ownerUid){
+  grid.innerHTML='<div id="error-box">❌ Link inválido. Pedile el link correcto al negocio.</div>';
+  throw new Error('No uid');
+}
+
+let compras={},ventas={},locales={},config={};
+let wspNegocio='';
+
+function fmt(n){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:0}).format(n||0);}
+
+function getDisp(compraKey,itemId){
+  const c=compras[compraKey];if(!c)return 0;
+  const it=c.items?.find(i=>i.itemId===itemId);if(!it)return 0;
+  const total=it.cantidad||1;
+  let vendido=0;
+  Object.values(ventas).forEach(v=>{
+    (v.items||[]).forEach(vi=>{
+      if(vi.compraKey===compraKey&&vi.itemId===itemId)vendido+=vi.cantidad||1;
+    });
+  });
+  return Math.max(0,total-vendido);
+}
+
+function buildStock(){
+  const map={};
+  Object.entries(compras).forEach(([ck,c])=>{
+    (c.items||[]).forEach(it=>{
+      if(!it.precioVenta||it.precioVenta<=0)return; // sin precio de venta no aparece
+      const key=it.itemId||(ck+'||'+it.modelo+'||'+it.capacidad);
+      const disp=getDisp(ck,it.itemId);
+      if(disp<=0)return; // sin stock no aparece
+      const localNombre=locales[c.localId]?(locales[c.localId].icono+' '+locales[c.localId].nombre):'';
+      map[key]={
+        modelo:it.modelo,cap:it.capacidad,color:it.color||'',
+        grado:it.grado||'',tipo:it.tipo||'',categoria:it.categoria||'',
+        precioVenta:it.precioVenta,disp,localNombre,
+        compraKey:ck,itemId:it.itemId,
+      };
+    });
+  });
+  return Object.values(map).sort((a,b)=>a.modelo.localeCompare(b.modelo));
+}
+
+function renderCatalogo(filtro=''){
+  const items=buildStock();
+  const q=filtro.toLowerCase().trim();
+  const filtered=q?items.filter(r=>(r.modelo+r.cap+r.color+r.grado+r.tipo).toLowerCase().includes(q)):items;
+
+  if(!filtered.length){
+    grid.innerHTML=`<div id="empty-box" style="grid-column:1/-1"><div class="big">📭</div><p>${q?'No encontramos productos para "'+filtro+'"':'No hay productos disponibles por el momento.'}</p></div>`;
+    return;
+  }
+
+  grid.innerHTML=filtered.map(r=>{
+    const detalle=[r.cap&&r.cap!=='N/A'?r.cap:'',r.color,r.grado,r.tipo].filter(Boolean).join(' · ');
+    const stockTag=r.disp<=2
+      ?`<span class="prod-stock stock-low">⚠️ Últimas ${r.disp} unidades</span>`
+      :`<span class="prod-stock stock-ok">✅ Disponible</span>`;
+    const localTag=r.localNombre?`<div class="prod-local">📍 ${r.localNombre}</div>`:'';
+    const msg=encodeURIComponent(`Hola! Vi el catálogo y me interesa el ${r.modelo}${r.cap&&r.cap!=='N/A'?' '+r.cap:''} a ${fmt(r.precioVenta)}. ¿Está disponible?`);
+    const wspNum=wspNegocio||config.wsp||'';
+    const wspUrl=wspNum?`https://wa.me/${wspNum}?text=${msg}`:`https://wa.me/?text=${msg}`;
+    return `<div class="prod-card">
+      <div>
+        <div class="prod-cat">${r.categoria}</div>
+        <div class="prod-modelo">${r.modelo}</div>
+        ${detalle?`<div class="prod-detalle">${detalle}</div>`:''}
+        ${localTag}
+      </div>
+      <div class="prod-precio">${fmt(r.precioVenta)}</div>
+      ${stockTag}
+      <a href="${wspUrl}" target="_blank" class="btn-wsp">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Consultar por WhatsApp
+      </a>
+    </div>`;
+  }).join('');
+}
+
+// Escuchar en tiempo real
+const base=`negocios/${ownerUid}`;
+let ready={compras:false,ventas:false,locales:false,config:false,usuario:false};
+function checkReady(key){
+  ready[key]=true;
+  if(Object.values(ready).every(Boolean))renderCatalogo();
+}
+
+onValue(ref(db,`usuarios/${ownerUid}`),s=>{
+  const u=s.val()||{};
+  if(config.catalogoActivo===false){
+    grid.innerHTML='<div id="empty-box" style="grid-column:1/-1"><div class="big">🔒</div><p>El catálogo no está disponible en este momento.</p></div>';
+    return;
+  }
+  document.getElementById('nombre-negocio').textContent=u.negocio||'Catálogo';
+  checkReady('usuario');
+});
+
+onValue(ref(db,`${base}/config`),s=>{
+  config=s.val()||{};
+  if(config.catalogoActivo===false){
+    grid.innerHTML='<div id="empty-box" style="grid-column:1/-1"><div class="big">🔒</div><p>El catálogo no está disponible en este momento.</p></div>';
+    return;
+  }
+  wspNegocio=config.wsp||'';
+  document.getElementById('nombre-negocio').textContent=config.negocio||document.getElementById('nombre-negocio').textContent;
+  const wspLink=document.getElementById('wsp-link-header');
+  if(wspNegocio){
+    wspLink.href=`https://wa.me/${wspNegocio}`;
+    wspLink.style.display='';
+    wspLink.className='wsp-header';
+    wspLink.style.cssText='background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:6px';
+    wspLink.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> Consultanos';
+  }
+  checkReady('config');
+  renderCatalogo(document.getElementById('search-input').value);
+});
+
+onValue(ref(db,`${base}/compras`),s=>{compras=s.val()||{};checkReady('compras');renderCatalogo(document.getElementById('search-input').value);});
+onValue(ref(db,`${base}/ventas`),s=>{ventas=s.val()||{};checkReady('ventas');renderCatalogo(document.getElementById('search-input').value);});
+onValue(ref(db,`${base}/locales`),s=>{locales=s.val()||{};checkReady('locales');renderCatalogo(document.getElementById('search-input').value);});
+
+document.getElementById('search-input').addEventListener('input',e=>renderCatalogo(e.target.value));
+</script>
+</body>
+</html>

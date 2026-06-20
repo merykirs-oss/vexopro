@@ -545,6 +545,20 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 <div id="page-stock" class="page">
   <div class="page-header"><h2>📊 Stock</h2></div>
   <div id="stats-stock" class="stats-row"></div>
+  <div class="form-card" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="font-weight:600;font-size:14px">🌐 Catálogo público</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:3px">Compartí tu stock con clientes en tiempo real</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span id="catalogo-estado-label" style="font-size:12px;color:var(--text3)">Desactivado</span>
+        <button class="btn btn-secondary" id="btn-toggle-catalogo">Activar catálogo</button>
+        <button class="btn btn-primary" id="btn-copiar-link-catalogo" style="display:none">📋 Copiar link</button>
+      </div>
+    </div>
+    <div id="catalogo-link-preview" style="display:none;margin-top:12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:12px;font-family:var(--mono);color:var(--accent);word-break:break-all"></div>
+  </div>
   <div class="table-card"><h3>Inventario</h3><div id="tabla-stock"></div></div>
 </div>
 
@@ -1402,6 +1416,8 @@ function initApp(){
   $('btn-save-cfg-negocio')?.addEventListener('click',saveConfigNegocio);
   $('btn-save-cfg-garantia')?.addEventListener('click',saveConfigGarantia);
   $('btn-save-cfg-ventas')?.addEventListener('click',saveConfigVentas);
+  $('btn-toggle-catalogo')?.addEventListener('click',toggleCatalogo);
+  $('btn-copiar-link-catalogo')?.addEventListener('click',copiarLinkCatalogo);
   $('emg-venta').addEventListener('change',mostrarPreviewGarantia);
   $('btn-emitir-garantia').addEventListener('click',()=>emitirGarantia());
   $('btn-emitir-garantia-postventa').addEventListener('click',()=>{
@@ -1901,6 +1917,8 @@ function makeCompraItemEl(id,data=null,cat=null){
   const precEl=inp('number','ci-precio-'+id,'0',{value:data?.precio||'',min:0,step:0.01});
   precEl.addEventListener('input',calcTotalCompra);
   fields.push(fg('Precio costo c/u (USD)',precEl));
+  const precVtaEl=inp('number','ci-precio-vta-'+id,'0',{value:data?.precioVenta||'',min:0,step:0.01});
+  fields.push(fg('Precio de venta (USD)',precVtaEl));
 
   const usaUnidades=(categoria==='iphone'||categoria==='ipad');
   if(usaUnidades){
@@ -2046,6 +2064,7 @@ function saveCompra(){
     const ciclos=$('ci-ciclos-'+id)?.value||'';
     const cantidad=parseInt($('ci-cant-'+id)?.value)||1;
     const precio=parseFloat($('ci-precio-'+id)?.value);
+    const precioVenta=parseFloat($('ci-precio-vta-'+id)?.value)||0;
     const grado=$('ci-grado-'+id)?.value||'';
     const tipo=$('ci-tipo-'+id)?.value||'';
     const categoria=el?.dataset.categoria||compraCategoria;
@@ -2057,12 +2076,12 @@ function saveCompra(){
       for(let u=0;u<cantidad;u++){
         const imeiU=(u===0?$('ci-imei-'+id)?.value.trim():$('ci-imei-'+id+'-'+u)?.value.trim())||'';
         const batU=(u===0?$('ci-bat-'+id)?.value:$('ci-bat-'+id+'-'+u)?.value)||'';
-        items.push({itemId:uid(),modelo,capacidad,color,estado,ram,serie,ciclos,cantidad:1,precio,imei:imeiU,bateria:batU,grado,tipo,categoria});
+        items.push({itemId:uid(),modelo,capacidad,color,estado,ram,serie,ciclos,cantidad:1,precio,precioVenta,imei:imeiU,bateria:batU,grado,tipo,categoria});
       }
     }else{
       const imei=$('ci-imei-'+id)?.value.trim()||'';
       const bateria=$('ci-bat-'+id)?.value||'';
-      items.push({itemId:uid(),modelo,capacidad,color,estado,ram,serie,ciclos,cantidad,precio,imei,bateria,grado,tipo,categoria});
+      items.push({itemId:uid(),modelo,capacidad,color,estado,ram,serie,ciclos,cantidad,precio,precioVenta,imei,bateria,grado,tipo,categoria});
     }
   }
   if(!items.length){showAlert('c-alert','Agregá al menos un equipo',false);return;}
@@ -2170,7 +2189,8 @@ function makeEditCompraItemEl(id,data=null){
   if(categoria!=='mac'){hidden('eci-ram-'+id,'');hidden('eci-serie-'+id,'');hidden('eci-ciclos-'+id,'');}
   if(categoria!=='iphone'&&categoria!=='ipad'){hidden('eci-grado-'+id,'');}
   fields.push(fg('Cantidad',inp('number','eci-cant-'+id,'1',{value:data?.cantidad||1,min:1})));
-  fields.push(fg('Precio c/u',inp('number','eci-precio-'+id,'0',{value:data?.precio||'',min:0,step:0.01})));
+  fields.push(fg('Precio costo c/u',inp('number','eci-precio-'+id,'0',{value:data?.precio||'',min:0,step:0.01})));
+  fields.push(fg('Precio de venta',inp('number','eci-precio-vta-'+id,'0',{value:data?.precioVenta||'',min:0,step:0.01})));
   if(categoria==='iphone'||categoria==='ipad'){
     fields.push(fg('IMEI',inp('text','eci-imei-'+id,'15 dígitos',{value:data?.imei||'',maxLength:20})));
     fields.push(fg('% Batería',inp('number','eci-bat-'+id,'%',{value:data?.bateria||'',min:0,max:100})));
@@ -2204,6 +2224,7 @@ function guardarEditCompra(){
     const ciclos=$('eci-ciclos-'+id)?.value||'';
     const cantidad=parseInt($('eci-cant-'+id)?.value)||1;
     const precio=parseFloat($('eci-precio-'+id)?.value);
+    const precioVenta=parseFloat($('eci-precio-vta-'+id)?.value)||0;
     const imei=$('eci-imei-'+id)?.value.trim()||'';
     const bateria=$('eci-bat-'+id)?.value||'';
     const grado=$('eci-grado-'+id)?.value||'';
@@ -2211,7 +2232,7 @@ function guardarEditCompra(){
     const categoria=elE?.dataset.categoria||'iphone';
     const itemId=$('eci-itemid-'+id)?.value||uid();
     if(!modelo||!precio){showAlert('edit-c-alert','Completá todos los campos',false);return;}
-    items.push({itemId,modelo,capacidad,color,estado,ram,serie,ciclos,cantidad,precio,imei,bateria,grado,tipo,categoria});
+    items.push({itemId,modelo,capacidad,color,estado,ram,serie,ciclos,cantidad,precio,precioVenta,imei,bateria,grado,tipo,categoria});
   }
   if(!proveedor){showAlert('edit-c-alert','Ingresá el nombre del proveedor',false);return;}
   const totalUSD=items.reduce((s,i)=>s+i.precio*i.cantidad,0);
@@ -2605,7 +2626,7 @@ function renderStock(){
     // Cada itemId es una unidad o lote distinto — se muestra por separado si tiene color/IMEI/grado propios
     const key=it.itemId||(ck+'||'+it.modelo+'||'+it.capacidad+'||'+(it.color||'')+'||'+(it.imei||''));
     const d=getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId);
-    map[key]={modelo:it.modelo,cap:it.capacidad,color:it.color||'',estado:it.estado||'',grado:it.grado||'',tipo:it.tipo||'',imei:it.imei||'',ref:c.ref||fmtD(c.fecha),proveedor:c.proveedor||'',costo:it.precio,comprado:it.cantidad||1,disp:d,fecha:c.fecha,enCamino:c.estadoEntrega==='en_camino'};
+    map[key]={modelo:it.modelo,cap:it.capacidad,color:it.color||'',estado:it.estado||'',grado:it.grado||'',tipo:it.tipo||'',imei:it.imei||'',ref:c.ref||fmtD(c.fecha),proveedor:c.proveedor||'',costo:it.precio,precioVenta:it.precioVenta||0,comprado:it.cantidad||1,disp:d,fecha:c.fecha,enCamino:c.estadoEntrega==='en_camino',localId:c.localId||''};
   }));
   const rows=Object.values(map).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
   const tc=rows.reduce((s,r)=>s+r.comprado,0),td=rows.reduce((s,r)=>s+r.disp,0),tv=rows.reduce((s,r)=>s+r.disp*r.costo,0);
@@ -2625,9 +2646,10 @@ function renderStock(){
     const bar=r.enCamino?'':'<div style="background:var(--surface3);border-radius:4px;height:5px;width:80px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:6px"><div style="background:'+(r.disp===0?'var(--red)':r.disp<=2?'var(--yellow)':'var(--accent)')+';height:100%;width:'+pct+'%"></div></div>';
     const detalle=[r.tipo,r.color,r.grado,r.estado].filter(Boolean).join(' · ');
     const imeiTag=r.imei?'<div style="font-size:10px;color:var(--text3);font-family:var(--mono)">IMEI '+r.imei+'</div>':'';
-    tr+='<tr><td><strong>'+r.modelo+'</strong>'+(detalle?'<div style="font-size:11px;color:var(--text2)">'+detalle+'</div>':'')+imeiTag+'</td><td><span class="tag tag-blue">'+r.cap+'</span></td><td style="font-size:12px;color:var(--text2)">'+r.ref+'</td><td style="font-size:12px;color:var(--text2)">'+(r.proveedor||'—')+'</td><td class="mono" style="color:var(--yellow)">'+fmt(r.costo)+'</td><td class="mono" style="color:var(--blue)">'+r.comprado+'</td><td class="mono" style="color:var(--text2)">'+(r.comprado-r.disp)+'</td><td>'+tag+bar+'</td></tr>';
+    tr+='<tr><td><strong>'+r.modelo+'</strong>'+(detalle?'<div style="font-size:11px;color:var(--text2)">'+detalle+'</div>':'')+imeiTag+'</td><td><span class="tag tag-blue">'+r.cap+'</span></td><td style="font-size:12px;color:var(--text2)">'+r.ref+'</td><td style="font-size:12px;color:var(--text2)">'+(r.proveedor||'—')+'</td><td class="mono" style="color:var(--yellow)">'+fmt(r.costo)+'</td><td class="mono" style="color:#0ca678">'+(r.precioVenta?fmt(r.precioVenta):'<span style="color:var(--text3)">—</span>')+'</td><td class="mono" style="color:var(--blue)">'+r.comprado+'</td><td class="mono" style="color:var(--text2)">'+(r.comprado-r.disp)+'</td><td>'+tag+bar+'</td></tr>';
   });
-  el.innerHTML='<table><thead><tr><th>Modelo / Detalle</th><th>Cap.</th><th>Pedido</th><th>Proveedor</th><th>Costo c/u</th><th>Comprado</th><th>Vendido</th><th>Stock</th></tr></thead><tbody>'+tr+'</tbody></table>';
+  el.innerHTML='<table><thead><tr><th>Modelo / Detalle</th><th>Cap.</th><th>Pedido</th><th>Proveedor</th><th>Costo c/u</th><th>Precio venta</th><th>Comprado</th><th>Vendido</th><th>Stock</th></tr></thead><tbody>'+tr+'</tbody></table>';
+  renderCatalogoEstado();
 }
 
 // ─── CLIENTES ────────────────────────────────────────────────
@@ -2953,6 +2975,46 @@ async function saveConfigVentas(){
   const msg=$('cfg-msg-venta').value.trim();
   await update(dbRef('config'),{msgVenta:msg});
   showAlert('cfg-ventas-alert','✅ Configuración de ventas guardada');
+}
+
+// ─── CATÁLOGO PÚBLICO ────────────────────────────────────────
+function getCatalogoUrl(){
+  return `https://merykirs-oss.github.io/vexopro/catalogo.html?uid=${ownerUid}`;
+}
+
+function renderCatalogoEstado(){
+  const activo=S.config?.catalogoActivo===true;
+  const lbl=$('catalogo-estado-label');
+  const btn=$('btn-toggle-catalogo');
+  const linkBtn=$('btn-copiar-link-catalogo');
+  const preview=$('catalogo-link-preview');
+  if(!lbl)return;
+  if(activo){
+    lbl.textContent='✅ Activo';lbl.style.color='#0ca678';
+    btn.textContent='Desactivar catálogo';btn.className='btn btn-secondary';
+    linkBtn.style.display='';
+    preview.style.display='';preview.textContent=getCatalogoUrl();
+  }else{
+    lbl.textContent='Desactivado';lbl.style.color='var(--text3)';
+    btn.textContent='Activar catálogo';btn.className='btn btn-primary';
+    linkBtn.style.display='none';
+    preview.style.display='none';
+  }
+}
+
+async function toggleCatalogo(){
+  const activo=S.config?.catalogoActivo===true;
+  await update(dbRef('config'),{catalogoActivo:!activo});
+}
+
+function copiarLinkCatalogo(){
+  const url=getCatalogoUrl();
+  navigator.clipboard.writeText(url).then(()=>{
+    const btn=$('btn-copiar-link-catalogo');
+    const orig=btn.textContent;
+    btn.textContent='✅ Copiado!';
+    setTimeout(()=>btn.textContent=orig,2000);
+  });
 }
 
 // ─── EQUIPO ──────────────────────────────────────────────────
