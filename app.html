@@ -350,36 +350,39 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 <div id="page-compras" class="page">
   <div class="page-header"><h2>📦 Compras</h2></div>
 
-  <!-- BUSCADOR -->
-  <div class="form-card" style="margin-bottom:16px;padding:16px 20px">
-    <div class="form-grid" style="margin-bottom:10px">
-      <div class="form-group"><label>Proveedor</label><input type="text" id="cf-proveedor" placeholder="Ej: Sunrise..."></div>
-      <div class="form-group"><label>Equipo</label><input type="text" id="cf-equipo" placeholder="Ej: iPhone 15..."></div>
-      <div class="form-group"><label>Desde</label><input type="date" id="cf-desde"></div>
-      <div class="form-group"><label>Hasta</label><input type="date" id="cf-hasta"></div>
-      <div class="form-group"><label>Estado entrega</label>
-        <select id="cf-estado">
-          <option value="">Todos</option>
-          <option value="en_camino">🚚 En camino</option>
-          <option value="recibido">✅ Recibido</option>
-        </select>
-      </div>
-      <div class="form-group"><label>Pago</label>
-        <select id="cf-pago">
-          <option value="">Todos</option>
-          <option value="pagado">✅ Pagado</option>
-          <option value="parcial">🟡 Parcial</option>
-          <option value="pendiente">🔴 Pendiente</option>
-        </select>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-secondary btn-sm" id="btn-limpiar-filtro-compras">Limpiar filtros</button>
-    </div>
+  <!-- BUSCADOR COLAPSABLE -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <button class="btn btn-secondary" id="btn-toggle-filtros-compras" style="gap:8px">
+      🔍 Filtrar <span id="filtros-compras-arrow">▼</span>
+    </button>
+    <button class="btn btn-primary" id="btn-abrir-wizard-compra">＋ Nuevo pedido</button>
   </div>
 
-  <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
-    <button class="btn btn-primary" id="btn-abrir-wizard-compra">＋ Nuevo pedido</button>
+  <div id="panel-filtros-compras" style="display:none;margin-bottom:16px">
+    <div class="form-card" style="padding:16px 20px;margin-bottom:0">
+      <div class="form-grid" style="margin-bottom:10px">
+        <div class="form-group"><label>Proveedor</label><input type="text" id="cf-proveedor" placeholder="Ej: Sunrise..."></div>
+        <div class="form-group"><label>Equipo</label><input type="text" id="cf-equipo" placeholder="Ej: iPhone 15..."></div>
+        <div class="form-group"><label>Desde</label><input type="date" id="cf-desde"></div>
+        <div class="form-group"><label>Hasta</label><input type="date" id="cf-hasta"></div>
+        <div class="form-group"><label>Estado entrega</label>
+          <select id="cf-estado">
+            <option value="">Todos</option>
+            <option value="en_camino">🚚 En camino</option>
+            <option value="recibido">✅ Recibido</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Pago</label>
+          <select id="cf-pago">
+            <option value="">Todos</option>
+            <option value="pagado">✅ Pagado</option>
+            <option value="parcial">🟡 Parcial</option>
+            <option value="pendiente">🔴 Pendiente</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-secondary btn-sm" id="btn-limpiar-filtro-compras">Limpiar filtros</button>
+    </div>
   </div>
   <div class="table-card"><h3>Historial <span id="badge-compras" class="tag tag-blue"></span></h3><div id="tabla-compras"></div></div>
 </div>
@@ -1406,6 +1409,13 @@ function initApp(){
   $('btn-add-compra-item').addEventListener('click',()=>addCompraItem());
   $('btn-reset-compra').addEventListener('click',resetCompraForm);
   $('btn-abrir-wizard-compra').addEventListener('click',abrirWizardCompra);
+  $('btn-toggle-filtros-compras')?.addEventListener('click',()=>{
+    const panel=$('panel-filtros-compras');
+    const arrow=$('filtros-compras-arrow');
+    const abierto=panel.style.display!=='none';
+    panel.style.display=abierto?'none':'block';
+    if(arrow)arrow.textContent=abierto?'▼':'▲';
+  });
   // Filtros compras
   ['cf-proveedor','cf-equipo','cf-desde','cf-hasta','cf-estado','cf-pago'].forEach(id=>{
     $(id)?.addEventListener('input',renderCompras);
