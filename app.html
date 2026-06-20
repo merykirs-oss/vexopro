@@ -2915,8 +2915,11 @@ function validarPasoWizardVenta(n){
     if(!hayEquipoValido){showAlert('v-alert','Elegí al menos un equipo del stock',false);return false;}
   }
   if(n===3){
-    const hayMontoValido=metodoItems.some(id=>parseFloat($('mi-monto-'+id)?.value)>0);
-    if(!hayMontoValido){showAlert('v-alert','Ingresá al menos un método de pago con monto',false);return false;}
+    const condicion=$('v-condicion')?.value;
+    if(condicion!=='fiado'){
+      const hayMontoValido=metodoItems.some(id=>parseFloat($('mi-monto-'+id)?.value)>0);
+      if(!hayMontoValido){showAlert('v-alert','Ingresá al menos un método de pago con monto, o cambiá la condición a "A pagar"',false);return false;}
+    }
   }
   return true;
 }
