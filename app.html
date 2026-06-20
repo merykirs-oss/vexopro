@@ -75,7 +75,6 @@ nav button.active{background:var(--accent-dim);color:var(--accent);font-weight:6
 .btn-sm{padding:5px 11px;font-size:12px}
 .btn-add{background:var(--accent-dim);color:var(--accent);border:1px dashed rgba(26,111,255,0.3);width:100%;justify-content:center;padding:8px;border-radius:6px;margin-top:8px}
 .table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:24px}
-.table-card>div{overflow-x:auto}
 .table-card h3{font-size:14px;font-weight:600;padding:16px 20px 12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
 table{width:100%;border-collapse:collapse}
 th{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.7px;padding:10px 16px;text-align:left;background:var(--surface2);border-bottom:1px solid var(--border);white-space:nowrap;border-top:1px solid var(--border)}
@@ -113,9 +112,9 @@ tr:hover td{background:var(--surface2)}
 /* Alineación global */
 .form-group{min-width:0}
 .form-group input,.form-group select{width:100%;min-width:0;box-sizing:border-box}
-table{width:100%;min-width:600px}
-#page-equipo table{min-width:0}
-#page-equipo .form-group label{min-height:0}
+.table-card{overflow-x:auto}
+table{min-width:600px}
+#page-equipo table{min-width:0;width:100%}
 td,th{vertical-align:middle;padding:10px 14px}
 .item-row{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px}
 
@@ -816,9 +815,6 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
   </div>
 </div>
 
-</main>
-</div>
-
 <!-- PÁGINA EQUIPO (solo dueños) -->
 <div id="page-equipo" class="page">
   <div class="page-header"><h2>👤 Equipo</h2><p>Gestioná roles y accesos de tu equipo. Primero creá un rol, después asignalo a un usuario.</p></div>
@@ -875,6 +871,9 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     <div id="tabla-equipo"></div>
   </div>
 
+</div>
+
+</main>
 </div>
 
 <div class="modal-overlay" id="modal-pago">
