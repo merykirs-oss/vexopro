@@ -313,6 +313,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     <button id="nav-informes" data-page="informes">📈 Informes</button>
     <div class="nav-sep" id="nav-sep-equipo" style="display:none">Negocio</div>
     <button id="nav-equipo" data-page="equipo" style="display:none">👤 Equipo</button>
+    <button id="nav-config" data-page="config" style="display:none">⚙️ Configuración</button>
     <div class="nav-sep" id="nav-sep-admin" style="display:none">Admin</div>
     <button id="nav-admin" data-page="admin" style="display:none">⚙️ Panel Admin</button>
   </nav>
@@ -591,15 +592,6 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 <div id="page-garantias" class="page">
   <div class="page-header"><h2>🛡️ Garantías</h2><p>Emití certificados de garantía al vender, y verificá su vigencia cuando un cliente reclama.</p></div>
 
-  <div class="form-card" style="background:var(--surface2)">
-    <h3 style="margin-bottom:10px">⚙️ Configuración</h3>
-    <div class="form-grid">
-      <div class="form-group"><label>Días de garantía (todas las ventas)</label><input type="number" id="gconf-dias" min="1" placeholder="Ej: 30"></div>
-      <div class="form-group" style="align-self:end"><button class="btn btn-secondary" id="btn-save-config-garantia" style="margin-bottom:2px">Guardar configuración</button></div>
-    </div>
-    <div id="gconf-alert"></div>
-  </div>
-
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
     <div class="form-card" style="margin-bottom:0">
       <h3>📜 Emitir Garantía</h3>
@@ -815,6 +807,54 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     </div>
     <div id="grafico-comparacion" style="margin-top:18px"></div>
   </div>
+</div>
+
+<!-- PÁGINA CONFIGURACIÓN (solo dueños) -->
+<div id="page-config" class="page">
+  <div class="page-header"><h2>⚙️ Configuración</h2><p>Personalizá tu negocio y el comportamiento del sistema.</p></div>
+
+  <!-- NEGOCIO -->
+  <div class="form-card">
+    <h3>🏪 Tu negocio</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>Nombre del negocio</label><input type="text" id="cfg-negocio" placeholder="Ej: Nexo Celulares"></div>
+      <div class="form-group"><label>WhatsApp de contacto</label><input type="text" id="cfg-wsp" placeholder="Ej: 5491112345678"></div>
+      <div class="form-group"><label>Dirección</label><input type="text" id="cfg-direccion" placeholder="Ej: Av. Corrientes 1234, CABA"></div>
+    </div>
+    <div class="form-actions"><button class="btn btn-primary" id="btn-save-cfg-negocio">Guardar</button></div>
+    <div id="cfg-negocio-alert"></div>
+  </div>
+
+  <!-- GARANTÍAS -->
+  <div class="form-card">
+    <h3>🛡️ Garantías</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>Días de garantía</label><input type="number" id="cfg-dias-garantia" min="1" placeholder="Ej: 30"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label>Categorías con garantía</label>
+      <div id="cfg-cats-garantia" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label>Texto del pie del certificado</label>
+      <textarea id="cfg-pie-certificado" rows="3" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:9px 12px;font-family:var(--sans);font-size:13px;color:var(--text);outline:none;width:100%;resize:vertical;box-sizing:border-box" placeholder="Ej: Para verificar la vigencia de esta garantía, comunicate al WhatsApp indicando el código."></textarea>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">Podés usar {codigo} para insertar el número de garantía automáticamente.</div>
+    </div>
+    <div class="form-actions"><button class="btn btn-primary" id="btn-save-cfg-garantia">Guardar</button></div>
+    <div id="cfg-garantia-alert"></div>
+  </div>
+
+  <!-- VENTAS -->
+  <div class="form-card">
+    <h3>🛒 Ventas</h3>
+    <div class="form-group" style="margin-bottom:14px">
+      <label>Mensaje de bienvenida en certificado</label>
+      <textarea id="cfg-msg-venta" rows="2" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:9px 12px;font-family:var(--sans);font-size:13px;color:var(--text);outline:none;width:100%;resize:vertical;box-sizing:border-box" placeholder="Ej: ¡Gracias por tu compra! Ante cualquier consulta comunicate con nosotros."></textarea>
+    </div>
+    <div class="form-actions"><button class="btn btn-primary" id="btn-save-cfg-ventas">Guardar</button></div>
+    <div id="cfg-ventas-alert"></div>
+  </div>
+
 </div>
 
 <!-- PÁGINA EQUIPO (solo dueños) -->
@@ -1245,7 +1285,7 @@ function initApp(){
   onValue(dbRef('ventas'),s=>{S.ventas=s.val()||{};renderVentas();renderStock();renderCC();renderInicio();renderClientes();});
   onValue(dbRef('clientes'),s=>{S.clientes=s.val()||{};renderClientes();refreshClienteSelects();});
   onValue(dbRef('garantias'),s=>{S.garantias=s.val()||{};refreshRepSelects();refreshEmitirGarantiaSelect();});
-  onValue(dbRef('config'),s=>{S.config=s.val()||{};if($('gconf-dias'))$('gconf-dias').value=diasGarantiaConfigurados();});
+  onValue(dbRef('config'),s=>{S.config=s.val()||{};if($('gconf-dias'))$('gconf-dias').value=diasGarantiaConfigurados();if($('page-config')?.classList.contains('active'))renderConfig();});
   onValue(dbRef('tecnicos'),s=>{S.tecnicos=s.val()||{};renderTecnicos();refreshRepSelects();});
   onValue(dbRef('reparaciones'),s=>{S.reparaciones=s.val()||{};renderTecnicos();});
   onValue(dbRef('pagos'),s=>{S.pagos=s.val()||{};renderCC();});
@@ -1268,6 +1308,7 @@ function initApp(){
     const sepEquipo=$('nav-sep-equipo'),btnEquipo=$('nav-equipo');
     if(sepEquipo)sepEquipo.style.display='';
     if(btnEquipo)btnEquipo.style.display='';
+    if($('nav-config'))$('nav-config').style.display='';
     // Mostrar panel admin solo para la cuenta maestra
     if(currentUser?.email===ADMIN_EMAIL){
       $('nav-sep-admin').style.display='';
@@ -1358,7 +1399,9 @@ function initApp(){
   $('btn-save-cliente').addEventListener('click',saveCliente);
 
   // Botones garantias
-  $('btn-save-config-garantia').addEventListener('click',saveConfigGarantia);
+  $('btn-save-cfg-negocio')?.addEventListener('click',saveConfigNegocio);
+  $('btn-save-cfg-garantia')?.addEventListener('click',saveConfigGarantia);
+  $('btn-save-cfg-ventas')?.addEventListener('click',saveConfigVentas);
   $('emg-venta').addEventListener('change',mostrarPreviewGarantia);
   $('btn-emitir-garantia').addEventListener('click',()=>emitirGarantia());
   $('btn-emitir-garantia-postventa').addEventListener('click',()=>{
@@ -1520,6 +1563,7 @@ function showPage(name){
   if(name==='informes')renderInformes();
   if(name==='gestion-locales')renderGestionLocales();
   if(name==='admin')renderAdmin();
+  if(name==='config')renderConfig();
   if(name==='equipo'){
     if(currentUser?.email!==ADMIN_EMAIL && ownerData?.pagado!==true && ownerData?.trial!==false){
       $('page-equipo').innerHTML=`
@@ -2458,7 +2502,7 @@ async function saveVenta(){
         push(dbRef('costos'),{fecha,desc:'Comisión '+m.label+' ('+m.comisionPct+'%) - Venta',categoria:'financiero',moneda:'USD',monto:m.comisionMontoUSD,frecuencia:'unica',auto:true,ventaId:ref.key});
       });
       // Si la venta incluye un dispositivo con garantía, ofrecer emitir el certificado ahora mismo
-      const tieneDispositivo=items.some(i=>CATEGORIAS_CON_GARANTIA.includes(i.categoria||'iphone'));
+      const tieneDispositivo=items.some(i=>categoriasConGarantia().includes(i.categoria||'iphone'));
       if(tieneDispositivo){
         ventaRecienGuardadaId=ref.key;
         $('v-post-msg-garantia').textContent='Este equipo tiene garantía disponible.';
@@ -2534,7 +2578,7 @@ function renderVentas(){
     const cl=S.clientes[v.clienteId];
     const mod=v.items.map(i=>'<span class="tag '+(i.estado==='Usado'?'tag-yellow':'tag-green')+'" style="margin:1px">'+i.modelo+(i.capacidad&&i.capacidad!=='N/A'?' '+i.capacidad:'')+(i.color?' · '+i.color:'')+(i.cantidad>1?' x'+i.cantidad:'')+'</span>').join(' ');
     const metStr=(v.metodos||[]).map(m=>'<span class="tag tag-blue" style="margin:1px;font-size:10px">'+m.label+'</span>').join(' ')||(v.metodo||'—');
-    const tieneDispositivo=v.items.some(i=>CATEGORIAS_CON_GARANTIA.includes(i.categoria||'iphone'));
+    const tieneDispositivo=v.items.some(i=>categoriasConGarantia().includes(i.categoria||'iphone'));
     const garantiaEmitida=tieneDispositivo?Object.values(S.garantias).find(g=>g.ventaId===k):null;
     const btnGarantia=!tieneDispositivo?'':(garantiaEmitida?'<span class="tag tag-green" style="font-size:10px;white-space:nowrap">✅ CERTIFICADO EMITIDO</span>':'<button class="btn btn-secondary btn-sm" data-emitir-garantia-venta="'+k+'" style="white-space:nowrap;font-size:11px">📜 Emitir certificado</button>');
     rows+='<tr><td class="mono" style="font-size:11px">'+fmtD(v.fecha)+'</td><td>'+(cl?.nombre||'—')+'</td><td>'+mod+'</td><td class="mono" style="color:#0ca678">'+fmt(v.totalUSD)+'</td><td class="mono" style="color:#0ca678;font-size:11px">'+fmt(v.gananciaUSD)+'</td><td>'+(v.condicion==='fiado'?'<span class="tag tag-red">A pagar</span>':'<span class="tag tag-green">Contado</span>')+'</td><td>'+canalTag(v.canal)+'</td><td>'+metStr+'</td><td>'+btnGarantia+'</td><td style="display:flex;gap:4px"><button class="btn btn-secondary btn-sm" data-edit-venta="'+k+'">✏️</button><button class="btn btn-danger btn-sm" data-del-venta="'+k+'">🗑</button></td></tr>';
@@ -2830,6 +2874,85 @@ function aplicarPermisosSidebar(){
   // Ocultar puntos de venta si no tiene ninguno permitido
   // (los locales se filtran en renderNavLocales)
   renderNavLocales();
+}
+
+// ─── CONFIGURACIÓN ───────────────────────────────────────────
+const TODAS_CATEGORIAS=[
+  {key:'iphone',label:'📱 iPhone'},
+  {key:'ipad',label:'📟 iPad'},
+  {key:'mac',label:'💻 Mac'},
+  {key:'watch',label:'⌚ Watch'},
+  {key:'android',label:'🤖 Android'},
+  {key:'accesorio',label:'🎧 Accesorio'},
+  {key:'otro',label:'📦 Otro'},
+];
+
+function renderConfig(){
+  const cfg=S.config||{};
+  // Negocio
+  if($('cfg-negocio'))$('cfg-negocio').value=cfg.negocio||ownerData?.negocio||'';
+  if($('cfg-wsp'))$('cfg-wsp').value=cfg.wsp||'';
+  if($('cfg-direccion'))$('cfg-direccion').value=cfg.direccion||'';
+  // Garantías
+  if($('cfg-dias-garantia'))$('cfg-dias-garantia').value=cfg.diasGarantia||30;
+  if($('cfg-pie-certificado'))$('cfg-pie-certificado').value=cfg.pieCertificado||'Para verificar la vigencia de esta garantía, comunicate con nosotros indicando el código {codigo}.';
+  // Categorías con garantía
+  const cont=$('cfg-cats-garantia');
+  if(cont){
+    const activas=cfg.categoriasGarantia||['iphone','ipad','mac','watch'];
+    cont.innerHTML='';
+    TODAS_CATEGORIAS.forEach(c=>{
+      const activa=activas.includes(c.key);
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.dataset.cat=c.key;
+      btn.textContent=c.label;
+      btn.style.cssText=`padding:6px 14px;border-radius:20px;border:1px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;background:${activa?'var(--accent)':'var(--surface2)'};color:${activa?'#fff':'var(--text2)'}`;
+      btn.addEventListener('click',()=>{
+        const on=btn.style.background.includes('accent')||btn.style.background===getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+        btn.style.background=on?'var(--surface2)':'var(--accent)';
+        btn.style.color=on?'var(--text2)':'#fff';
+      });
+      cont.appendChild(btn);
+    });
+  }
+  // Ventas
+  if($('cfg-msg-venta'))$('cfg-msg-venta').value=cfg.msgVenta||'';
+}
+
+async function saveConfigNegocio(){
+  const negocio=$('cfg-negocio').value.trim();
+  const wsp=$('cfg-wsp').value.trim();
+  const direccion=$('cfg-direccion').value.trim();
+  if(!negocio){showAlert('cfg-negocio-alert','Ingresá el nombre del negocio',false);return;}
+  await update(dbRef('config'),{negocio,wsp,direccion});
+  // Actualizar sidebar
+  if($('negocio-nombre'))$('negocio-nombre').textContent=negocio;
+  // Actualizar en usuarios también
+  await update(ref(db,'usuarios/'+ownerUid),{negocio});
+  ownerData={...ownerData,negocio};
+  showAlert('cfg-negocio-alert','✅ Datos del negocio guardados');
+}
+
+async function saveConfigGarantia(){
+  const dias=parseInt($('cfg-dias-garantia').value);
+  if(!dias||dias<=0){showAlert('cfg-garantia-alert','Ingresá una cantidad de días válida',false);return;}
+  const pie=$('cfg-pie-certificado').value.trim();
+  const cats=Array.from($('cfg-cats-garantia').querySelectorAll('button'))
+    .filter(b=>b.style.background.includes('45, 122, 79')||b.style.background===window.getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||b.style.color==='rgb(255, 255, 255)')
+    .map(b=>b.dataset.cat);
+  // Detectar activas por color de texto blanco
+  const catsActivas=Array.from($('cfg-cats-garantia').querySelectorAll('button'))
+    .filter(b=>b.style.color==='#fff'||b.style.color==='white'||b.style.color==='rgb(255, 255, 255)')
+    .map(b=>b.dataset.cat);
+  await update(dbRef('config'),{diasGarantia:dias,pieCertificado:pie,categoriasGarantia:catsActivas.length?catsActivas:['iphone','ipad','mac','watch']});
+  showAlert('cfg-garantia-alert','✅ Configuración de garantías guardada');
+}
+
+async function saveConfigVentas(){
+  const msg=$('cfg-msg-venta').value.trim();
+  await update(dbRef('config'),{msgVenta:msg});
+  showAlert('cfg-ventas-alert','✅ Configuración de ventas guardada');
 }
 
 // ─── EQUIPO ──────────────────────────────────────────────────
@@ -3441,7 +3564,8 @@ function guardarPago(){
 }
 
 // ─── GARANTIAS ───────────────────────────────────────────────
-const CATEGORIAS_CON_GARANTIA=['iphone','ipad','mac','watch']; // solo dispositivos, no accesorios ni "otro"
+const CATEGORIAS_CON_GARANTIA=['iphone','ipad','mac','watch']; // default, se sobreescribe con S.config
+function categoriasConGarantia(){return (S.config?.categoriasGarantia)||CATEGORIAS_CON_GARANTIA;}
 // Genera el siguiente código alfanumérico para garantías: G0001, G0002... G9999, H0001...
 function generarCodigoGarantia(){
   const codigos=Object.values(S.garantias).map(g=>g.codigo).filter(Boolean);
@@ -3463,20 +3587,13 @@ function sumarDias(fechaISO,dias){
 function diasGarantiaConfigurados(){
   return (S.config&&S.config.diasGarantia)?S.config.diasGarantia:30;
 }
-function saveConfigGarantia(){
-  const dias=parseInt($('gconf-dias').value);
-  if(!dias||dias<=0){showAlert('gconf-alert','Ingresá una cantidad de días válida',false);return;}
-  update(dbRef('config'),{diasGarantia:dias})
-    .then(()=>showAlert('gconf-alert','✅ Configuración guardada: '+dias+' días de garantía'))
-    .catch(()=>showAlert('gconf-alert','Error al guardar',false));
-}
 // Llena el selector de ventas elegibles para emitir garantía (solo ventas con categoría de dispositivo)
 function refreshEmitirGarantiaSelect(){
   const sel=$('emg-venta');if(!sel)return;
   const actual=sel.value;
   sel.innerHTML='<option value="">— Seleccionar venta —</option>';
   Object.entries(S.ventas).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||'')).forEach(([k,v])=>{
-    const itemsConGarantia=v.items.filter(i=>CATEGORIAS_CON_GARANTIA.includes(i.categoria||'iphone'));
+    const itemsConGarantia=v.items.filter(i=>categoriasConGarantia().includes(i.categoria||'iphone'));
     if(!itemsConGarantia.length)return;
     const cl=S.clientes[v.clienteId];
     const yaEmitida=Object.values(S.garantias).some(g=>g.ventaId===k);
@@ -3490,7 +3607,7 @@ function mostrarPreviewGarantia(){
   if(!vk){box.style.display='none';return;}
   const v=S.ventas[vk];if(!v){box.style.display='none';return;}
   const cl=S.clientes[v.clienteId];
-  const item=v.items.find(i=>CATEGORIAS_CON_GARANTIA.includes(i.categoria||'iphone'));
+  const item=v.items.find(i=>categoriasConGarantia().includes(i.categoria||'iphone'));
   const dias=diasGarantiaConfigurados();
   const vencimiento=sumarDias(v.fecha,dias);
   box.style.display='block';
@@ -3506,7 +3623,7 @@ async function emitirGarantia(ventaIdParam=null,alertId='emg-alert'){
   const v=S.ventas[vk];if(!v){showAlert(alertId,'Venta no encontrada',false);return;}
   const yaEmitida=Object.entries(S.garantias).find(([,g])=>g.ventaId===vk);
   const cl=S.clientes[v.clienteId];
-  const item=v.items.find(i=>CATEGORIAS_CON_GARANTIA.includes(i.categoria||'iphone'));
+  const item=v.items.find(i=>categoriasConGarantia().includes(i.categoria||'iphone'));
   if(!item){showAlert(alertId,'Esta venta no incluye un dispositivo con garantía',false);return;}
   const dias=diasGarantiaConfigurados();
   const vencimiento=sumarDias(v.fecha,dias);
@@ -3570,13 +3687,18 @@ function generarCertificadoPDF({codigo,cliente,item,fechaCompra,vencimiento,dias
   const verde=[45,122,79],verdeClaro=[240,250,245],gris=[90,100,95],negro=[26,46,36];
   const pageW=210;
 
+  const cfg=S.config||{};
+  const nombreNegocio=cfg.negocio||ownerData?.negocio||'VexoPRO';
+  const pieCert=cfg.pieCertificado||'Para verificar la vigencia de esta garantía, comunicate con nosotros indicando el código {codigo}.';
+  const pieTexto=pieCert.replace('{codigo}',codigo);
+
   // Encabezado con franja verde
   doc.setFillColor(...verde);
   doc.rect(0,0,pageW,38,'F');
   doc.setTextColor(255,255,255);
   doc.setFont('helvetica','bold');
   doc.setFontSize(22);
-  doc.text('VexoPRO',20,20);
+  doc.text(nombreNegocio,20,20);
   doc.setFontSize(11);
   doc.setFont('helvetica','normal');
   doc.text('Certificado de Garantía',20,29);
@@ -3671,8 +3793,8 @@ function generarCertificadoPDF({codigo,cliente,item,fechaCompra,vencimiento,dias
   doc.setFont('helvetica','normal');
   doc.setFontSize(9);
   doc.setTextColor(...gris);
-  doc.text('Para verificar la vigencia de esta garantía, comunicate con nosotros indicando el código '+codigo+'.',20,270);
-  doc.text('Este certificado es válido únicamente junto con el comprobante de compra original.',20,276);
+  const pieLineas=doc.splitTextToSize(pieTexto,170);
+  doc.text(pieLineas,20,270);
 
   doc.save('Garantia_'+codigo+'.pdf');
 }
