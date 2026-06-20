@@ -3029,6 +3029,7 @@ async function renderAdmin(){
         <td style="display:flex;gap:4px">
           ${!pagado?`<button class="btn btn-primary btn-sm" data-activar="${uid}">✅ Activar</button>`:''}
           ${pagado?`<button class="btn btn-secondary btn-sm" data-desactivar="${uid}">🚫 Desactivar</button>`:''}
+          <button class="btn btn-danger btn-sm" data-eliminar="${uid}">🗑</button>
         </td>
       </tr>`;
     });
@@ -3041,6 +3042,11 @@ async function renderAdmin(){
     tabla.querySelectorAll('[data-desactivar]').forEach(btn=>btn.addEventListener('click',async()=>{
       if(!confirm('¿Desactivar suscripción? El usuario perderá acceso al sistema.'))return;
       await update(ref(db,'usuarios/'+btn.dataset.desactivar),{pagado:false,trial:true});
+      renderAdmin();
+    }));
+    tabla.querySelectorAll('[data-eliminar]').forEach(btn=>btn.addEventListener('click',async()=>{
+      if(!confirm('¿Eliminar este usuario permanentemente? Esta acción no se puede deshacer.'))return;
+      await remove(ref(db,'usuarios/'+btn.dataset.eliminar));
       renderAdmin();
     }));
   }catch(e){
