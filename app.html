@@ -821,7 +821,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 <div id="page-equipo" class="page">
   <div class="page-header"><h2>👤 Equipo</h2><p>Gestioná los accesos de tu equipo. Primero creá un rol, después asignalo a un usuario.</p></div>
 
-  <div style="display:grid;grid-template-columns:minmax(340px,1fr) minmax(320px,1fr);gap:18px;align-items:start">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start">
 
     <!-- ── COLUMNA IZQUIERDA: Roles ── -->
     <div style="display:flex;flex-direction:column;gap:14px">
@@ -831,22 +831,20 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
           <label style="font-size:11px;color:#7a9e8e;font-weight:600;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:5px">Nombre del rol</label>
           <input type="text" id="er-nombre" placeholder="Ej: Vendedor, Supervisor..." style="width:100%;background:#f2faf6;border:1px solid #c3e6d3;border-radius:6px;padding:9px 12px;font-size:13px;color:#1a2e24;outline:none;font-family:inherit;box-sizing:border-box">
         </div>
-        <div style="display:grid;grid-template-columns:1fr minmax(130px,155px);gap:12px">
-          <div>
-            <div style="font-size:10px;font-weight:700;color:#7a9e8e;text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Módulos — Ver / Editar</div>
-            <div id="er-modulos-container" style="display:flex;flex-direction:column;gap:3px"></div>
-          </div>
-          <div>
-            <div style="font-size:10px;font-weight:700;color:#7a9e8e;text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Puntos de venta</div>
-            <div id="er-locales-container" style="display:flex;flex-direction:column;gap:5px">
-              <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;background:#f2faf6;padding:7px 9px;border-radius:6px;border:1px solid #c3e6d3">
-                <input type="checkbox" id="er-local-all" checked style="accent-color:#2d7a4f;width:13px;height:13px;flex-shrink:0">
-                <span style="color:#1a2e24;font-weight:500">Todos los locales</span>
-              </label>
-            </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:10px;font-weight:700;color:#7a9e8e;text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Módulos — Ver / Editar</div>
+          <div id="er-modulos-container" style="display:flex;flex-direction:column;gap:3px"></div>
+        </div>
+        <div style="margin-bottom:14px">
+          <div style="font-size:10px;font-weight:700;color:#7a9e8e;text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Puntos de venta</div>
+          <div id="er-locales-container" style="display:flex;flex-direction:column;gap:5px">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;background:#f2faf6;padding:7px 9px;border-radius:6px;border:1px solid #c3e6d3">
+              <input type="checkbox" id="er-local-all" checked style="accent-color:#2d7a4f;width:13px;height:13px;flex-shrink:0">
+              <span style="color:#1a2e24;font-weight:500">Todos los locales</span>
+            </label>
           </div>
         </div>
-        <button class="btn btn-primary" id="btn-crear-rol" style="margin-top:14px">Guardar rol</button>
+        <button class="btn btn-primary" id="btn-crear-rol" style="width:100%;justify-content:center">Guardar rol</button>
         <div id="er-alert" style="margin-top:8px;font-size:13px"></div>
       </div>
       <div style="background:#fff;border:1px solid #c3e6d3;border-radius:10px;overflow:hidden">
@@ -2839,10 +2837,10 @@ function renderErModulos(){
   cont.innerHTML='';
   MODULOS_ETIQUETAS.forEach(m=>{
     const row=document.createElement('div');
-    row.style.cssText='display:flex;align-items:center;justify-content:space-between;background:#f2faf6;border:1px solid #c3e6d3;border-radius:6px;padding:6px 9px;gap:6px';
-    row.innerHTML=`<label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;flex:1;color:#1a2e24">
+    row.style.cssText='display:flex;align-items:center;justify-content:space-between;background:#f2faf6;border:1px solid #c3e6d3;border-radius:6px;padding:6px 9px;gap:8px;min-width:0';
+    row.innerHTML=`<label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;flex:1;min-width:0;color:#1a2e24">
       <input type="checkbox" class="er-mod-check" data-mod="${m.key}" style="accent-color:#2d7a4f;width:13px;height:13px;flex-shrink:0">
-      <span>${m.label}</span>
+      <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.label}</span>
     </label>
     <label style="display:flex;align-items:center;gap:3px;font-size:10px;color:#7a9e8e;cursor:pointer;white-space:nowrap;flex-shrink:0">
       <input type="checkbox" class="er-write-check" data-mod="${m.key}" style="accent-color:#2d7a4f;width:11px;height:11px" disabled>
