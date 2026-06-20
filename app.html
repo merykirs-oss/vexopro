@@ -792,6 +792,8 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
   </div>
 
   <!-- TÉCNICOS -->
+  <button class="btn btn-secondary" id="btn-toggle-nuevo-tecnico" style="margin-bottom:12px">➕ Nuevo técnico</button>
+  <div id="form-nuevo-tecnico" style="display:none">
   <div class="form-card">
     <h3>➕ Nuevo técnico</h3>
     <div class="form-grid">
@@ -802,6 +804,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     </div>
     <div class="form-actions"><button class="btn btn-primary" id="btn-save-tecnico">Guardar técnico</button></div>
     <div id="tec-alert"></div>
+  </div>
   </div>
   <div class="table-card"><h3>Técnicos <span id="badge-tecnicos" class="tag tag-blue"></span></h3><div id="tabla-tecnicos"></div></div>
 </div>
@@ -1830,6 +1833,12 @@ function initApp(){
 
   // Reparaciones
   $('btn-save-tecnico')?.addEventListener('click',saveTecnico);
+  $('btn-toggle-nuevo-tecnico')?.addEventListener('click',()=>{
+    const f=$('form-nuevo-tecnico');
+    const open=f.style.display!=='none';
+    f.style.display=open?'none':'block';
+    $('btn-toggle-nuevo-tecnico').textContent=open?'➕ Nuevo técnico':'✕ Cerrar';
+  });
   $('btn-nueva-reparacion')?.addEventListener('click',abrirWizardRep);
   $('btn-cerrar-wizard-rep')?.addEventListener('click',()=>closeModal('modal-wizard-rep'));
   $('wizRepNext')?.addEventListener('click',repNext);
@@ -4762,7 +4771,7 @@ function saveTecnico(){
   const nombre=$('tec-nombre')?.value.trim();
   if(!nombre){showAlert('tec-alert','Ingresá el nombre',false);return;}
   push(dbRef('tecnicos'),{nombre,tel:$('tec-tel')?.value.trim()||'',especialidad:$('tec-esp')?.value.trim()||'',tipo:$('tec-tipo')?.value||'externo'})
-    .then(()=>{showAlert('tec-alert','✅ "'+nombre+'" guardado');if($('tec-nombre'))$('tec-nombre').value='';if($('tec-tel'))$('tec-tel').value='';if($('tec-esp'))$('tec-esp').value='';})
+    .then(()=>{showAlert('tec-alert','✅ "'+nombre+'" guardado');if($('tec-nombre'))$('tec-nombre').value='';if($('tec-tel'))$('tec-tel').value='';if($('tec-esp'))$('tec-esp').value='';if($('form-nuevo-tecnico'))$('form-nuevo-tecnico').style.display='none';if($('btn-toggle-nuevo-tecnico'))$('btn-toggle-nuevo-tecnico').textContent='➕ Nuevo técnico';})
     .catch(()=>showAlert('tec-alert','Error',false));
 }
 
