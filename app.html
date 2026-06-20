@@ -594,6 +594,25 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
       <!-- PASO 3: PAGO -->
       <div class="wiz-step" data-wiz-step="3" style="display:none">
         <div class="wiz-step-title"><span class="num">3</span> ¿Cómo te paga?</div>
+
+        <!-- Panel resumen en tiempo real -->
+        <div id="v-resumen-cobro" style="display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:14px">
+          <div>
+            <div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Total USD</div>
+            <div id="v-total" style="font-family:var(--mono);font-size:26px;font-weight:800;color:#0ca678">—</div>
+            <div id="v-total-ars" style="font-size:11px;color:var(--text2);margin-top:2px"></div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Pagado</div>
+            <div id="v-pagado" style="font-family:var(--mono);font-size:14px;color:var(--blue)">—</div>
+            <div id="v-pagado-diff" style="margin-top:6px"></div>
+          </div>
+          <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+            <div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Ganancia</div>
+            <div id="v-ganancia" style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--accent)">—</div>
+          </div>
+        </div>
+
         <div id="v-metodos-container"></div>
         <button class="btn btn-add" id="btn-add-metodo" style="margin-top:6px">＋ Agregar método de pago</button>
       </div>
@@ -601,11 +620,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
       <!-- PASO 4: CONFIRMAR -->
       <div class="wiz-step" data-wiz-step="4" style="display:none">
         <div class="wiz-step-title"><span class="num">4</span> Confirmá la venta</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;padding:14px 16px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
-          <div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Total USD</div><div id="v-total" style="font-family:var(--mono);font-size:18px;font-weight:700;color:#0ca678">—</div></div>
-          <div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Pagado</div><div id="v-pagado" style="font-family:var(--mono);font-size:13px;color:var(--blue)">—</div><div id="v-pagado-diff" style="font-size:11px;margin-top:2px"></div></div>
-          <div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Ganancia</div><div id="v-ganancia" style="font-family:var(--mono);font-size:16px;color:var(--accent)">—</div></div>
-        </div>
+        <div id="v-resumen-final" style="padding:14px 16px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);font-size:13px;line-height:1.8;color:var(--text2)"></div>
         <div id="v-alert" style="margin-top:14px"></div>
         <div id="v-post-guardado" style="display:none;background:var(--surface2);border:1px solid var(--accent);border-radius:10px;padding:14px 16px;margin-top:10px;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
           <div style="font-size:13px;color:var(--text2)">✅ Venta guardada. <span id="v-post-msg-garantia"></span></div>
@@ -1698,13 +1713,12 @@ function initApp(){
       ventaCategoria=btn.dataset.cat;
       $('v-items-container').innerHTML='';
       ventaItems=[];
-      addVentaItem();
     });
   });
   $('btn-add-venta-item').addEventListener('click',()=>addVentaItem());
   $('v-local')?.addEventListener('change',()=>{
     // Al cambiar el punto de venta, regenerar las filas de equipo para que el stock filtre por ese local
-    $('v-items-container').innerHTML='';ventaItems=[];addVentaItem();
+    $('v-items-container').innerHTML='';ventaItems=[];
   });
   $('btn-reset-venta').addEventListener('click',resetVentaForm);
   $('btn-abrir-wizard-venta').addEventListener('click',abrirWizardVenta);
@@ -1970,7 +1984,7 @@ function initApp(){
   $('btn-crear-rol')?.addEventListener('click',crearRol);
   $('btn-crear-usuario')?.addEventListener('click',crearUsuario);
 
-  setTimeout(()=>{addVentaItem();addMetodoItem();addMetodoCompraItem();calcTotalCompra();},400);
+  setTimeout(()=>{addMetodoItem();addMetodoCompraItem();calcTotalCompra();},400);
 }
 
 function showPage(name){
@@ -2803,6 +2817,10 @@ function calcItem(id){
       if($('vi-ciclos-'+id)&&id2.ciclos)$('vi-ciclos-'+id).value=id2.ciclos;
       if($('vi-grado-'+id)&&id2.grado)$('vi-grado-'+id).value=id2.grado;
       if($('vi-tipo-'+id)&&id2.tipo)$('vi-tipo-'+id).value=id2.tipo;
+      // Autocomplete precio de venta si tiene uno cargado y el campo está vacío
+      if($('vi-prec-'+id)&&id2.precioVenta&&!$('vi-prec-'+id).value){
+        $('vi-prec-'+id).value=id2.precioVenta;
+      }
     }
     if(arsEl&&metodoARS(metodo)&&prec>0&&dolar.venta>0)
       arsEl.textContent='≈ '+fmtARS(usdToArs(prec))+' c/u  ·  TC: '+fmtARS(dolar.venta);
@@ -2858,8 +2876,23 @@ function wizVentaGoTo(n){
   const back=$('wizVentaBack'),next=$('wizVentaNext');
   back.style.visibility=n===1?'hidden':'visible';
   next.textContent=n===4?'✅ Guardar venta':'Siguiente →';
-  // Al llegar al paso de confirmación, recalcular los totales por si algo cambió en pasos anteriores
-  if(n===4)calcTotalVenta();
+  // Al llegar al paso de pago (3), recalcular totales en tiempo real
+  if(n===3)calcTotalVenta();
+  // Al llegar a confirmación (4), mostrar resumen estático
+  if(n===4){
+    calcTotalVenta();
+    const rf=$('v-resumen-final');if(rf){
+      const tot=$('v-total')?.textContent||'—';
+      const pag=$('v-pagado')?.textContent||'—';
+      const diff=$('v-pagado-diff')?.innerHTML||'';
+      const gan=$('v-ganancia')?.textContent||'—';
+      rf.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Total</div><div style="font-family:var(--mono);font-size:20px;font-weight:800;color:#0ca678">${tot}</div></div>
+        <div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Pagado</div><div style="font-family:var(--mono);font-size:14px;color:var(--blue)">${pag}</div>${diff?'<div style="margin-top:4px">'+diff+'</div>':''}</div>
+        <div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Ganancia</div><div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--accent)">${gan}</div></div>
+      </div>`;
+    }
+  }
 }
 // Valida el paso actual antes de dejar avanzar; devuelve true si puede continuar
 function validarPasoWizardVenta(n){
@@ -2896,7 +2929,6 @@ function resetVentaForm(){
   ventaCategoria='iphone';
   document.querySelectorAll('#v-cat-selector .cat-btn').forEach(b=>b.classList.remove('selected'));
   document.querySelector('#v-cat-selector .cat-btn[data-cat="iphone"]')?.classList.add('selected');
-  addVentaItem();
   metodoItems=[];
   const mc=$('v-metodos-container');if(mc)mc.innerHTML='';
   addMetodoItem();
