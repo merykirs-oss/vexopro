@@ -624,6 +624,20 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 <div id="page-stock" class="page">
   <div class="page-header"><h2>📊 Stock</h2></div>
   <div id="stats-stock" class="stats-row"></div>
+  <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+    <button class="btn btn-secondary btn-sm" id="btn-toggle-filtros-stock">🔍 Filtrar <span id="filtros-stock-arrow">▼</span></button>
+  </div>
+  <div id="panel-filtros-stock" style="display:none;margin-bottom:16px">
+    <div class="form-card" style="padding:16px 20px;margin-bottom:0">
+      <div class="form-grid" style="margin-bottom:10px">
+        <div class="form-group"><label>Modelo</label><input type="text" id="sf-modelo" placeholder="Ej: iPhone 15..."></div>
+        <div class="form-group"><label>Punto de venta</label><select id="sf-local"><option value="">Todos</option></select></div>
+        <div class="form-group"><label>Estado</label><select id="sf-estado-stock"><option value="">Todos</option><option value="disponible">✅ Con stock</option><option value="sin_stock">❌ Sin stock</option><option value="bajo">⚠️ Stock bajo (≤2)</option></select></div>
+        <div class="form-group"><label>Categoría</label><select id="sf-categoria"><option value="">Todas</option><option value="iphone">iPhone</option><option value="ipad">iPad</option><option value="mac">Mac</option><option value="watch">Watch</option><option value="accesorio">Accesorio</option><option value="android">Android</option><option value="otro">Otro</option></select></div>
+      </div>
+      <button class="btn btn-secondary btn-sm" id="btn-limpiar-filtro-stock">Limpiar filtros</button>
+    </div>
+  </div>
   <div class="form-card" style="margin-bottom:16px">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
       <div>
@@ -643,6 +657,20 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 
 <div id="page-clientes" class="page">
   <div class="page-header"><h2>👥 Clientes</h2></div>
+  <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+    <button class="btn btn-secondary btn-sm" id="btn-toggle-filtros-clientes">🔍 Filtrar <span id="filtros-clientes-arrow">▼</span></button>
+  </div>
+  <div id="panel-filtros-clientes" style="display:none;margin-bottom:16px">
+    <div class="form-card" style="padding:16px 20px;margin-bottom:0">
+      <div class="form-grid" style="margin-bottom:10px">
+        <div class="form-group"><label>Nombre</label><input type="text" id="clf-nombre" placeholder="Buscar nombre..."></div>
+        <div class="form-group"><label>DNI</label><input type="text" id="clf-dni" placeholder="Buscar DNI..."></div>
+        <div class="form-group"><label>Tipo</label><select id="clf-tipo"><option value="">Todos</option><option value="minorista">Minorista</option><option value="mayorista">Mayorista</option></select></div>
+        <div class="form-group"><label>Con deuda</label><select id="clf-deuda"><option value="">Todos</option><option value="si">Con deuda</option><option value="no">Sin deuda</option></select></div>
+      </div>
+      <button class="btn btn-secondary btn-sm" id="btn-limpiar-filtro-clientes">Limpiar filtros</button>
+    </div>
+  </div>
   <div class="form-card">
     <h3>➕ Nuevo Cliente</h3>
     <div class="form-grid">
@@ -673,6 +701,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     </div>
   </div>
   <div id="stats-cc" class="stats-row"></div>
+  <div style="margin-bottom:12px"><input type="text" id="cc-filtro-nombre" placeholder="🔍 Buscar cliente..." style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 12px;font-size:13px;font-family:var(--sans);outline:none;width:100%;max-width:320px;box-sizing:border-box"></div>
   <div id="lista-cc"></div>
 </div>
 
@@ -691,6 +720,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     </div>
   </div>
   <div id="stats-ccp" class="stats-row"></div>
+  <div style="margin-bottom:12px"><input type="text" id="ccp-filtro-nombre" placeholder="🔍 Buscar proveedor..." style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 12px;font-size:13px;font-family:var(--sans);outline:none;width:100%;max-width:320px;box-sizing:border-box"></div>
   <div id="lista-ccp"></div>
 </div>
 
@@ -720,6 +750,20 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 <div id="page-tecnicos" class="page">
   <div class="page-header"><h2>👨‍🔧 Técnicos</h2></div>
   <div id="stats-tecnicos" class="stats-row"></div>
+  <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+    <button class="btn btn-secondary btn-sm" id="btn-toggle-filtros-tec">🔍 Filtrar reparaciones <span id="filtros-tec-arrow">▼</span></button>
+  </div>
+  <div id="panel-filtros-tec" style="display:none;margin-bottom:16px">
+    <div class="form-card" style="padding:16px 20px;margin-bottom:0">
+      <div class="form-grid" style="margin-bottom:10px">
+        <div class="form-group"><label>Técnico</label><select id="tf-tecnico"><option value="">Todos</option></select></div>
+        <div class="form-group"><label>Estado</label><select id="tf-estado"><option value="">Todos</option><option value="enviado">Enviado</option><option value="en_proceso">En proceso</option><option value="listo">Listo</option><option value="entregado">Entregado</option></select></div>
+        <div class="form-group"><label>Desde</label><input type="date" id="tf-desde"></div>
+        <div class="form-group"><label>Hasta</label><input type="date" id="tf-hasta"></div>
+      </div>
+      <button class="btn btn-secondary btn-sm" id="btn-limpiar-filtro-tec">Limpiar filtros</button>
+    </div>
+  </div>
   <div class="form-card">
     <h3>➕ Nuevo Técnico</h3>
     <div class="form-grid">
@@ -1627,6 +1671,52 @@ function initApp(){
   });
   $('btn-toggle-catalogo')?.addEventListener('click',toggleCatalogo);
   $('btn-copiar-link-catalogo')?.addEventListener('click',copiarLinkCatalogo);
+
+  // ── Filtros Stock ──
+  $('btn-toggle-filtros-stock')?.addEventListener('click',()=>{
+    const p=$('panel-filtros-stock'),a=$('filtros-stock-arrow'),ab=p.style.display!=='none';
+    p.style.display=ab?'none':'block';if(a)a.textContent=ab?'▼':'▲';
+  });
+  ['sf-modelo','sf-local','sf-estado-stock','sf-categoria'].forEach(id=>{
+    $(id)?.addEventListener('input',renderStock);$(id)?.addEventListener('change',renderStock);
+  });
+  $('btn-limpiar-filtro-stock')?.addEventListener('click',()=>{
+    ['sf-modelo'].forEach(id=>{if($(id))$(id).value='';});
+    ['sf-local','sf-estado-stock','sf-categoria'].forEach(id=>{if($(id))$(id).value='';});
+    renderStock();
+  });
+
+  // ── Filtros Clientes ──
+  $('btn-toggle-filtros-clientes')?.addEventListener('click',()=>{
+    const p=$('panel-filtros-clientes'),a=$('filtros-clientes-arrow'),ab=p.style.display!=='none';
+    p.style.display=ab?'none':'block';if(a)a.textContent=ab?'▼':'▲';
+  });
+  ['clf-nombre','clf-dni'].forEach(id=>{$(id)?.addEventListener('input',renderClientes);});
+  ['clf-tipo','clf-deuda'].forEach(id=>{$(id)?.addEventListener('change',renderClientes);});
+  $('btn-limpiar-filtro-clientes')?.addEventListener('click',()=>{
+    ['clf-nombre','clf-dni'].forEach(id=>{if($(id))$(id).value='';});
+    ['clf-tipo','clf-deuda'].forEach(id=>{if($(id))$(id).value='';});
+    renderClientes();
+  });
+
+  // ── Filtros Técnicos ──
+  $('btn-toggle-filtros-tec')?.addEventListener('click',()=>{
+    const p=$('panel-filtros-tec'),a=$('filtros-tec-arrow'),ab=p.style.display!=='none';
+    p.style.display=ab?'none':'block';if(a)a.textContent=ab?'▼':'▲';
+  });
+  ['tf-desde','tf-hasta'].forEach(id=>{$(id)?.addEventListener('input',renderTecnicos);});
+  ['tf-tecnico','tf-estado'].forEach(id=>{$(id)?.addEventListener('change',renderTecnicos);});
+  $('btn-limpiar-filtro-tec')?.addEventListener('click',()=>{
+    ['tf-desde','tf-hasta'].forEach(id=>{if($(id))$(id).value='';});
+    ['tf-tecnico','tf-estado'].forEach(id=>{if($(id))$(id).value='';});
+    renderTecnicos();
+  });
+
+  // ── Filtros CC Clientes ──
+  $('cc-filtro-nombre')?.addEventListener('input',renderCC);
+
+  // ── Filtros CC Proveedores ──
+  $('ccp-filtro-nombre')?.addEventListener('input',renderCCProveedores);
   $('emg-venta').addEventListener('change',mostrarPreviewGarantia);
   $('btn-emitir-garantia').addEventListener('click',()=>emitirGarantia());
   $('btn-emitir-garantia-postventa').addEventListener('click',()=>{
@@ -2916,10 +3006,27 @@ function renderStock(){
     '<div class="stat-card sc-green"><div class="lbl">Disponible</div><div class="val">'+td+'</div></div>'+
     '<div class="stat-card sc-yellow"><div class="lbl">Valor en stock</div><div class="val">'+fmt(tv)+'</div></div>'+
     (tEnCamino?'<div class="stat-card sc-yellow"><div class="lbl">🚚 En camino</div><div class="val">'+tEnCamino+'</div></div>':'');
+  // Filtros stock
+  const sfModelo=($('sf-modelo')?.value||'').toLowerCase().trim();
+  const sfLocal=$('sf-local')?.value||'';
+  const sfEstado=$('sf-estado-stock')?.value||'';
+  const sfCat=$('sf-categoria')?.value||'';
+  // Llenar select de locales
+  const sfLocalSel=$('sf-local');
+  if(sfLocalSel&&sfLocalSel.options.length<=1){
+    Object.entries(S.locales).forEach(([k,l])=>{const op=document.createElement('option');op.value=k;op.textContent=(l.icono||'🏪')+' '+l.nombre;sfLocalSel.appendChild(op);});
+  }
+  let filteredRows=rows;
+  if(sfModelo)filteredRows=filteredRows.filter(r=>(r.modelo||'').toLowerCase().includes(sfModelo));
+  if(sfLocal)filteredRows=filteredRows.filter(r=>r.localId===sfLocal);
+  if(sfCat)filteredRows=filteredRows.filter(r=>(r.categoria||'iphone')===sfCat);
+  if(sfEstado==='disponible')filteredRows=filteredRows.filter(r=>r.disp>0);
+  if(sfEstado==='sin_stock')filteredRows=filteredRows.filter(r=>r.disp===0);
+  if(sfEstado==='bajo')filteredRows=filteredRows.filter(r=>r.disp>0&&r.disp<=2);
   const el=$('tabla-stock');
-  if(!rows.length){el.innerHTML='<div class="empty-state"><div class="big">📊</div><p>Cargá compras para ver el stock.</p></div>';return;}
+  if(!filteredRows.length){el.innerHTML='<div class="empty-state"><div class="big">📊</div><p>'+(sfModelo||sfLocal||sfEstado||sfCat?'Sin resultados para ese filtro.':'Cargá compras para ver el stock.')+'</p></div>';return;}
   let tr='';
-  rows.forEach(r=>{
+  filteredRows.forEach(r=>{
     const pct=r.comprado?Math.round(((r.comprado-r.disp)/r.comprado)*100):0;
     const tag=r.enCamino?'<span class="tag tag-yellow">🚚 En camino</span>':r.disp===0?'<span class="tag tag-red">Sin stock</span>':r.disp<=2?'<span class="tag tag-yellow">'+r.disp+' u.</span>':'<span class="tag tag-green">'+r.disp+' u.</span>';
     const bar=r.enCamino?'':'<div style="background:var(--surface3);border-radius:4px;height:5px;width:80px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:6px"><div style="background:'+(r.disp===0?'var(--red)':r.disp<=2?'var(--yellow)':'var(--accent)')+';height:100%;width:'+pct+'%"></div></div>';
@@ -2957,10 +3064,19 @@ function saveCliente(){
     .catch(()=>showAlert('cl-alert','Error',false));
 }
 function renderClientes(){
-  $('badge-clientes').textContent=Object.keys(S.clientes).length;
+  const clfNombre=($('clf-nombre')?.value||'').toLowerCase().trim();
+  const clfDni=($('clf-dni')?.value||'').toLowerCase().trim();
+  const clfTipo=$('clf-tipo')?.value||'';
+  const clfDeuda=$('clf-deuda')?.value||'';
+  let ent=Object.entries(S.clientes).sort((a,b)=>(a[1].nombre||'').localeCompare(b[1].nombre||''));
+  if(clfNombre)ent=ent.filter(([,cl])=>(cl.nombre||'').toLowerCase().includes(clfNombre));
+  if(clfDni)ent=ent.filter(([,cl])=>(cl.dni||'').toLowerCase().includes(clfDni));
+  if(clfTipo)ent=ent.filter(([,cl])=>(cl.tipo||'minorista')===clfTipo);
+  if(clfDeuda==='si')ent=ent.filter(([k])=>getSaldo(k)>0.01);
+  if(clfDeuda==='no')ent=ent.filter(([k])=>getSaldo(k)<=0.01);
+  $('badge-clientes').textContent=ent.length+'/'+Object.keys(S.clientes).length;
   const el=$('tabla-clientes');
-  const ent=Object.entries(S.clientes).sort((a,b)=>(a[1].nombre||'').localeCompare(b[1].nombre||''));
-  if(!ent.length){el.innerHTML='<div class="empty-state"><div class="big">👥</div><p>Sin clientes.</p></div>';return;}
+  if(!ent.length){el.innerHTML='<div class="empty-state"><div class="big">👥</div><p>Sin resultados.</p></div>';return;}
   el.innerHTML='';
   ent.forEach(([k,cl])=>{
     const s=getSaldo(k);
@@ -3945,7 +4061,9 @@ function renderCCProveedores(){
   const elS=$('stats-ccp'),elL=$('lista-ccp');
   if(!elS||!elL)return;
   const nombres=[...new Set(Object.values(S.compras).map(c=>c.proveedor).filter(Boolean))];
-  const provsConDeuda=nombres.map(n=>({nombre:n,saldo:getSaldoProveedor(n)})).filter(p=>p.saldo>0.01).sort((a,b)=>b.saldo-a.saldo);
+  const ccpFiltroNombre=($('ccp-filtro-nombre')?.value||'').toLowerCase().trim();
+  let provsConDeuda=nombres.map(n=>({nombre:n,saldo:getSaldoProveedor(n)})).filter(p=>p.saldo>0.01).sort((a,b)=>b.saldo-a.saldo);
+  if(ccpFiltroNombre)provsConDeuda=provsConDeuda.filter(p=>(p.nombre||'').toLowerCase().includes(ccpFiltroNombre));
   const td=provsConDeuda.reduce((s,p)=>s+p.saldo,0);
   elS.innerHTML='<div class="stat-card sc-yellow"><div class="lbl">Deuda total a proveedores</div><div class="val">'+fmt(td)+'</div></div><div class="stat-card sc-blue"><div class="lbl">Proveedores con deuda</div><div class="val">'+provsConDeuda.length+'</div></div>';
   if(!provsConDeuda.length){elL.innerHTML='<div class="empty-state"><div class="big">✅</div><p>No le debés a ningún proveedor.</p></div>';return;}
@@ -4007,7 +4125,9 @@ function getVentasConSaldo(cid){
   });
 }
 function renderCC(){
-  const cls=Object.entries(S.clientes).map(([k,c])=>({key:k,...c,saldo:getSaldo(k)})).filter(c=>c.saldo>0.01).sort((a,b)=>b.saldo-a.saldo);
+  const ccFiltroNombre=($('cc-filtro-nombre')?.value||'').toLowerCase().trim();
+  let cls=Object.entries(S.clientes).map(([k,c])=>({key:k,...c,saldo:getSaldo(k)})).filter(c=>c.saldo>0.01).sort((a,b)=>b.saldo-a.saldo);
+  if(ccFiltroNombre)cls=cls.filter(c=>(c.nombre||'').toLowerCase().includes(ccFiltroNombre));
   const td=cls.reduce((s,c)=>s+c.saldo,0);
   $('stats-cc').innerHTML='<div class="stat-card sc-red"><div class="lbl">Deuda total</div><div class="val">'+fmt(td)+'</div></div><div class="stat-card sc-yellow"><div class="lbl">Clientes con deuda</div><div class="val">'+cls.length+'</div></div>';
   const el=$('lista-cc');
@@ -4328,7 +4448,19 @@ function renderTecnicos(){
   $('badge-reparaciones').textContent=Object.keys(S.reparaciones).length;
   $('badge-tecnicos').textContent=Object.keys(S.tecnicos).length;
   const elR=$('tabla-reparaciones');
-  const reps=Object.entries(S.reparaciones).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||''));
+  // Filtros técnicos
+  const tfTec=$('tf-tecnico')?.value||'';
+  const tfEst=$('tf-estado')?.value||'';
+  const tfDesde=$('tf-desde')?.value||'';
+  const tfHasta=$('tf-hasta')?.value||'';
+  // Llenar select técnicos
+  const tfTecSel=$('tf-tecnico');
+  if(tfTecSel){const cur=tfTecSel.value;tfTecSel.innerHTML='<option value="">Todos</option>';Object.entries(S.tecnicos).forEach(([k,t])=>{const op=document.createElement('option');op.value=k;op.textContent=t.nombre;if(k===cur)op.selected=true;tfTecSel.appendChild(op);});}
+  let reps=Object.entries(S.reparaciones).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||''));
+  if(tfTec)reps=reps.filter(([,r])=>r.tecnicoId===tfTec);
+  if(tfEst)reps=reps.filter(([,r])=>(r.estado||'enviado')===tfEst);
+  if(tfDesde)reps=reps.filter(([,r])=>(r.fecha||'')>=tfDesde);
+  if(tfHasta)reps=reps.filter(([,r])=>(r.fecha||'')<=tfHasta);
   if(!reps.length){elR.innerHTML='<div class="empty-state"><div class="big">🔩</div><p>Sin reparaciones.</p></div>';}
   else{
     let rows='';
