@@ -596,7 +596,26 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
           <button class="cat-btn" data-cat="otro"><span class="cat-icon">📦</span>Personalizado</button>
         </div>
         <div id="v-items-container"></div>
-        <button class="btn btn-add" id="btn-add-venta-item">＋ Agregar equipo</button>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-add" id="btn-add-venta-item" style="flex:1">＋ Agregar unidad</button>
+          <button class="btn btn-add" id="btn-add-venta-lote" style="flex:1;color:var(--blue);border-color:rgba(26,111,255,0.3)">📦 Agregar lote / Mayorista</button>
+        </div>
+        <!-- Panel selector de lote (colapsable) -->
+        <div id="v-lote-panel" style="display:none;margin-top:10px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
+          <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px">Seleccionar lote</div>
+          <div class="form-grid" style="margin-bottom:10px">
+            <div class="form-group">
+              <label>Lote / Pedido</label>
+              <select id="v-lote-sel"><option value="">— Seleccioná un lote —</option></select>
+            </div>
+            <div class="form-group">
+              <label>Unidades a vender</label>
+              <input type="number" id="v-lote-cant" placeholder="0" min="1" style="max-width:120px">
+            </div>
+          </div>
+          <div id="v-lote-preview" style="display:none;font-size:12px;color:var(--text2);margin-bottom:10px"></div>
+          <button class="btn btn-primary btn-sm" id="btn-agregar-lote">Cargar unidades del lote</button>
+        </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-top:14px;padding:14px 16px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
           <div class="form-group"><label>Descuento (%)</label><input type="number" id="v-descuento" placeholder="0" min="0" max="100"></div>
           <div class="form-group"><label>Comisión vendedor (%)</label><input type="number" id="v-comision" placeholder="0" min="0"></div>
@@ -1900,6 +1919,14 @@ function initApp(){
     });
   });
   $('btn-add-venta-item').addEventListener('click',()=>addVentaItem());
+  $('btn-add-venta-lote')?.addEventListener('click',()=>{
+    const p=$('v-lote-panel');
+    const open=p.style.display!=='none';
+    p.style.display=open?'none':'block';
+    if(!open)fillLoteSelect();
+  });
+  $('v-lote-sel')?.addEventListener('change',onLoteSelChange);
+  $('btn-agregar-lote')?.addEventListener('click',agregarUnidadesLote);
   $('v-local')?.addEventListener('change',()=>{
     // Al cambiar el punto de venta, regenerar las filas de equipo para que el stock filtre por ese local
     $('v-items-container').innerHTML='';ventaItems=[];
@@ -2954,6 +2981,105 @@ function guardarEditCompra(){
 }
 
 // ─── VENTAS ──────────────────────────────────────────────────
+function fillLoteSelect(){
+  const sel=$('v-lote-sel');if(!sel)return;
+  const localFiltro=$('v-local')?.value||null;
+  sel.innerHTML='<option value="">— Seleccioná un lote —</option>';
+  // Agrupar por compraKey — un lote = una compra con items disponibles
+  Object.entries(S.compras).forEach(([ck,comp])=>{
+    if(localFiltro&&comp.localId&&comp.localId!==localFiltro)return;
+    // Contar unidades disponibles totales del lote
+    const totalDisp=comp.items.reduce((s,it)=>s+getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId),0);
+    if(totalDisp<=0)return;
+    const modelos=[...new Set(comp.items.map(it=>it.modelo))].join(', ');
+    const ref=comp.ref||fmtD(comp.fecha);
+    const op=document.createElement('option');
+    op.value=ck;
+    op.textContent=ref+' · '+modelos+' · '+totalDisp+' u. disponibles'+(comp.proveedor?' ('+comp.proveedor+')':'');
+    sel.appendChild(op);
+  });
+}
+
+function onLoteSelChange(){
+  const ck=$('v-lote-sel')?.value;
+  const preview=$('v-lote-preview');
+  const cantEl=$('v-lote-cant');
+  if(!ck||!preview){if(preview)preview.style.display='none';return;}
+  const comp=S.compras[ck];if(!comp){preview.style.display='none';return;}
+  // Calcular disponibles por item
+  const unidades=[];
+  comp.items.forEach(it=>{
+    const d=getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId);
+    if(d>0)unidades.push({...it,compraKey:ck,disponible:d});
+  });
+  const totalDisp=unidades.length;
+  if(cantEl){cantEl.max=totalDisp;cantEl.value=totalDisp;}
+  preview.style.display='block';
+  const detalles=unidades.map(u=>`${u.modelo}${u.capacidad&&u.capacidad!=='N/A'?' '+u.capacidad:''} · ${u.color||'—'} · IMEI: ${u.imei||'—'} · 🔋${u.bateria||'?'}% · $${u.precioVenta||0}`).join('<br>');
+  preview.innerHTML=`<strong>${totalDisp} unidades disponibles:</strong><br>${detalles}`;
+}
+
+function agregarUnidadesLote(){
+  const ck=$('v-lote-sel')?.value;
+  if(!ck){return;}
+  const comp=S.compras[ck];if(!comp)return;
+  const cantPedida=parseInt($('v-lote-cant')?.value)||0;
+  if(cantPedida<=0)return;
+  // Recolectar unidades disponibles del lote
+  const unidades=[];
+  comp.items.forEach(it=>{
+    const d=getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId);
+    if(d>0)unidades.push({...it,compraKey:ck});
+  });
+  const aCargar=unidades.slice(0,cantPedida);
+  if(!aCargar.length)return;
+  // Cambiar categoría al del primer item del lote
+  const catLote=aCargar[0].categoria||'iphone';
+  ventaCategoria=catLote;
+  document.querySelectorAll('#v-cat-selector .cat-btn').forEach(b=>{
+    b.classList.toggle('selected',b.dataset.cat===catLote);
+  });
+  // Agregar cada unidad como item de venta
+  aCargar.forEach(it=>{
+    const id=uid();ventaItems.push(id);
+    const wrap=document.createElement('div');wrap.id='vi-'+id;wrap.className='item-row';
+    wrap.dataset.categoria=catLote;
+    // Construir una fila simplificada con los datos precargados
+    const stockVal=JSON.stringify({itemId:it.itemId,compraKey:ck,modelo:it.modelo,capacidad:it.capacidad,color:it.color,imei:it.imei,bateria:it.bateria,grado:it.grado,precioVenta:it.precioVenta||0,costo:it.precio||0,categoria:catLote,itemData:it});
+    wrap.innerHTML=`
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;align-items:end;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px">
+        <div>
+          <div style="font-weight:600;font-size:13px">${it.modelo||'—'}${it.capacidad&&it.capacidad!=='N/A'?' <span style="color:var(--text2)">'+it.capacidad+'</span>':''}</div>
+          <div style="font-size:11px;color:var(--text2)">${[it.color,it.grado,it.imei?'IMEI '+it.imei:'',it.bateria?'🔋'+it.bateria+'%':''].filter(Boolean).join(' · ')}</div>
+          <input type="hidden" id="vi-eq-${id}" value='${stockVal.replace(/'/g,"&#39;")}'>
+          <input type="hidden" id="vi-imei-${id}" value="${it.imei||''}">
+          <input type="hidden" id="vi-color-${id}" value="${it.color||''}">
+          <input type="hidden" id="vi-grado-${id}" value="${it.grado||''}">
+          <input type="hidden" id="vi-tipo-${id}" value="">
+          <input type="hidden" id="vi-cat-${id}" value="${catLote}">
+          <input type="hidden" id="vi-cap-${id}" value="${it.capacidad||''}">
+          <input type="hidden" id="vi-modelo-${id}" value="${it.modelo||''}">
+        </div>
+        <div>
+          <label style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Cant.</label>
+          <input type="number" id="vi-cant-${id}" value="1" min="1" max="1" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:7px 10px;font-size:13px;width:60px;outline:none">
+        </div>
+        <div>
+          <label style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Precio venta (USD)</label>
+          <input type="number" id="vi-prec-${id}" value="${it.precioVenta||''}" min="0" step="0.01" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:7px 10px;font-size:13px;width:100px;outline:none" oninput="calcTotalVenta()">
+        </div>
+        <button onclick="this.closest('[id^=vi-]').remove();ventaItems=ventaItems.filter(i=>i!=='${id}');calcTotalVenta()" class="btn btn-danger btn-remove-row">✕</button>
+      </div>`;
+    $('v-items-container').appendChild(wrap);
+  });
+  // Ocultar panel y resetear
+  $('v-lote-panel').style.display='none';
+  $('v-lote-sel').value='';
+  $('v-lote-cant').value='';
+  $('v-lote-preview').style.display='none';
+  calcTotalVenta();
+}
+
 function addVentaItem(){
   const id=uid();ventaItems.push(id);
   const categoria=ventaCategoria||'iphone';
