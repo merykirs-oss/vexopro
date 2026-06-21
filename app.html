@@ -929,26 +929,35 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     <div id="tabla-reparaciones"></div>
   </div>
 
-  <!-- BASE DE DATOS TÉCNICOS (colapsable) — debajo de la tabla -->
-  <div style="margin-top:16px">
+  <!-- BASE DE DATOS TÉCNICOS + CTA CTE — con tabs -->
+  <div style="margin-top:20px">
     <button class="btn btn-secondary" id="btn-toggle-db-tecnicos" style="display:flex;align-items:center;gap:8px">👨‍🔧 Técnicos <span id="db-tec-arrow" style="font-size:11px;transition:transform 0.2s">▼</span></button>
   </div>
   <div id="panel-db-tecnicos" style="display:none;margin-top:12px">
-    <button class="btn btn-secondary" id="btn-toggle-nuevo-tecnico" style="margin-bottom:12px">➕ Nuevo técnico</button>
-    <div id="form-nuevo-tecnico" style="display:none">
-      <div class="form-card">
-        <h3>➕ Nuevo técnico</h3>
-        <div class="form-grid">
-          <div class="form-group"><label>Nombre *</label><input type="text" id="tec-nombre" placeholder="Nombre del técnico"></div>
-          <div class="form-group"><label>Teléfono</label><input type="text" id="tec-tel" placeholder="+54 9 11..."></div>
-          <div class="form-group"><label>Especialidad</label><input type="text" id="tec-esp" placeholder="Ej: iPhone, Samsung..."></div>
-          <div class="form-group"><label>Tipo</label><select id="tec-tipo"><option value="interno">Interno</option><option value="externo">Externo</option></select></div>
-        </div>
-        <div class="form-actions"><button class="btn btn-primary" id="btn-save-tecnico">Guardar técnico</button></div>
-        <div id="tec-alert"></div>
-      </div>
+    <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:16px">
+      <button class="tec-db-tab" data-tectab="lista" style="padding:9px 20px;font-size:13px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--accent);border-bottom:3px solid var(--accent);margin-bottom:-2px">👨‍🔧 Técnicos</button>
+      <button class="tec-db-tab" data-tectab="cta" style="padding:9px 20px;font-size:13px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--text2);border-bottom:3px solid transparent;margin-bottom:-2px">💳 Cuenta corriente</button>
     </div>
-    <div class="table-card"><h3>Técnicos <span id="badge-tecnicos" class="tag tag-blue"></span></h3><div id="tabla-tecnicos"></div></div>
+    <div id="tec-panel-lista">
+      <button class="btn btn-secondary" id="btn-toggle-nuevo-tecnico" style="margin-bottom:12px">➕ Nuevo técnico</button>
+      <div id="form-nuevo-tecnico" style="display:none">
+        <div class="form-card">
+          <h3>➕ Nuevo técnico</h3>
+          <div class="form-grid">
+            <div class="form-group"><label>Nombre *</label><input type="text" id="tec-nombre" placeholder="Nombre del técnico"></div>
+            <div class="form-group"><label>Teléfono</label><input type="text" id="tec-tel" placeholder="+54 9 11..."></div>
+            <div class="form-group"><label>Especialidad</label><input type="text" id="tec-esp" placeholder="Ej: iPhone, Samsung..."></div>
+            <div class="form-group"><label>Tipo</label><select id="tec-tipo"><option value="interno">Interno</option><option value="externo">Externo</option></select></div>
+          </div>
+          <div class="form-actions"><button class="btn btn-primary" id="btn-save-tecnico">Guardar técnico</button></div>
+          <div id="tec-alert"></div>
+        </div>
+      </div>
+      <div class="table-card"><h3>Técnicos <span id="badge-tecnicos" class="tag tag-blue"></span></h3><div id="tabla-tecnicos"></div></div>
+    </div>
+    <div id="tec-panel-cta" style="display:none">
+      <div id="tabla-cta-tecnicos"></div>
+    </div>
   </div>
 </div>
 
@@ -2047,7 +2056,19 @@ function initApp(){
     p.style.display=open?'none':'block';
     const arrow=$('db-tec-arrow');
     if(arrow)arrow.style.transform=open?'rotate(0deg)':'rotate(180deg)';
+    if(!open)renderCtaTecnicos();
   });
+  document.querySelectorAll('.tec-db-tab').forEach(btn=>btn.addEventListener('click',()=>{
+    const tab=btn.dataset.tectab;
+    document.querySelectorAll('.tec-db-tab').forEach(b=>{
+      const active=b.dataset.tectab===tab;
+      b.style.color=active?'var(--accent)':'var(--text2)';
+      b.style.borderBottom=active?'3px solid var(--accent)':'3px solid transparent';
+    });
+    $('tec-panel-lista').style.display=tab==='lista'?'block':'none';
+    $('tec-panel-cta').style.display=tab==='cta'?'block':'none';
+    if(tab==='cta')renderCtaTecnicos();
+  }));
   $('btn-toggle-nuevo-tecnico')?.addEventListener('click',()=>{
     const f=$('form-nuevo-tecnico');
     const open=f.style.display!=='none';
@@ -4814,17 +4835,21 @@ function renderIngresoGarantias(){
 const CATEGORIAS_CON_GARANTIA=['iphone','ipad','mac','watch']; // default, se sobreescribe con S.config
 function categoriasConGarantia(){return (S.config?.categoriasGarantia)||CATEGORIAS_CON_GARANTIA;}
 // Genera el siguiente código alfanumérico para garantías: G0001, G0002... G9999, H0001...
+const _codigosEnUso=new Set(); // para evitar duplicados en emisión múltiple
 function generarCodigoGarantia(){
-  const codigos=Object.values(S.garantias).map(g=>g.codigo).filter(Boolean);
-  if(!codigos.length)return'G0001';
-  const max=codigos.sort().at(-1);
+  const codigos=[...Object.values(S.garantias).map(g=>g.codigo).filter(Boolean),..._codigosEnUso];
+  let max='G0000';
+  if(codigos.length) max=codigos.sort().at(-1);
   const letra=max.charAt(0);
   const num=parseInt(max.slice(1),10);
+  let nuevo;
   if(num>=9999){
-    const siguienteLetra=String.fromCharCode(letra.charCodeAt(0)+1);
-    return siguienteLetra+'0001';
+    nuevo=String.fromCharCode(letra.charCodeAt(0)+1)+'0001';
+  }else{
+    nuevo=letra+String(num+1).padStart(4,'0');
   }
-  return letra+String(num+1).padStart(4,'0');
+  _codigosEnUso.add(nuevo);
+  return nuevo;
 }
 function sumarDias(fechaISO,dias){
   const d=new Date(fechaISO+'T00:00:00');
@@ -4868,31 +4893,50 @@ async function emitirGarantia(ventaIdParam=null,alertId='emg-alert'){
   const vk=ventaIdParam||$('emg-venta').value;
   if(!vk){showAlert(alertId,'Elegí una venta',false);return;}
   const v=S.ventas[vk];if(!v){showAlert(alertId,'Venta no encontrada',false);return;}
-  const yaEmitida=Object.entries(S.garantias).find(([,g])=>g.ventaId===vk);
   const cl=S.clientes[v.clienteId];
-  const item=v.items.find(i=>categoriasConGarantia().includes(i.categoria||'iphone'));
-  if(!item){showAlert(alertId,'Esta venta no incluye un dispositivo con garantía',false);return;}
+  const itemsConGarantia=v.items.filter(i=>categoriasConGarantia().includes(i.categoria||'iphone'));
+  if(!itemsConGarantia.length){showAlert(alertId,'Esta venta no incluye dispositivos con garantía',false);return;}
   const dias=diasGarantiaConfigurados();
   const vencimiento=sumarDias(v.fecha,dias);
 
-  let codigo,key;
-  if(yaEmitida){
-    // Ya existe: re-descargar el mismo certificado sin duplicar
-    key=yaEmitida[0];codigo=yaEmitida[1].codigo;
-  }else{
-    codigo=generarCodigoGarantia();
-    const ref=await push(dbRef('garantias'),{
-      codigo,ventaId:vk,clienteId:v.clienteId,
-      modelo:item.modelo,capacidad:item.capacidad||'',color:item.color||'',imei:item.imei||'',
-      fechaCompra:v.fecha,fechaVencimiento:vencimiento,dias
-    });
-    key=ref.key;
+  // Emitir un certificado por cada unidad (cantidad puede ser >1 por item legacy)
+  const unidades=[];
+  itemsConGarantia.forEach(item=>{
+    const cant=item.cantidad||1;
+    for(let u=0;u<cant;u++) unidades.push(item);
+  });
+
+  let codigos=[];
+  for(const item of unidades){
+    // Buscar si ya existe garantía para este item específico (por itemId o por ventaId+imei)
+    const yaEmitida=Object.entries(S.garantias).find(([,g])=>
+      g.ventaId===vk&&(item.itemId?g.itemId===item.itemId:(g.imei&&g.imei===item.imei)||(!g.itemId&&!item.itemId&&g.modelo===item.modelo))
+    );
+    let codigo,key;
+    if(yaEmitida){
+      key=yaEmitida[0];codigo=yaEmitida[1].codigo;
+    }else{
+      codigo=generarCodigoGarantia();
+      // Pequeña espera para que el código incremente correctamente
+      await new Promise(r=>setTimeout(r,50));
+      const ref=await push(dbRef('garantias'),{
+        codigo,ventaId:vk,itemId:item.itemId||null,clienteId:v.clienteId,
+        modelo:item.modelo,capacidad:item.capacidad||'',color:item.color||'',
+        imei:item.imei||'',bateria:item.bateria||'',grado:item.grado||'',
+        fechaCompra:v.fecha,fechaVencimiento:vencimiento,dias
+      });
+      key=ref.key;
+    }
+    codigos.push(codigo);
+    // Generar PDF para cada unidad
+    setTimeout(()=>generarCertificadoPDF({codigo,cliente:cl,item,fechaCompra:v.fecha,vencimiento,dias}),codigos.length*300);
   }
-  showAlert(alertId,'✅ Garantía '+codigo+' lista. Generando PDF...');
-  generarCertificadoPDF({codigo,cliente:cl,item,fechaCompra:v.fecha,vencimiento,dias});
+
+  const msg=codigos.length===1?'✅ Garantía '+codigos[0]+' generada.':'✅ '+codigos.length+' certificados generados: '+codigos.join(', ');
+  showAlert(alertId,msg);
   refreshEmitirGarantiaSelect();
   refreshRepSelects();
-  renderVentas(); // refresca el botón en el historial a "CERTIFICADO EMITIDO"
+  renderVentas();
 }
 function verificarGarantia(){
   const codigo=$('ver-codigo').value.trim().toUpperCase();
@@ -5205,6 +5249,66 @@ function saveTecnico(){
     .catch(()=>showAlert('tec-alert','Error',false));
 }
 
+function renderCtaTecnicos(){
+  const el=$('tabla-cta-tecnicos');if(!el)return;
+  const tecs=Object.entries(S.tecnicos);
+  if(!tecs.length){el.innerHTML='<div class="empty-state"><div class="big">👨‍🔧</div><p>Sin técnicos registrados.</p></div>';return;}
+
+  let html='';
+  tecs.forEach(([tk,tec])=>{
+    // Reparaciones de este técnico no marcadas como pagadas
+    const repsDeuda=Object.entries(S.reparaciones)
+      .filter(([,r])=>r.tecnicoId===tk&&!r.pagadoTecnico&&(r.costo||0)>0)
+      .sort((a,b)=>(a[1].fecha||'').localeCompare(b[1].fecha||''));
+    if(!repsDeuda.length)return;
+    const totalDeuda=repsDeuda.reduce((s,[,r])=>s+(r.costo||0),0);
+    const tipoTag=tec.tipo==='interno'?'<span class="tag tag-blue" style="font-size:10px">Interno</span>':'<span class="tag tag-yellow" style="font-size:10px">Externo</span>';
+
+    let rows=repsDeuda.map(([rk,r])=>`
+      <tr>
+        <td class="mono" style="font-size:11px">${fmtD(r.fecha)}</td>
+        <td><strong>${r.modelo||'—'}</strong>${r.capacidad?' <span style="color:var(--text2)">'+r.capacidad+'</span>':''}</td>
+        <td style="font-size:12px;color:var(--text2)">${r.clienteNombre||'—'}</td>
+        <td style="font-size:12px;color:var(--text2)">${r.problema||'—'}</td>
+        <td class="mono" style="color:var(--red)">
+          <input type="number" value="${r.costo||0}" min="0" step="0.01"
+            style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--red);padding:4px 8px;font-size:12px;font-family:var(--mono);width:80px;outline:none"
+            data-rep-key="${rk}" class="costo-rep-input">
+        </td>
+        <td><button class="btn btn-primary btn-sm pagar-tec-btn" data-rep-key="${rk}" style="font-size:11px;padding:4px 10px">✓ Pagado</button></td>
+      </tr>`).join('');
+
+    html+=`<div class="table-card" style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:0 0 12px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <span style="font-weight:700;font-size:15px">${tec.nombre}</span> ${tipoTag}
+          ${tec.tel?'<span style="font-size:12px;color:var(--text2);margin-left:8px">'+tec.tel+'</span>':''}
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.7px">Total a pagar</div>
+          <div style="font-family:var(--mono);font-size:20px;font-weight:800;color:var(--red)">${fmt(totalDeuda)}</div>
+        </div>
+      </div>
+      <table style="margin-top:10px"><thead><tr><th>Fecha</th><th>Equipo</th><th>Cliente</th><th>Problema</th><th>Costo</th><th></th></tr></thead>
+      <tbody>${rows}</tbody></table>
+    </div>`;
+  });
+
+  if(!html){el.innerHTML='<div class="empty-state"><div class="big">✅</div><p>Sin deudas pendientes con técnicos.</p></div>';return;}
+  el.innerHTML=html;
+
+  // Editar costo inline
+  el.querySelectorAll('.costo-rep-input').forEach(inp=>inp.addEventListener('change',()=>{
+    const val=parseFloat(inp.value)||0;
+    update(dbRef('reparaciones/'+inp.dataset.repKey),{costo:val}).then(()=>renderCtaTecnicos());
+  }));
+  // Marcar como pagado
+  el.querySelectorAll('.pagar-tec-btn').forEach(btn=>btn.addEventListener('click',()=>{
+    if(confirm('¿Marcar esta reparación como pagada al técnico?'))
+      update(dbRef('reparaciones/'+btn.dataset.repKey),{pagadoTecnico:true}).then(()=>renderCtaTecnicos());
+  }));
+}
+
 function renderPantallazoTecnicos(){
   const el=$('tec-pantallazo');if(!el)return;
   // Para cada técnico con reparaciones activas (no entregadas)
@@ -5289,13 +5393,17 @@ function renderTecnicos(){
         +'<td>'+(r.clienteNombre||'—')+(r.clienteTel?'<div style="font-size:11px;color:var(--text2)">'+r.clienteTel+'</div>':'')+'</td>'
         +'<td>'+(t?.nombre||'—')+'</td>'
         +'<td style="font-size:12px;color:var(--text2)">'+(r.problema||'—')+'</td>'
-        +'<td class="mono" style="color:var(--red)">'+(r.costo?fmt(r.costo):'—')+'</td>'
+        +'<td><input type="number" class="costo-rep-input" data-rep-key="'+k+'" value="'+(r.costo||0)+'" min="0" step="0.01" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--red);font-family:var(--mono);font-size:12px;padding:4px 8px;width:90px;outline:none"></td>'
         +'<td>'+garTag+' '+origenTag+'</td>'
         +'<td><select class="rep-estado-sel" data-rep-key="'+k+'" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font-size:12px;font-family:var(--sans)">'+estOpts+'</select></td>'
         +'<td><button class="btn btn-danger btn-sm" data-del-rep="'+k+'">🗑</button></td></tr>';
     });
     elR.innerHTML='<table><thead><tr><th>Fecha</th><th>Equipo</th><th>Cliente</th><th>Técnico</th><th>Problema</th><th>Costo</th><th></th><th>Estado</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
     elR.querySelectorAll('.rep-estado-sel').forEach(sel=>sel.addEventListener('change',()=>update(dbRef('reparaciones/'+sel.dataset.repKey),{estado:sel.value})));
+    elR.querySelectorAll('.costo-rep-input').forEach(inp=>inp.addEventListener('change',()=>{
+      const val=parseFloat(inp.value)||0;
+      update(dbRef('reparaciones/'+inp.dataset.repKey),{costo:val});
+    }));
     elR.querySelectorAll('[data-del-rep]').forEach(btn=>btn.addEventListener('click',()=>{if(confirm('¿Eliminar?'))remove(dbRef('reparaciones/'+btn.dataset.delRep));}));
   }
   const elT=$('tabla-tecnicos');if(!elT)return;
