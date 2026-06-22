@@ -2684,7 +2684,24 @@ function makeCompraItemEl(id,data=null,cat=null){
         hidden('ci-imei-'+id+'-'+u,'');hidden('ci-bat-'+id+'-'+u,'');
       }
       const pvEl=inp('number','ci-pvta-'+id+'-'+u,'0',{value:dataU?.precioVenta||data?.precioVenta||'',min:0,step:0.01});
-      gridU.appendChild(fg('Precio venta (USD)',pvEl));
+      const pvWrap=document.createElement('div');pvWrap.className='form-group';
+      const pvLabel=document.createElement('label');pvLabel.textContent='Precio venta (USD)';
+      pvWrap.appendChild(pvLabel);pvWrap.appendChild(pvEl);
+      if(u===0){
+        const applyAll=document.createElement('div');
+        applyAll.style.cssText='font-size:11px;color:var(--accent);cursor:pointer;margin-top:4px;text-decoration:underline;';
+        applyAll.textContent='Aplicar a todas las unidades';
+        applyAll.addEventListener('click',()=>{
+          const val=pvEl.value;
+          const total=parseInt(cantEl.value)||1;
+          for(let x=0;x<total;x++){
+            const el2=$('ci-pvta-'+id+'-'+x);
+            if(el2&&x!==0)el2.value=val;
+          }
+        });
+        pvWrap.appendChild(applyAll);
+      }
+      gridU.appendChild(pvWrap);
 
       card.appendChild(gridU);
       unidadesBox.appendChild(card);
