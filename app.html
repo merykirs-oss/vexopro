@@ -2197,7 +2197,15 @@ function initApp(){
     update(dbRef('compras/'+ck),{items:updatedItems}).then(()=>{
       $('edit-c-pvta-alert').textContent='✅ Precio aplicado'+(filtroModelo?' a los '+filtroModelo:' a todos los equipos del lote')+'.';
       $('edit-c-pvta-alert').style.color='var(--accent)';
-      $('edit-c-pvta-lote').value='';$('edit-c-pvta-modelo').value='';
+      // Actualizar también los campos visibles en el modal
+      editCompraItems.forEach(eid=>{
+        const modeloEl=$('eci-modelo-'+eid);
+        if(!modeloEl)return;
+        if(filtroModelo&&modeloEl.value!==filtroModelo)return;
+        const pvEl=$('eci-precio-vta-'+eid);
+        if(pvEl)pvEl.value=pv;
+      });
+      $('edit-c-pvta-lote').value='';
     });
   });
 
