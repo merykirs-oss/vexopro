@@ -1474,7 +1474,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
         </div>
         <div class="form-group" style="margin-bottom:0;flex:1;min-width:140px">
           <label>Aplicar a modelo (opcional)</label>
-          <input type="text" id="edit-c-pvta-modelo" placeholder="Ej: iPhone 14 Pro (vacío = todos)">
+          <select id="edit-c-pvta-modelo"><option value="">Todos los modelos</option></select>
         </div>
         <button class="btn btn-primary btn-sm" id="btn-aplicar-pvta-lote" style="white-space:nowrap">Aplicar a todo el lote</button>
       </div>
@@ -2186,12 +2186,12 @@ function initApp(){
   $('btn-guardar-edit-compra').addEventListener('click',guardarEditCompra);
   $('btn-aplicar-pvta-lote')?.addEventListener('click',()=>{
     const pv=parseFloat($('edit-c-pvta-lote')?.value)||0;
-    const filtroModelo=($('edit-c-pvta-modelo')?.value||'').toLowerCase().trim();
+    const filtroModelo=$('edit-c-pvta-modelo')?.value||'';
     if(!pv){$('edit-c-pvta-alert').textContent='Ingresá un precio de venta.';$('edit-c-pvta-alert').style.color='var(--red)';return;}
     const ck=$('edit-c-key')?.value;
     const comp=S.compras[ck];if(!comp)return;
     const updatedItems=comp.items.map(it=>{
-      if(filtroModelo&&!(it.modelo||'').toLowerCase().includes(filtroModelo))return it;
+      if(filtroModelo&&it.modelo!==filtroModelo)return it;
       return{...it,precioVenta:pv};
     });
     update(dbRef('compras/'+ck),{items:updatedItems}).then(()=>{
@@ -2976,6 +2976,14 @@ function editCompra(k){
   $('edit-c-fecha-entrega').value=c.fechaEntrega||'';$('edit-c-estado-entrega').value=c.estadoEntrega||'en_camino';
   $('edit-c-items').innerHTML='';editCompraItems=[];
   c.items.forEach(item=>addEditCompraItem(item));
+  // Llenar select de modelos del lote
+  const modeloSel=$('edit-c-pvta-modelo');
+  if(modeloSel){
+    const modelos=[...new Set(c.items.map(it=>it.modelo).filter(Boolean))];
+    modeloSel.innerHTML='<option value="">Todos los modelos</option>';
+    modelos.forEach(m=>{const op=document.createElement('option');op.value=m;op.textContent=m;modeloSel.appendChild(op);});
+  }
+  $('edit-c-pvta-lote').value='';$('edit-c-pvta-alert').textContent='';
   openModal('modal-edit-compra');
 }
 function makeEditCompraItemEl(id,data=null){
