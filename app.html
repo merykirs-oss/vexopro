@@ -598,7 +598,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
         <div id="v-items-container"></div>
         <div style="display:flex;gap:8px;margin-top:8px">
           <button class="btn btn-add" id="btn-add-venta-item" style="flex:1">＋ Agregar unidad</button>
-          <button class="btn btn-add" id="btn-add-venta-lote" style="flex:1;color:var(--blue);border-color:rgba(26,111,255,0.3)">📦 Agregar lote / Mayorista</button>
+          <button class="btn btn-add" id="btn-add-venta-lote" style="flex:1;color:var(--blue);border-color:rgba(26,111,255,0.3);display:none">📦 Agregar lote / Mayorista</button>
         </div>
         <!-- Panel selector de lote (colapsable) -->
         <div id="v-lote-panel" style="display:none;margin-top:10px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
@@ -670,20 +670,6 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 <div id="page-stock" class="page">
   <div class="page-header"><h2>📊 Stock</h2></div>
   <div id="stats-stock" class="stats-row"></div>
-  <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
-    <button class="btn btn-secondary btn-sm" id="btn-toggle-filtros-stock">🔍 Filtrar <span id="filtros-stock-arrow">▼</span></button>
-  </div>
-  <div id="panel-filtros-stock" style="display:none;margin-bottom:16px">
-    <div class="form-card" style="padding:16px 20px;margin-bottom:0">
-      <div class="form-grid" style="margin-bottom:10px">
-        <div class="form-group"><label>Modelo</label><input type="text" id="sf-modelo" placeholder="Ej: iPhone 15..."></div>
-        <div class="form-group"><label>Punto de venta</label><select id="sf-local"><option value="">Todos</option></select></div>
-        <div class="form-group"><label>Estado</label><select id="sf-estado-stock"><option value="">Todos</option><option value="disponible">✅ Disponible</option><option value="vendido">❌ Vendido</option><option value="bajo">⚠️ Stock bajo (≤2)</option><option value="en_camino">🚚 En camino</option></select></div>
-        <div class="form-group"><label>Categoría</label><select id="sf-categoria"><option value="">Todas</option><option value="iphone">iPhone</option><option value="ipad">iPad</option><option value="mac">Mac</option><option value="watch">Watch</option><option value="accesorio">Accesorio</option><option value="android">Android</option><option value="otro">Otro</option></select></div>
-      </div>
-      <button class="btn btn-secondary btn-sm" id="btn-limpiar-filtro-stock">Limpiar filtros</button>
-    </div>
-  </div>
   <div class="form-card" style="margin-bottom:16px">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
       <div>
@@ -706,6 +692,21 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
         <input type="checkbox" id="cfg-catalogo-mostrar-stock" style="accent-color:var(--accent);width:16px;height:16px">
         Mostrar stock
       </label>
+    </div>
+  </div>
+  <!-- Filtrar justo arriba del inventario -->
+  <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+    <button class="btn btn-secondary btn-sm" id="btn-toggle-filtros-stock">🔍 Filtrar <span id="filtros-stock-arrow">▼</span></button>
+  </div>
+  <div id="panel-filtros-stock" style="display:none;margin-bottom:16px">
+    <div class="form-card" style="padding:16px 20px;margin-bottom:0">
+      <div class="form-grid" style="margin-bottom:10px">
+        <div class="form-group"><label>Modelo</label><input type="text" id="sf-modelo" placeholder="Ej: iPhone 15..."></div>
+        <div class="form-group"><label>Punto de venta</label><select id="sf-local"><option value="">Todos</option></select></div>
+        <div class="form-group"><label>Estado</label><select id="sf-estado-stock"><option value="">Todos</option><option value="disponible">✅ Disponible</option><option value="vendido">❌ Vendido</option><option value="bajo">⚠️ Stock bajo (≤2)</option><option value="en_camino">🚚 En camino</option></select></div>
+        <div class="form-group"><label>Categoría</label><select id="sf-categoria"><option value="">Todas</option><option value="iphone">iPhone</option><option value="ipad">iPad</option><option value="mac">Mac</option><option value="watch">Watch</option><option value="accesorio">Accesorio</option><option value="android">Android</option><option value="otro">Otro</option></select></div>
+      </div>
+      <button class="btn btn-secondary btn-sm" id="btn-limpiar-filtro-stock">Limpiar filtros</button>
     </div>
   </div>
   <div class="table-card"><h3>Inventario</h3><div id="tabla-stock"></div></div>
@@ -781,59 +782,84 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 </div>
 
 <div id="page-garantias" class="page">
-  <div class="page-header"><h2>🛡️ Garantías</h2><p>Emití certificados y gestioná ingresos por garantía.</p></div>
+  <div class="page-header"><h2>🛡️ Garantías</h2></div>
 
-  <!-- TABS -->
-  <div style="display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;border-bottom:2px solid var(--border);padding-bottom:0">
-    <button class="gar-tab active-tab" data-tab="ingresos" style="padding:10px 18px;font-size:13px;font-weight:600;border:none;background:none;color:var(--accent);cursor:pointer;border-bottom:3px solid var(--accent);margin-bottom:-2px">🛡️ Ingresos por garantía</button>
-    <button class="gar-tab" data-tab="emitir" style="padding:10px 18px;font-size:13px;font-weight:600;border:none;background:none;color:var(--text2);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px">📄 Emitir certificado</button>
-    <button class="gar-tab" data-tab="verificar" style="padding:10px 18px;font-size:13px;font-weight:600;border:none;background:none;color:var(--text2);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px">🔍 Verificar código</button>
+  <!-- TABS PRINCIPALES: Clientes / Proveedores -->
+  <div style="display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid var(--border)">
+    <button class="gar-main-tab" data-main-tab="clientes" style="padding:12px 24px;font-size:14px;font-weight:700;border:none;background:none;color:var(--accent);cursor:pointer;border-bottom:3px solid var(--accent);margin-bottom:-2px">👥 Clientes</button>
+    <button class="gar-main-tab" data-main-tab="proveedores" style="padding:12px 24px;font-size:14px;font-weight:700;border:none;background:none;color:var(--text2);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px">🏭 Proveedores</button>
   </div>
 
-  <!-- PANEL INGRESOS -->
-  <div id="gar-panel-ingresos">
-    <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">
-      <button class="btn btn-primary" id="btn-nuevo-ingreso-garantia">🛡️ Nuevo ingreso por garantía</button>
-      <button class="btn btn-secondary btn-sm" id="btn-toggle-filtros-gar">🔍 Filtrar <span id="filtros-gar-arrow">▼</span></button>
+  <!-- ══ PANEL CLIENTES ══ -->
+  <div id="gar-main-clientes">
+    <!-- SUB-TABS -->
+    <div style="display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;border-bottom:1px solid var(--border);padding-bottom:0">
+      <button class="gar-tab active-tab" data-tab="ingresos" style="padding:10px 18px;font-size:13px;font-weight:600;border:none;background:none;color:var(--accent);cursor:pointer;border-bottom:3px solid var(--accent);margin-bottom:-2px">🛡️ Ingresos por garantía</button>
+      <button class="gar-tab" data-tab="emitir" style="padding:10px 18px;font-size:13px;font-weight:600;border:none;background:none;color:var(--text2);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px">📄 Emitir certificado</button>
+      <button class="gar-tab" data-tab="verificar" style="padding:10px 18px;font-size:13px;font-weight:600;border:none;background:none;color:var(--text2);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px">🔍 Verificar código</button>
     </div>
-    <div id="panel-filtros-gar" style="display:none;margin-bottom:14px">
-      <div class="form-card" style="padding:14px 16px;margin-bottom:0">
-        <div class="form-grid" style="margin-bottom:10px">
-          <div class="form-group"><label>Cliente</label><input type="text" id="gf-cliente" placeholder="Buscar nombre..."></div>
-          <div class="form-group"><label>N° garantía</label><input type="text" id="gf-codigo" placeholder="Ej: G0001" style="text-transform:uppercase"></div>
-          <div class="form-group"><label>Equipo</label><input type="text" id="gf-equipo" placeholder="Ej: iPhone 15..."></div>
-          <div class="form-group"><label>Tipo</label><select id="gf-tipo"><option value="">Todos</option><option value="reparacion">Reparación</option><option value="cambio">Cambio</option></select></div>
-          <div class="form-group"><label>Estado</label><select id="gf-estado"><option value="">Todos</option><option value="en_proceso">En proceso</option><option value="listo">Listo</option><option value="entregado">Entregado</option></select></div>
+
+    <!-- PANEL INGRESOS -->
+    <div id="gar-panel-ingresos">
+      <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+        <button class="btn btn-primary" id="btn-nuevo-ingreso-garantia">🛡️ Nuevo ingreso por garantía</button>
+        <button class="btn btn-secondary btn-sm" id="btn-toggle-filtros-gar">🔍 Filtrar <span id="filtros-gar-arrow">▼</span></button>
+      </div>
+      <div id="panel-filtros-gar" style="display:none;margin-bottom:14px">
+        <div class="form-card" style="padding:14px 16px;margin-bottom:0">
+          <div class="form-grid" style="margin-bottom:10px">
+            <div class="form-group"><label>Cliente</label><input type="text" id="gf-cliente" placeholder="Buscar nombre..."></div>
+            <div class="form-group"><label>N° garantía</label><input type="text" id="gf-codigo" placeholder="Ej: G0001" style="text-transform:uppercase"></div>
+            <div class="form-group"><label>Equipo</label><input type="text" id="gf-equipo" placeholder="Ej: iPhone 15..."></div>
+            <div class="form-group"><label>Tipo</label><select id="gf-tipo"><option value="">Todos</option><option value="reparacion">Reparación</option><option value="cambio">Cambio</option></select></div>
+            <div class="form-group"><label>Estado</label><select id="gf-estado"><option value="">Todos</option><option value="en_proceso">En proceso</option><option value="listo">Listo</option><option value="entregado">Entregado</option></select></div>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="btn-limpiar-filtros-gar">Limpiar</button>
         </div>
-        <button class="btn btn-secondary btn-sm" id="btn-limpiar-filtros-gar">Limpiar</button>
+      </div>
+      <div class="table-card">
+        <h3>Ingresos por garantía <span id="badge-ingresos-garantia" class="tag tag-blue"></span></h3>
+        <div id="tabla-ingresos-garantia"></div>
       </div>
     </div>
+
+    <!-- PANEL EMITIR -->
+    <div id="gar-panel-emitir" style="display:none">
+      <div class="form-card">
+        <h3>📜 Emitir Garantía</h3>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Elegí una venta registrada para generar el certificado.</p>
+        <div class="form-group"><label>Venta</label><select id="emg-venta"><option value="">— Seleccionar venta —</option></select></div>
+        <div id="emg-preview" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin:10px 0;font-size:13px"></div>
+        <div class="form-actions"><button class="btn btn-primary" id="btn-emitir-garantia">📄 Emitir y descargar certificado</button></div>
+        <div id="emg-alert"></div>
+      </div>
+    </div>
+
+    <!-- PANEL VERIFICAR -->
+    <div id="gar-panel-verificar" style="display:none">
+      <div class="form-card">
+        <h3>🔍 Verificar Garantía</h3>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Ingresá el código del certificado para chequear su vigencia.</p>
+        <div class="form-group"><label>Código de garantía</label><input type="text" id="ver-codigo" placeholder="Ej: G0001" style="text-transform:uppercase"></div>
+        <div class="form-actions"><button class="btn btn-primary" id="btn-verificar-garantia">Verificar</button></div>
+        <div id="ver-resultado" style="margin-top:14px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PANEL PROVEEDORES ══ -->
+  <div id="gar-main-proveedores" style="display:none">
+    <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+      <p style="font-size:13px;color:var(--text2);margin:0">Registrá cuando un proveedor te hace válida una garantía por un equipo con falla.</p>
+      <button class="btn btn-primary" id="btn-nueva-gar-proveedor">🏭 Nuevo reclamo a proveedor</button>
+    </div>
+    <!-- Filtro -->
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input type="text" id="gprov-filtro" placeholder="🔍 Buscar por proveedor o equipo..." style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 12px;font-size:13px;font-family:var(--sans);outline:none;flex:1;max-width:360px;box-sizing:border-box">
+    </div>
     <div class="table-card">
-      <h3>Ingresos por garantía <span id="badge-ingresos-garantia" class="tag tag-blue"></span></h3>
-      <div id="tabla-ingresos-garantia"></div>
-    </div>
-  </div>
-
-  <!-- PANEL EMITIR -->
-  <div id="gar-panel-emitir" style="display:none">
-    <div class="form-card">
-      <h3>📜 Emitir Garantía</h3>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Elegí una venta registrada para generar el certificado.</p>
-      <div class="form-group"><label>Venta</label><select id="emg-venta"><option value="">— Seleccionar venta —</option></select></div>
-      <div id="emg-preview" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin:10px 0;font-size:13px"></div>
-      <div class="form-actions"><button class="btn btn-primary" id="btn-emitir-garantia">📄 Emitir y descargar certificado</button></div>
-      <div id="emg-alert"></div>
-    </div>
-  </div>
-
-  <!-- PANEL VERIFICAR -->
-  <div id="gar-panel-verificar" style="display:none">
-    <div class="form-card">
-      <h3>🔍 Verificar Garantía</h3>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Ingresá el código del certificado para chequear su vigencia.</p>
-      <div class="form-group"><label>Código de garantía</label><input type="text" id="ver-codigo" placeholder="Ej: G0001" style="text-transform:uppercase"></div>
-      <div class="form-actions"><button class="btn btn-primary" id="btn-verificar-garantia">Verificar</button></div>
-      <div id="ver-resultado" style="margin-top:14px"></div>
+      <h3>Reclamos a proveedores <span id="badge-gar-proveedores" class="tag tag-blue"></span></h3>
+      <div id="tabla-gar-proveedores"></div>
     </div>
   </div>
 </div>
@@ -1572,7 +1598,7 @@ const db = getDatabase(app);
 signOut(auth).catch(()=>{});
 
 // ─── STATE ───────────────────────────────────────────────────
-let S = {compras:{},ventas:{},clientes:{},garantias:{},ingresosGarantia:{},tecnicos:{},reparaciones:{},pagos:{},pagosProveedores:{},proveedores:{},caja:{},costos:{},locales:{},config:{},equipo:{},roles:{}};
+let S = {compras:{},ventas:{},clientes:{},garantias:{},ingresosGarantia:{},garantiasProveedores:{},tecnicos:{},reparaciones:{},pagos:{},pagosProveedores:{},proveedores:{},caja:{},costos:{},locales:{},config:{},equipo:{},roles:{}};
 let currentUser=null;
 let currentUserRole=null; // 'owner' | 'employee'
 let currentUserPermisos=null; // {modulos:{ventas:true,...}, locales:['all']|[localId,...], puedeEscribir:{ventas:true,...}}
@@ -1844,6 +1870,7 @@ function initApp(){
   onValue(dbRef('tecnicos'),s=>{S.tecnicos=s.val()||{};renderTecnicos();refreshRepSelects();});
   onValue(dbRef('reparaciones'),s=>{S.reparaciones=s.val()||{};renderTecnicos();});
   onValue(dbRef('ingresosGarantia'),s=>{S.ingresosGarantia=s.val()||{};if($('tabla-ingresos-garantia'))renderIngresoGarantias();if($('page-tecnicos')?.classList.contains('active'))renderTecnicos();});
+  onValue(dbRef('garantiasProveedores'),s=>{S.garantiasProveedores=s.val()||{};if($('tabla-gar-proveedores'))renderGarProveedores();});
   onValue(dbRef('pagos'),s=>{S.pagos=s.val()||{};renderCC();});
   onValue(dbRef('pagosProveedores'),s=>{S.pagosProveedores=s.val()||{};renderCCProveedores();});
   onValue(dbRef('proveedores'),s=>{S.proveedores=s.val()||{};renderProveedores();renderCCProveedores();});
@@ -1999,9 +2026,21 @@ function initApp(){
   $('btn-cerrar-wizard-venta').addEventListener('click',cerrarWizardVenta);
   $('wizVentaBack').addEventListener('click',()=>wizVentaMove(-1));
   $('wizVentaNext').addEventListener('click',()=>wizVentaMove(1));
+  function actualizarBotonesPorTipoCliente(){
+    const cId=$('v-cliente').value;
+    const cl=cId&&cId!=='__nuevo__'?S.clientes[cId]:null;
+    const esMayorista=cl?.tipo==='mayorista'||$('v-nuevo-tipo')?.value==='mayorista';
+    const btnLote=$('btn-add-venta-lote');
+    if(btnLote)btnLote.style.display=esMayorista?'':'none';
+    if(!esMayorista&&$('v-lote-panel'))$('v-lote-panel').style.display='none';
+  }
   $('v-cliente').addEventListener('change',()=>{
     $('v-nuevo-cliente-box').style.display=$('v-cliente').value==='__nuevo__'?'block':'none';
+    actualizarBotonesPorTipoCliente();
   });
+  $('v-nuevo-tipo')?.addEventListener('change',actualizarBotonesPorTipoCliente);
+  // Inicializar al abrir wizard
+  actualizarBotonesPorTipoCliente();
   $('v-descuento').addEventListener('input',calcTotalVenta);
   $('v-comision').addEventListener('input',calcTotalVenta);
 
@@ -2069,7 +2108,20 @@ function initApp(){
   $('ccp-filtro-nombre')?.addEventListener('input',renderCCProveedores);
   $('emg-venta').addEventListener('change',mostrarPreviewGarantia);
   $('btn-emitir-garantia').addEventListener('click',()=>emitirGarantia());
-  // Garantías — tabs
+  // Garantías — main tabs
+  document.querySelectorAll('.gar-main-tab').forEach(btn=>btn.addEventListener('click',()=>garMainSwitchTab(btn.dataset.mainTab)));
+  // Proveedor warranty wizard
+  $('btn-nueva-gar-proveedor')?.addEventListener('click',abrirGProvWizard);
+  $('btn-cerrar-gar-prov')?.addEventListener('click',()=>closeModal('modal-gar-proveedor'));
+  $('wizGProvNext')?.addEventListener('click',gprovNext);
+  $('wizGProvBack')?.addEventListener('click',gprovBack);
+  document.querySelectorAll('.gprov-tipo-btn').forEach(btn=>btn.addEventListener('click',()=>{
+    gprovTipo=btn.dataset.tipo;
+    document.querySelectorAll('.gprov-tipo-btn').forEach(b=>{b.style.borderColor='var(--border)';b.style.background='var(--surface2)';});
+    btn.style.borderColor='var(--accent)';btn.style.background='var(--accent-dim)';
+  }));
+  $('gprov-buscar')?.addEventListener('input',e=>fillGProvStockSelect(e.target.value));
+  $('gprov-filtro')?.addEventListener('input',renderGarProveedores);
   window.garSwitchTab=function(tab){
     document.querySelectorAll('.gar-tab').forEach(b=>{
       const active=b.dataset.tab===tab;
@@ -2330,7 +2382,7 @@ function showPage(name){
   if(name==='ventas'){renderVentas();refreshClienteSelects();}
   if(name==='stock')renderStock();
   if(name==='cuentacorriente')renderCC();
-  if(name==='garantias'){refreshEmitirGarantiaSelect();$('gconf-dias').value=diasGarantiaConfigurados();renderIngresoGarantias();garSwitchTab('ingresos');}
+  if(name==='garantias'){refreshEmitirGarantiaSelect();$('gconf-dias').value=diasGarantiaConfigurados();renderIngresoGarantias();garSwitchTab('ingresos');garMainSwitchTab('clientes');}
   if(name==='tecnicos'){renderTecnicos();refreshRepSelects();}
   if(name==='proveedores')renderProveedores();
   if(name==='cc-proveedores')renderCCProveedores();
@@ -2713,8 +2765,14 @@ function makeCompraItemEl(id,data=null,cat=null){
   const ph={iphone:'Ej: iPhone 15 Pro',ipad:'Ej: iPad Pro M4',mac:'Ej: MacBook Air M3',watch:'Ej: Series 10',audio:'Ej: AirPods Pro 2',accesorio:'Ej: Funda MagSafe',otro:'Nombre del producto'};
 
   const w=document.createElement('div');w.id='ci-'+id;
-  w.style.cssText='background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px';
+  w.style.cssText='background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px;position:relative';
   w.dataset.categoria=categoria;
+
+  // Botón ✕ arriba a la derecha del recuadro
+  const btnDel=document.createElement('button');btnDel.className='btn btn-danger btn-remove-row';btnDel.textContent='✕';
+  btnDel.style.cssText='position:absolute;top:12px;right:12px;z-index:1';
+  btnDel.addEventListener('click',()=>{w.remove();compraItems=compraItems.filter(i=>i!==id);calcTotalCompra();});
+  w.appendChild(btnDel);
 
   const inp=(type,id2,ph2,extra={})=>{const i=document.createElement('input');i.type=type;i.id=id2;i.placeholder=ph2;Object.assign(i,extra);i.style.cssText='background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 12px;font-family:var(--sans);font-size:13px;outline:none;width:100%;box-sizing:border-box';return i;};
   const mkSel=(id2,opts,val)=>{const s=document.createElement('select');s.id=id2;s.style.cssText='background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 12px;font-family:var(--sans);font-size:13px;outline:none;width:100%';opts.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;if(o===val)op.selected=true;s.appendChild(op);});return s;};
@@ -2723,7 +2781,7 @@ function makeCompraItemEl(id,data=null,cat=null){
 
   // ── FILA 1A: Modelo + Capacidad + Cantidad ──
   const row1=document.createElement('div');
-  row1.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;align-items:end;margin-bottom:10px';
+  row1.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;align-items:end;margin-bottom:10px;padding-right:44px';
   row1.appendChild(fg('Modelo',inp('text','ci-modelo-'+id,ph[categoria]||'Modelo',{value:data?.modelo||''})));
 
   let capEl;
@@ -2737,9 +2795,9 @@ function makeCompraItemEl(id,data=null,cat=null){
   row1.appendChild(fg('Cantidad',cantEl));
   w.appendChild(row1);
 
-  // ── FILA 1B: Costo + Precio venta + Eliminar ──
+  // ── FILA 1B: Costo + Precio venta (alineados, sin botón eliminar) ──
   const row1b=document.createElement('div');
-  row1b.style.cssText='display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-bottom:12px';
+  row1b.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end;margin-bottom:12px;padding-right:44px';
 
   const precEl=inp('number','ci-precio-'+id,'0',{value:data?.precio||'',min:0,step:0.01});
   precEl.addEventListener('input',calcTotalCompra);
@@ -2758,14 +2816,6 @@ function makeCompraItemEl(id,data=null,cat=null){
   pvTodasHint.textContent='Se aplica a todas';
   pvTodasWrap.appendChild(pvTodasHint);
   row1b.appendChild(pvTodasWrap);
-
-  const btnDel=document.createElement('button');btnDel.className='btn btn-danger btn-remove-row';btnDel.textContent='✕';
-  btnDel.addEventListener('click',()=>{w.remove();compraItems=compraItems.filter(i=>i!==id);calcTotalCompra();});
-  const btnWrap=document.createElement('div');
-  // Align button with bottom of inputs (account for hint text height)
-  btnWrap.style.cssText='display:flex;align-items:flex-end;padding-bottom:22px';
-  btnWrap.appendChild(btnDel);
-  row1b.appendChild(btnWrap);
   w.appendChild(row1b);
 
   // ── FILA 2: Campos COMPARTIDOS (iguales para todas las unidades) ──
@@ -3241,32 +3291,66 @@ function onLoteSelChange(){
   const cantEl=$('v-lote-cant');
   if(!ck||!preview){if(preview)preview.style.display='none';return;}
   const comp=S.compras[ck];if(!comp){preview.style.display='none';return;}
-  // Calcular disponibles por item
-  const unidades=[];
-  comp.items.forEach(it=>{
-    const d=getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId);
-    if(d>0)unidades.push({...it,compraKey:ck,disponible:d});
-  });
-  const totalDisp=unidades.length;
-  if(cantEl){cantEl.max=totalDisp;cantEl.value=totalDisp;}
-  preview.style.display='block';
-  const detalles=unidades.map(u=>`${u.modelo}${u.capacidad&&u.capacidad!=='N/A'?' '+u.capacidad:''} · ${u.color||'—'} · IMEI: ${u.imei||'—'} · 🔋${u.bateria||'?'}% · $${u.precioVenta||0}`).join('<br>');
-  preview.innerHTML=`<strong>${totalDisp} unidades disponibles:</strong><br>${detalles}`;
-}
-
-function agregarUnidadesLote(){
-  const ck=$('v-lote-sel')?.value;
-  if(!ck){return;}
-  const comp=S.compras[ck];if(!comp)return;
-  const cantPedida=parseInt($('v-lote-cant')?.value)||0;
-  if(cantPedida<=0)return;
-  // Recolectar unidades disponibles del lote
+  // Recolectar unidades disponibles
   const unidades=[];
   comp.items.forEach(it=>{
     const d=getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId);
     if(d>0)unidades.push({...it,compraKey:ck});
   });
-  const aCargar=unidades.slice(0,cantPedida);
+  const totalDisp=unidades.length;
+  if(cantEl){cantEl.max=totalDisp;cantEl.value=totalDisp;}
+  preview.style.display='block';
+
+  // Renderizar lista con checkboxes
+  function renderUnidadesList(cant){
+    const selAll=Math.min(cant,totalDisp);
+    let html=`<div style="margin-bottom:8px;font-size:12px"><strong>${totalDisp} unidades disponibles</strong> — seleccionadas: <strong id="v-lote-sel-count">${selAll}</strong></div>`;
+    html+='<div style="max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;padding:6px">';
+    unidades.forEach((u,i)=>{
+      const checked=i<selAll;
+      const label=`${u.modelo}${u.capacidad&&u.capacidad!=='N/A'?' '+u.capacidad:''}${u.color&&u.color!=='Sin asignar'?' · '+u.color:''}${u.imei?' · '+u.imei:''}${u.bateria?' · 🔋'+u.bateria+'%':''}`;
+      html+=`<label style="display:flex;align-items:center;gap:8px;padding:4px 6px;cursor:pointer;border-radius:4px;font-size:12px;${checked?'background:var(--accent-dim)':''}">
+        <input type="checkbox" class="lote-unit-cb" data-idx="${i}" ${checked?'checked':''} style="accent-color:var(--accent)">
+        ${label}
+      </label>`;
+    });
+    html+='</div>';
+    preview.innerHTML=html;
+    // Update count on checkbox change
+    preview.querySelectorAll('.lote-unit-cb').forEach(cb=>{
+      cb.addEventListener('change',()=>{
+        const cnt=preview.querySelectorAll('.lote-unit-cb:checked').length;
+        const el=$('v-lote-sel-count');if(el)el.textContent=cnt;
+      });
+    });
+  }
+
+  renderUnidadesList(totalDisp);
+  cantEl?.addEventListener('input',()=>renderUnidadesList(parseInt(cantEl.value)||0));
+}
+
+function agregarUnidadesLote(){
+  const ck=$('v-lote-sel')?.value;
+  if(!ck)return;
+  const comp=S.compras[ck];if(!comp)return;
+  // Recolectar todas las unidades disponibles
+  const unidades=[];
+  comp.items.forEach(it=>{
+    const d=getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId);
+    if(d>0)unidades.push({...it,compraKey:ck});
+  });
+  // Usar checkboxes seleccionados si existen, sino tomar cantidad del input
+  const preview=$('v-lote-preview');
+  const checkboxes=preview?.querySelectorAll('.lote-unit-cb');
+  let aCargar;
+  if(checkboxes&&checkboxes.length>0){
+    aCargar=[];
+    checkboxes.forEach((cb,i)=>{if(cb.checked&&unidades[i])aCargar.push(unidades[i]);});
+  }else{
+    const cantPedida=parseInt($('v-lote-cant')?.value)||0;
+    if(cantPedida<=0)return;
+    aCargar=unidades.slice(0,cantPedida);
+  }
   if(!aCargar.length)return;
   // Cambiar categoría al del primer item del lote
   const catLote=aCargar[0].categoria||'iphone';
@@ -3466,6 +3550,7 @@ function abrirWizardVenta(){
   $('v-post-guardado').style.display='none';
   openModal('modal-wizard-venta');
   wizVentaGoTo(1);
+  setTimeout(actualizarBotonesPorTipoCliente,50);
 }
 function cerrarWizardVenta(){
   closeModal('modal-wizard-venta');
@@ -5117,6 +5202,158 @@ function guardarPago(){
   push(dbRef('pagos'),{clienteId:cid,monto,fecha:today(),nota}).then(()=>closeModal('modal-pago'));
 }
 
+// ─── GARANTÍAS — TABS PRINCIPALES ───────────────────────────
+function garMainSwitchTab(tab){
+  document.querySelectorAll('.gar-main-tab').forEach(b=>{
+    const active=b.dataset.mainTab===tab;
+    b.style.color=active?'var(--accent)':'var(--text2)';
+    b.style.borderBottom=active?'3px solid var(--accent)':'3px solid transparent';
+  });
+  $('gar-main-clientes').style.display=tab==='clientes'?'block':'none';
+  $('gar-main-proveedores').style.display=tab==='proveedores'?'block':'none';
+  if(tab==='proveedores')renderGarProveedores();
+}
+
+// ─── GARANTÍA PROVEEDOR ──────────────────────────────────────
+let gprovPaso=1;
+let gprovTipo=null;
+let gprovEquipoData=null;
+
+function fillGProvStockSelect(filtro){
+  const sel=$('gprov-equipo-sel');if(!sel)return;
+  sel.innerHTML='<option value="">— Seleccioná un equipo —</option>';
+  const q=(filtro||'').toLowerCase();
+  Object.entries(S.compras).forEach(([ck,comp])=>{
+    comp.items.forEach(it=>{
+      const disp=getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId);
+      if(disp<=0)return;
+      const txt=(it.modelo||'')+(it.capacidad&&it.capacidad!=='N/A'?' '+it.capacidad:'')+(it.color&&it.color!=='Sin asignar'?' · '+it.color:'')+(it.imei?' · IMEI:'+it.imei:'');
+      if(q&&!txt.toLowerCase().includes(q))return;
+      const op=document.createElement('option');
+      op.value=JSON.stringify({compraKey:ck,itemId:it.itemId||'',modelo:it.modelo,capacidad:it.capacidad,color:it.color,imei:it.imei,grado:it.grado,bateria:it.bateria,proveedor:comp.proveedor||''});
+      op.textContent=txt+(comp.proveedor?' ('+comp.proveedor+')':'');
+      sel.appendChild(op);
+    });
+  });
+}
+
+function abrirGProvWizard(){
+  gprovPaso=1;gprovTipo=null;gprovEquipoData=null;
+  $('gprov-buscar').value='';
+  $('gprov-equipo-preview').style.display='none';
+  $('gprov-cam-fecha').value=today();
+  $('gprov-credito-fecha').value=today();
+  $('gprov-rep-fecha').value=today();
+  // Fill tecnicos
+  const sel=$('gprov-rep-tecnico');if(sel){sel.innerHTML='<option value="">— Seleccionar —</option>';Object.entries(S.tecnicos).forEach(([k,t])=>sel.innerHTML+=`<option value="${k}">${t.nombre}</option>`);}
+  // Fill proveedores
+  const selProv=$('gprov-credito-prov');if(selProv){selProv.innerHTML='<option value="">— Seleccionar —</option>';const provs=[...new Set(Object.values(S.compras).map(c=>c.proveedor).filter(Boolean))];provs.forEach(p=>selProv.innerHTML+=`<option>${p}</option>`);}
+  document.querySelectorAll('.gprov-tipo-btn').forEach(b=>{b.style.borderColor='var(--border)';b.style.background='var(--surface2)';});
+  gprovGoTo(1);
+  fillGProvStockSelect('');
+  openModal('modal-gar-proveedor');
+}
+
+function gprovGoTo(paso){
+  gprovPaso=paso;
+  document.querySelectorAll('.gpwiz-step').forEach(s=>s.style.display='none');
+  if(paso===3){
+    const sub=gprovTipo==='cambio'?'3a':gprovTipo==='credito'?'3b':'3c';
+    document.querySelector(`.gpwiz-step[data-gpwiz-step="${sub}"]`).style.display='block';
+  }else{
+    document.querySelector(`.gpwiz-step[data-gpwiz-step="${paso}"]`).style.display='block';
+  }
+  document.querySelectorAll('.wiz-step-dot.gpwiz').forEach(d=>{
+    const dn=+d.dataset.gpd;
+    d.classList.remove('active','done');
+    if(dn===paso)d.classList.add('active');
+    else if(dn<paso)d.classList.add('done');
+  });
+  $('wizGProvBack').style.visibility=paso===1?'hidden':'visible';
+  $('wizGProvNext').textContent=paso===3?'✅ Guardar':'Siguiente →';
+}
+
+function gprovNext(){
+  if(gprovPaso===1){
+    const selVal=$('gprov-equipo-sel')?.value;
+    if(!selVal){showAlert('gprov-alert-1','Seleccioná un equipo',false);return;}
+    try{gprovEquipoData=JSON.parse(selVal);}catch(e){return;}
+    const d=gprovEquipoData;
+    $('gprov-equipo-preview').style.display='block';
+    $('gprov-equipo-preview').innerHTML=`<strong>${d.modelo||'—'}</strong>${d.capacidad?' '+d.capacidad:''}${d.color&&d.color!=='Sin asignar'?' · '+d.color:''}${d.imei?' · IMEI: '+d.imei:''}${d.proveedor?'<div style="font-size:11px;color:var(--text2)">Proveedor: '+d.proveedor+'</div>':''}`;
+    gprovGoTo(2);
+  }else if(gprovPaso===2){
+    if(!gprovTipo){showAlert('gprov-alert-2','Seleccioná el tipo de resolución',false);return;}
+    gprovGoTo(3);
+  }else{
+    guardarGProveedorReclamo();
+  }
+}
+
+function gprovBack(){
+  if(gprovPaso===2)gprovGoTo(1);
+  else if(gprovPaso===3)gprovGoTo(2);
+}
+
+async function guardarGProveedorReclamo(){
+  const fecha=today();
+  const eq=gprovEquipoData;
+  const data={fecha,tipo:gprovTipo,equipoModelo:eq.modelo,equipoCapacidad:eq.capacidad||'',equipoColor:eq.color||'',equipoImei:eq.imei||'',equipoGrado:eq.grado||'',proveedor:eq.proveedor||'',compraKey:eq.compraKey,itemId:eq.itemId,estado:'pendiente'};
+
+  if(gprovTipo==='cambio'){
+    const modelo=$('gprov-cam-modelo')?.value.trim();
+    if(!modelo){showAlert('gprov-alert-3a','Ingresá el modelo del equipo de reemplazo',false);return;}
+    data.nuevoEquipo={modelo,capacidad:$('gprov-cam-cap')?.value||'',color:$('gprov-cam-color')?.value||'',estado:$('gprov-cam-estado')?.value||'',grado:$('gprov-cam-grado')?.value||'',imei:$('gprov-cam-imei')?.value.trim()||'',bateria:$('gprov-cam-bat')?.value||'',fechaRecepcion:$('gprov-cam-fecha')?.value||fecha};
+    data.estado='resuelto';
+    // Agregar nuevo equipo al stock como compra
+    await push(dbRef('compras'),{fecha,proveedor:eq.proveedor||'Garantía proveedor',ref:'GAR-PROV-'+fecha,items:[{itemId:uid(),modelo,capacidad:data.nuevoEquipo.capacidad,color:data.nuevoEquipo.color,estado:data.nuevoEquipo.estado,grado:data.nuevoEquipo.grado,imei:data.nuevoEquipo.imei,bateria:data.nuevoEquipo.bateria,cantidad:1,precio:0,precioVenta:0,categoria:'iphone'}],totalUSD:0,condicionPago:'pagado',estadoEntrega:'recibido',esGarantiaProveedor:true});
+  }else if(gprovTipo==='credito'){
+    const monto=parseFloat($('gprov-credito-monto')?.value)||0;
+    if(!monto){showAlert('gprov-alert-3b','Ingresá el monto del crédito',false);return;}
+    data.credito={monto,proveedor:$('gprov-credito-prov')?.value||eq.proveedor||'',nota:$('gprov-credito-nota')?.value.trim()||'',fecha:$('gprov-credito-fecha')?.value||fecha};
+    data.estado='resuelto';
+    // Registrar como pago negativo en pagos proveedores (crédito a favor)
+    await push(dbRef('pagosProveedores'),{fecha,proveedor:data.credito.proveedor,monto:-monto,moneda:'USD',nota:'Crédito garantía: '+(data.credito.nota||eq.modelo)});
+  }else if(gprovTipo==='reparacion'){
+    const tecnicoId=$('gprov-rep-tecnico')?.value;
+    const problema=$('gprov-rep-problema')?.value.trim();
+    if(!tecnicoId){showAlert('gprov-alert-3c','Seleccioná un técnico',false);return;}
+    if(!problema){showAlert('gprov-alert-3c','Describí el problema',false);return;}
+    data.reparacion={tecnicoId,costo:parseFloat($('gprov-rep-costo')?.value)||0,problema,fecha:$('gprov-rep-fecha')?.value||fecha};
+    data.estado='en_proceso';
+    // Crear reparación
+    await push(dbRef('reparaciones'),{fecha:data.reparacion.fecha,tecnicoId,costo:data.reparacion.costo,problema,enGarantia:true,estado:'recibido',origen:'garantia_proveedor',clienteNombre:'Stock propio',modelo:eq.modelo,capacidad:eq.capacidad||'',color:eq.color||'',imei:eq.imei||''});
+  }
+  await push(dbRef('garantiasProveedores'),data);
+  closeModal('modal-gar-proveedor');
+  renderGarProveedores();
+}
+
+function renderGarProveedores(){
+  const el=$('tabla-gar-proveedores');if(!el)return;
+  const filtro=($('gprov-filtro')?.value||'').toLowerCase();
+  let recs=Object.entries(S.garantiasProveedores||{}).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||''));
+  if(filtro)recs=recs.filter(([,r])=>(r.proveedor||'').toLowerCase().includes(filtro)||(r.equipoModelo||'').toLowerCase().includes(filtro));
+  if($('badge-gar-proveedores'))$('badge-gar-proveedores').textContent=recs.length;
+  if(!recs.length){el.innerHTML='<div class="empty-state"><div class="big">🏭</div><p>Sin reclamos a proveedores.</p></div>';return;}
+  const TIPOS={cambio:'🔄 Cambio',credito:'💵 Crédito',reparacion:'🔧 Reparación'};
+  const ESTADOS={pendiente:'<span class="tag tag-yellow">⏳ Pendiente</span>',en_proceso:'<span class="tag tag-yellow">🔧 En proceso</span>',resuelto:'<span class="tag tag-green">✅ Resuelto</span>'};
+  let rows='';
+  recs.forEach(([k,r])=>{
+    rows+=`<tr>
+      <td class="mono" style="font-size:11px">${fmtD(r.fecha)}</td>
+      <td>${r.proveedor||'—'}</td>
+      <td><strong>${r.equipoModelo||'—'}</strong>${r.equipoCapacidad?' <span class="tag tag-blue" style="font-size:10px">'+r.equipoCapacidad+'</span>':''}${r.equipoImei?'<div style="font-size:10px;color:var(--text3);font-family:var(--mono)">'+r.equipoImei+'</div>':''}</td>
+      <td><span class="tag tag-blue">${TIPOS[r.tipo]||r.tipo}</span></td>
+      <td>${r.tipo==='credito'&&r.credito?'<span style="color:#0ca678;font-family:var(--mono)">'+fmt(r.credito.monto)+' USD</span>':r.tipo==='cambio'&&r.nuevoEquipo?r.nuevoEquipo.modelo:r.tipo==='reparacion'&&r.reparacion?r.reparacion.problema:''}</td>
+      <td>${ESTADOS[r.estado]||r.estado}</td>
+      <td><button class="btn btn-danger btn-sm" data-del-gprov="${k}">🗑</button></td>
+    </tr>`;
+  });
+  el.innerHTML='<table><thead><tr><th>Fecha</th><th>Proveedor</th><th>Equipo</th><th>Tipo</th><th>Detalle</th><th>Estado</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  el.querySelectorAll('[data-del-gprov]').forEach(btn=>btn.addEventListener('click',()=>{if(confirm('¿Eliminar?'))remove(dbRef('garantiasProveedores/'+btn.dataset.delGprov));}));
+}
+
 // ─── INGRESO POR GARANTÍA (WIZARD) ───────────────────────────
 let garWizPaso=1;
 let garTipoReclamo=null; // 'reparacion' | 'cambio'
@@ -5899,6 +6136,110 @@ function guardarEditTecnico(){
     .then(()=>closeModal('modal-edit-tecnico'));
 }
 </script>
+
+<div class="modal-overlay" id="modal-gar-proveedor">
+  <div class="modal" style="max-width:580px;padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:92vh">
+    <div class="wiz-header">
+      <button class="wiz-close" id="btn-cerrar-gar-prov">✕</button>
+      <h3 style="margin:0;font-size:18px;color:#fff">🏭 Reclamo a Proveedor</h3>
+      <div class="wiz-steps">
+        <div class="wiz-step-dot gpwiz" data-gpd="1"></div>
+        <div class="wiz-step-dot gpwiz" data-gpd="2"></div>
+        <div class="wiz-step-dot gpwiz" data-gpd="3"></div>
+      </div>
+      <div class="wiz-labels"><span>Equipo</span><span>Resolución</span><span>Detalle</span></div>
+    </div>
+    <div class="wiz-body">
+
+      <!-- PASO 1: SELECCIONAR EQUIPO DEL STOCK -->
+      <div class="gpwiz-step" data-gpwiz-step="1">
+        <div class="wiz-step-title"><span class="num">1</span> ¿Qué equipo vas a reclamar?</div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label>Buscar en stock (modelo o IMEI)</label>
+          <input type="text" id="gprov-buscar" placeholder="Escribí para filtrar...">
+        </div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label>Equipo</label>
+          <select id="gprov-equipo-sel" size="5" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px;font-family:var(--sans);font-size:13px">
+            <option value="">— Seleccioná un equipo —</option>
+          </select>
+        </div>
+        <div id="gprov-equipo-preview" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:13px"></div>
+        <div id="gprov-alert-1" style="margin-top:10px"></div>
+      </div>
+
+      <!-- PASO 2: TIPO DE RESOLUCIÓN -->
+      <div class="gpwiz-step" data-gpwiz-step="2" style="display:none">
+        <div class="wiz-step-title"><span class="num">2</span> ¿Cómo lo resuelve el proveedor?</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:8px">
+          <button class="gprov-tipo-btn btn" data-tipo="cambio" style="padding:20px 12px;border:2px solid var(--border);border-radius:12px;background:var(--surface2);font-size:13px;flex-direction:column;gap:6px;height:auto">
+            <span style="font-size:28px">🔄</span>
+            <span style="font-weight:600">Cambio</span>
+            <span style="font-size:11px;color:var(--text2)">Nuevo equipo</span>
+          </button>
+          <button class="gprov-tipo-btn btn" data-tipo="credito" style="padding:20px 12px;border:2px solid var(--border);border-radius:12px;background:var(--surface2);font-size:13px;flex-direction:column;gap:6px;height:auto">
+            <span style="font-size:28px">💵</span>
+            <span style="font-weight:600">Crédito</span>
+            <span style="font-size:11px;color:var(--text2)">Te acredita USD</span>
+          </button>
+          <button class="gprov-tipo-btn btn" data-tipo="reparacion" style="padding:20px 12px;border:2px solid var(--border);border-radius:12px;background:var(--surface2);font-size:13px;flex-direction:column;gap:6px;height:auto">
+            <span style="font-size:28px">🔧</span>
+            <span style="font-weight:600">Reparación</span>
+            <span style="font-size:11px;color:var(--text2)">Lo repara</span>
+          </button>
+        </div>
+        <div id="gprov-alert-2" style="margin-top:12px"></div>
+      </div>
+
+      <!-- PASO 3: DETALLE SEGÚN TIPO -->
+      <div class="gpwiz-step" data-gpwiz-step="3a" style="display:none">
+        <div class="wiz-step-title"><span class="num">3</span> Datos del equipo de reemplazo</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Modelo *</label><input type="text" id="gprov-cam-modelo" placeholder="Ej: iPhone 14 Pro"></div>
+          <div class="form-group"><label>Capacidad</label><select id="gprov-cam-cap"><option>64GB</option><option selected>128GB</option><option>256GB</option><option>512GB</option><option>1TB</option></select></div>
+          <div class="form-group"><label>Color</label><select id="gprov-cam-color"><option>Sin asignar</option><option>Negro</option><option>Blanco</option><option>Azul</option><option>Verde</option><option>Rojo</option><option>Plata</option><option>Natural</option><option>Titanio</option></select></div>
+          <div class="form-group"><label>Estado</label><select id="gprov-cam-estado"><option>Sellado</option><option>Usado</option></select></div>
+          <div class="form-group"><label>Grado</label><select id="gprov-cam-grado"><option>A+</option><option>A/A+</option><option selected>A</option><option>A/A-</option><option>A-</option><option>AB+</option><option>AB</option><option>B+</option><option>B</option></select></div>
+          <div class="form-group"><label>IMEI</label><input type="text" id="gprov-cam-imei" placeholder="Opcional" maxlength="20"></div>
+          <div class="form-group"><label>% Batería</label><input type="number" id="gprov-cam-bat" placeholder="%" min="0" max="100"></div>
+          <div class="form-group"><label>Fecha recepción</label><input type="date" id="gprov-cam-fecha"></div>
+        </div>
+        <div id="gprov-alert-3a" style="margin-top:10px"></div>
+      </div>
+
+      <div class="gpwiz-step" data-gpwiz-step="3b" style="display:none">
+        <div class="wiz-step-title"><span class="num">3</span> Crédito del proveedor</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Monto del crédito (USD) *</label><input type="number" id="gprov-credito-monto" placeholder="0.00" min="0" step="0.01" style="color:#0ca678"></div>
+          <div class="form-group"><label>Proveedor</label><select id="gprov-credito-prov"><option value="">— Seleccionar —</option></select></div>
+          <div class="form-group"><label>Fecha</label><input type="date" id="gprov-credito-fecha"></div>
+          <div class="form-group"><label>Nota</label><input type="text" id="gprov-credito-nota" placeholder="Ej: Crédito por falla de pantalla"></div>
+        </div>
+        <div id="gprov-alert-3b" style="margin-top:10px"></div>
+      </div>
+
+      <div class="gpwiz-step" data-gpwiz-step="3c" style="display:none">
+        <div class="wiz-step-title"><span class="num">3</span> Datos de la reparación</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Técnico *</label><select id="gprov-rep-tecnico"><option value="">— Seleccionar —</option></select></div>
+          <div class="form-group"><label>Fecha</label><input type="date" id="gprov-rep-fecha"></div>
+          <div class="form-group"><label>Costo estimado (USD)</label><input type="number" id="gprov-rep-costo" placeholder="0.00" min="0" step="0.01"></div>
+        </div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label>Descripción del problema *</label>
+          <textarea id="gprov-rep-problema" rows="3" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 12px;font-family:var(--sans);font-size:13px;outline:none;width:100%;resize:vertical;box-sizing:border-box" placeholder="Ej: Falla de pantalla, no enciende..."></textarea>
+        </div>
+        <div id="gprov-alert-3c" style="margin-top:10px"></div>
+      </div>
+
+    </div>
+    <div class="wiz-footer">
+      <button class="btn btn-secondary" id="wizGProvBack">← Atrás</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-primary" id="wizGProvNext">Siguiente →</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-overlay" id="modal-canje-info">
   <div class="modal" style="max-width:420px">
