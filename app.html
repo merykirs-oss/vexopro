@@ -2011,10 +2011,11 @@ function initApp(){
   $('cfg-dolar-manual')?.addEventListener('change',e=>{
     if($('cfg-dolar-manual-fields'))$('cfg-dolar-manual-fields').style.display=e.target.checked?'block':'none';
   });
+  $('btn-toggle-catalogo')?.addEventListener('click',toggleCatalogo);
+  $('btn-copiar-link-catalogo')?.addEventListener('click',copiarLinkCatalogo);
   $('cfg-catalogo-mostrar-stock')?.addEventListener('change',e=>{
     update(dbRef('config'),{catalogoMostrarStock:e.target.checked});
   });
-  $('btn-copiar-link-catalogo')?.addEventListener('click',copiarLinkCatalogo);
 
   // ── Filtros Stock ──
   $('btn-toggle-filtros-stock')?.addEventListener('click',()=>{
@@ -3019,7 +3020,21 @@ function makeEditCompraItemEl(id,data=null){
     hidden('eci-estado-'+id,'Sellado');
   }else{
     fields.push(fg('Modelo',inp('text','eci-modelo-'+id,'Modelo',{value:data?.modelo||''})));
-    fields.push(fg('Color',mkSel('eci-color-'+id,COLORES,data?.color||'Negro')));
+    const colorEl=mkSel('eci-color-'+id,COLORES,data?.color||'Sin asignar');
+    const colorWrap=fg('Color',colorEl);
+    const colorLink=document.createElement('div');
+    colorLink.style.cssText='font-size:11px;color:var(--accent);cursor:pointer;margin-top:3px;text-decoration:underline';
+    colorLink.textContent='Aplicar a todas las unidades';
+    colorLink.addEventListener('click',()=>{
+      const ck=$('edit-c-key')?.value;const comp=S.compras[ck];if(!comp)return;
+      const col=colorEl.value;
+      const updatedItems=comp.items.map(it=>({...it,color:col}));
+      update(dbRef('compras/'+ck),{items:updatedItems}).then(()=>{
+        editCompraItems.forEach(eid=>{const el2=$('eci-color-'+eid);if(el2&&eid!==id)el2.value=col;});
+      });
+    });
+    colorWrap.appendChild(colorLink);
+    fields.push(colorWrap);
     fields.push(fg('Estado',mkSel('eci-estado-'+id,['Sellado','Usado'],data?.estado||'Sellado')));
     hidden('eci-tipo-'+id,'');
   }
@@ -3042,7 +3057,22 @@ function makeEditCompraItemEl(id,data=null){
   if(categoria!=='iphone'&&categoria!=='ipad'){hidden('eci-grado-'+id,'');}
   fields.push(fg('Cantidad',inp('number','eci-cant-'+id,'1',{value:data?.cantidad||1,min:1})));
   fields.push(fg('Precio costo c/u',inp('number','eci-precio-'+id,'0',{value:data?.precio||'',min:0,step:0.01})));
-  fields.push(fg('Precio de venta',inp('number','eci-precio-vta-'+id,'0',{value:data?.precioVenta||'',min:0,step:0.01})));
+  const pvVtaEl=inp('number','eci-precio-vta-'+id,'0',{value:data?.precioVenta||'',min:0,step:0.01});
+  pvVtaEl.style.color='#0ca678';
+  const pvVtaWrap=fg('Precio de venta',pvVtaEl);
+  const pvLink=document.createElement('div');
+  pvLink.style.cssText='font-size:11px;color:var(--accent);cursor:pointer;margin-top:3px;text-decoration:underline';
+  pvLink.textContent='Aplicar a todas las unidades';
+  pvLink.addEventListener('click',()=>{
+    const ck=$('edit-c-key')?.value;const comp=S.compras[ck];if(!comp)return;
+    const pv=parseFloat(pvVtaEl.value)||0;if(!pv)return;
+    const updatedItems=comp.items.map(it=>({...it,precioVenta:pv}));
+    update(dbRef('compras/'+ck),{items:updatedItems}).then(()=>{
+      editCompraItems.forEach(eid=>{const el2=$('eci-precio-vta-'+eid);if(el2&&eid!==id)el2.value=pv;});
+    });
+  });
+  pvVtaWrap.appendChild(pvLink);
+  fields.push(pvVtaWrap);
   if(categoria==='iphone'||categoria==='ipad'){
     fields.push(fg('IMEI',inp('text','eci-imei-'+id,'15 dígitos',{value:data?.imei||'',maxLength:20})));
     fields.push(fg('% Batería',inp('number','eci-bat-'+id,'%',{value:data?.bateria||'',min:0,max:100})));
