@@ -134,21 +134,45 @@ function getDisp(ck,it){
   return Math.max(0,total-vendido);
 }
 
+function esItemGenerico(it){
+  // Un item es genérico (de lote mayorista) si no tiene IMEI, ni color asignado, ni batería
+  const sinImei=!it.imei||it.imei.trim()==='';
+  const sinColor=!it.color||it.color===''||it.color==='Sin asignar';
+  const sinBat=!it.bateria||it.bateria==='';
+  return sinImei&&sinColor&&sinBat;
+}
+
 function buildStock(){
   const map={};
   Object.entries(compras).forEach(([ck,c])=>{
     (c.items||[]).forEach(it=>{
       const disp=getDisp(ck,it);
-      if(disp<=0)return; // sin stock no aparece
-      const key=it.itemId||(ck+'||'+it.modelo+'||'+it.capacidad);
+      if(disp<=0)return;
       const localNombre=locales[c.localId]?(locales[c.localId].icono+' '+locales[c.localId].nombre):'';
-      // Si no tiene precioVenta, mostrar igual pero sin precio
-      map[key]={
-        modelo:it.modelo,cap:it.capacidad,color:it.color||'',
-        grado:it.grado||'',tipo:it.tipo||'',categoria:it.categoria||'',bateria:it.bateria||it.unidades?.[0]?.bateria||'',
-        precioVenta:it.precioVenta||0,disp,localNombre,
-        compraKey:ck,itemId:it.itemId,
-      };
+      // Items genéricos (lote sin detalle) se agrupan por modelo+cap+precio
+      if(esItemGenerico(it)){
+        const groupKey='lote||'+it.modelo+'||'+(it.capacidad||'')+'||'+(it.precioVenta||0)+'||'+(it.grado||'')+'||'+(it.estado||'');
+        if(map[groupKey]){
+          map[groupKey].disp+=disp; // sumar unidades disponibles
+        }else{
+          map[groupKey]={
+            modelo:it.modelo,cap:it.capacidad||'',color:'',
+            grado:it.grado||'',estado:it.estado||'',tipo:it.tipo||'',categoria:it.categoria||'',bateria:'',
+            precioVenta:it.precioVenta||0,disp,localNombre,
+            compraKey:ck,itemId:null,esLote:true
+          };
+        }
+      }else{
+        // Items con detalle individual — aparecen por separado
+        const key=it.itemId||(ck+'||'+it.modelo+'||'+it.capacidad+'|'+(it.imei||''));
+        map[key]={
+          modelo:it.modelo,cap:it.capacidad||'',color:it.color||'',
+          grado:it.grado||'',estado:it.estado||'',tipo:it.tipo||'',categoria:it.categoria||'',
+          bateria:it.bateria||'',
+          precioVenta:it.precioVenta||0,disp,localNombre,
+          compraKey:ck,itemId:it.itemId,esLote:false
+        };
+      }
     });
   });
   return Object.values(map).sort((a,b)=>a.modelo.localeCompare(b.modelo));
@@ -167,11 +191,20 @@ function renderCatalogo(filtro=''){
   grid.innerHTML=filtered.map(r=>{
     const detalle=[r.cap&&r.cap!=='N/A'?r.cap:'',r.color,r.grado,r.tipo,r.bateria?'🔋'+r.bateria+'%':''].filter(Boolean).join(' · ');
     const mostrarStock=config?.catalogoMostrarStock===true;
-    const stockTag=mostrarStock
-      ?(r.disp<=2
+    let stockTag;
+    if(r.esLote&&mostrarStock){
+      stockTag=r.disp<=2
         ?`<span class="prod-stock stock-low">⚠️ Últimas ${r.disp} unidades</span>`
-        :`<span class="prod-stock stock-ok">✅ ${r.disp} disponibles</span>`)
-      :`<span class="prod-stock stock-ok">✅ Disponible</span>`;
+        :`<span class="prod-stock stock-ok">✅ ${r.disp} unidades disponibles</span>`;
+    }else if(r.esLote&&!mostrarStock){
+      stockTag=`<span class="prod-stock stock-ok">✅ Disponible</span>`;
+    }else if(!r.esLote&&mostrarStock){
+      stockTag=r.disp<=2
+        ?`<span class="prod-stock stock-low">⚠️ Últimas ${r.disp} unidades</span>`
+        :`<span class="prod-stock stock-ok">✅ Disponible</span>`;
+    }else{
+      stockTag=`<span class="prod-stock stock-ok">✅ Disponible</span>`;
+    }
     const localTag=r.localNombre?`<div class="prod-local">📍 ${r.localNombre}</div>`:'';
     const msg=encodeURIComponent(`Hola! Vi el catálogo y me interesa el ${r.modelo}${r.cap&&r.cap!=='N/A'?' '+r.cap:''}${r.precioVenta>0?' a '+fmt(r.precioVenta):''}. ¿Está disponible?`);
     const wspNum=wspNegocio||config.wsp||'';
