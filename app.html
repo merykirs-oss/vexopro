@@ -2756,7 +2756,10 @@ function makeCompraItemEl(id,data=null,cat=null){
 
   const btnDel=document.createElement('button');btnDel.className='btn btn-danger btn-remove-row';btnDel.textContent='✕';
   btnDel.addEventListener('click',()=>{w.remove();compraItems=compraItems.filter(i=>i!==id);calcTotalCompra();});
-  const btnWrap=document.createElement('div');btnWrap.style.cssText='display:flex;align-items:flex-end';btnWrap.appendChild(btnDel);
+  const btnWrap=document.createElement('div');
+  // Align button with bottom of inputs (account for hint text height)
+  btnWrap.style.cssText='display:flex;align-items:flex-end;padding-bottom:22px';
+  btnWrap.appendChild(btnDel);
   row1b.appendChild(btnWrap);
   w.appendChild(row1b);
 
@@ -2768,8 +2771,13 @@ function makeCompraItemEl(id,data=null,cat=null){
     lbl.style.cssText='font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;grid-column:1/-1';
     lbl.textContent='Igual para todas las unidades';
     row2.appendChild(lbl);
-    row2.appendChild(fg('Estado',mkSel('ci-estado-'+id,['Sellado','Usado'],data?.estado||'Sellado')));
-    row2.appendChild(fg('Grado',mkSel('ci-grado-'+id,['A+','A/A+','A','A/A-','A-','AB+','AB','B+','B','Like New','Open Box','ASIS+','ASIS'],data?.grado||'A')));
+    const estadoElR2=mkSel('ci-estado-'+id,['Sellado','Usado'],data?.estado||'Sellado');
+    const gradoFgR2=fg('Grado',mkSel('ci-grado-'+id,['A+','A/A+','A','A/A-','A-','AB+','AB','B+','B','Like New','Open Box','ASIS+','ASIS'],data?.grado||'A'));
+    function toggleGradoR2(){gradoFgR2.style.display=estadoElR2.value==='Sellado'?'none':'block';}
+    estadoElR2.addEventListener('change',toggleGradoR2);
+    setTimeout(toggleGradoR2,0);
+    row2.appendChild(fg('Estado',estadoElR2));
+    row2.appendChild(gradoFgR2);
     hidden('ci-ram-'+id,'');hidden('ci-serie-'+id,'');hidden('ci-ciclos-'+id,'');
   }else if(categoria==='mac'){
     row2.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px;padding:12px;background:var(--surface3);border-radius:8px';
@@ -3111,12 +3119,17 @@ function makeEditCompraItemEl(id,data=null){
     });
     colorWrap.appendChild(colorLink);
     fields.push(colorWrap);
-    fields.push(fg('Estado',mkSel('eci-estado-'+id,['Sellado','Usado'],data?.estado||'Sellado')));
+    const eciEstadoEl=mkSel('eci-estado-'+id,['Sellado','Usado'],data?.estado||'Sellado');
+    fields.push(fg('Estado',eciEstadoEl));
     hidden('eci-tipo-'+id,'');
   }
   if(categoria==='iphone'||categoria==='ipad'){
     fields.push(fg('Capacidad',mkSel('eci-cap-'+id,['64GB','128GB','256GB','512GB','1TB'],data?.capacidad||'128GB')));
-    fields.push(fg('Grado',mkSel('eci-grado-'+id,['A+','A/A+','A','A/A-','A-','AB+','AB','B+','B','Like New','Open Box','ASIS+','ASIS'],data?.grado||'A')));
+    const eciGradoFg=fg('Grado',mkSel('eci-grado-'+id,['A+','A/A+','A','A/A-','A-','AB+','AB','B+','B','Like New','Open Box','ASIS+','ASIS'],data?.grado||'A'));
+    function toggleEciGrado(){eciGradoFg.style.display=(eciEstadoEl?.value||'Sellado')==='Sellado'?'none':'block';}
+    if(eciEstadoEl)eciEstadoEl.addEventListener('change',toggleEciGrado);
+    setTimeout(toggleEciGrado,0);
+    fields.push(eciGradoFg);
   }else if(categoria==='mac'){
     fields.push(fg('Almacenamiento',mkSel('eci-cap-'+id,['256GB','512GB','1TB','2TB'],data?.capacidad||'256GB')));
     fields.push(fg('RAM',mkSel('eci-ram-'+id,['8GB','16GB','24GB','32GB','36GB','48GB','64GB','96GB','128GB'],data?.ram||'8GB')));
@@ -3881,7 +3894,16 @@ function renderStock(){
   }
 
   el.querySelectorAll('.se-color').forEach(el2=>el2.addEventListener('change',()=>saveItemField(el2.dataset.ck,el2.dataset.itid,'color',el2.value)));
-  el.querySelectorAll('.se-estado').forEach(el2=>el2.addEventListener('change',()=>saveItemField(el2.dataset.ck,el2.dataset.itid,'estado',el2.value)));
+  el.querySelectorAll('.se-estado').forEach(el2=>{
+    el2.addEventListener('change',()=>{
+      saveItemField(el2.dataset.ck,el2.dataset.itid,'estado',el2.value);
+      const gradoEl=el2.closest('tr')?.querySelector('.se-grado');
+      if(gradoEl)gradoEl.parentElement.style.display=el2.value==='Sellado'?'none':'';
+    });
+    // Initial state
+    const gradoEl=el2.closest('tr')?.querySelector('.se-grado');
+    if(gradoEl)gradoEl.parentElement.style.display=el2.value==='Sellado'?'none':'';
+  });
   el.querySelectorAll('.se-grado').forEach(el2=>el2.addEventListener('change',()=>saveItemField(el2.dataset.ck,el2.dataset.itid,'grado',el2.value)));
   el.querySelectorAll('.se-imei').forEach(el2=>el2.addEventListener('change',()=>saveItemField(el2.dataset.ck,el2.dataset.itid,'imei',el2.value.trim())));
   el.querySelectorAll('.se-bat').forEach(el2=>el2.addEventListener('change',()=>saveItemField(el2.dataset.ck,el2.dataset.itid,'bateria',el2.value)));
@@ -5812,8 +5834,9 @@ function guardarEditTecnico(){
       <div class="form-group"><label>Modelo *</label><input type="text" id="canje-modelo" placeholder="Ej: iPhone 12 Pro"></div>
       <div class="form-group"><label>Capacidad</label><select id="canje-cap"><option>64GB</option><option selected>128GB</option><option>256GB</option><option>512GB</option><option>1TB</option></select></div>
       <div class="form-group"><label>Color</label><select id="canje-color"><option>Sin asignar</option><option>Negro</option><option>Blanco</option><option>Azul</option><option>Verde</option><option>Rojo</option><option>Amarillo</option><option>Violeta</option><option>Rosa</option><option>Naranja</option><option>Gris</option><option>Plata</option><option>Natural</option><option>Titanio</option><option>Starlight</option><option>Midnight</option><option>Gold</option></select></div>
-      <div class="form-group"><label>Estado</label><select id="canje-estado"><option>Usado</option><option>Sellado</option></select></div>
-      <div class="form-group"><label>Grado</label><select id="canje-grado"><option>A+</option><option>A/A+</option><option selected>A</option><option>A/A-</option><option>A-</option><option>AB+</option><option>AB</option><option>B+</option><option>B</option><option>Like New</option><option>Open Box</option><option>ASIS+</option><option>ASIS</option></select></div>
+      <div class="form-group"><label>Estado</label><select id="canje-estado" onchange="document.getElementById('canje-grado-fg').style.display=this.value==='Sellado'?'none':'block'"><option>Usado</option><option>Sellado</option></select></div>
+      <div class="form-group" id="canje-grado-fg"><label>Grado</label><select id="canje-grado"><option>A+</option><option>A/A+</option><option selected>A</option><option>A/A-</option><option>A-</option><option>AB+</option><option>AB</option><option>B+</option><option>B</option><option>Like New</option><option>Open Box</option><option>ASIS+</option><option>ASIS</option></select></div>
+      </div>
       <div class="form-group"><label>IMEI</label><input type="text" id="canje-imei" placeholder="15 dígitos" maxlength="20"></div>
       <div class="form-group"><label>% Batería</label><input type="number" id="canje-bat" placeholder="%" min="0" max="100"></div>
     </div>
