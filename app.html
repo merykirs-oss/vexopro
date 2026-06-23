@@ -3281,9 +3281,17 @@ function wizVentaGoTo(n){
       const clienteTel=cl?.tel||'';
       // Equipos
       const equiposHtml=ventaItems.map(id=>{
-        const selEq=$('vi-eq-'+id);if(!selEq?.value)return '';
-        try{const d=JSON.parse(selEq.value);const it=d.itemData||d;const cant=parseInt($('vi-cant-'+id)?.value)||1;
-          return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span><strong>'+(it.modelo||'—')+'</strong>'+(it.capacidad&&it.capacidad!=='N/A'?' <span style="color:var(--text2)">'+it.capacidad+'</span>':'')+(it.color?' · '+it.color:'')+(it.imei?' · IMEI '+it.imei:'')+'</span><span style="font-family:var(--mono);color:#0ca678">'+fmt(parseFloat($('vi-prec-'+id)?.value||0)*cant)+'</span></div>';
+        const eqEl=$('vi-eq-'+id);if(!eqEl?.value)return '';
+        try{
+          const d=JSON.parse(eqEl.value.replace(/&#39;/g,"'"));
+          const it=d.itemData||d;
+          const cant=parseInt($('vi-cant-'+id)?.value)||1;
+          const precio=parseFloat($('vi-prec-'+id)?.value)||0;
+          const modelo=it.modelo||$('vi-modelo-'+id)?.value||'—';
+          const cap=it.capacidad||$('vi-cap-'+id)?.value||'';
+          const color=it.color||$('vi-color-'+id)?.value||'';
+          const imei=it.imei||$('vi-imei-'+id)?.value||'';
+          return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span><strong>'+modelo+'</strong>'+(cap&&cap!=='N/A'?' <span style="color:var(--text2)">'+cap+'</span>':'')+(color?' · '+color:'')+(imei?' · IMEI '+imei:'')+(cant>1?' × '+cant:'')+'</span><span style="font-family:var(--mono);color:#0ca678">'+fmt(precio*cant)+'</span></div>';
         }catch(e){return '';}
       }).filter(Boolean).join('');
       // Métodos de pago
@@ -3373,7 +3381,7 @@ async function saveVenta(){
   if(!clienteId){showAlert('v-alert','Seleccioná un cliente',false);return;}
   const items=[];
   for(const id of ventaItems){
-    const sel=$('vi-eq-'+id);
+    const eqEl=$('vi-eq-'+id);
     const cant=parseInt($('vi-cant-'+id)?.value)||1;
     const precioUSD=parseFloat($('vi-prec-'+id)?.value);
     const color=$('vi-color-'+id)?.value||'';
@@ -3387,12 +3395,13 @@ async function saveVenta(){
     const grado=$('vi-grado-'+id)?.value||'';
     const tipo=$('vi-tipo-'+id)?.value||'';
     const catV=document.getElementById('vi-'+id)?.dataset.categoria||ventaCategoria;
-    if(!sel?.value){showAlert('v-alert','Seleccioná equipo en todos los ítems',false);return;}
+    if(!eqEl?.value){showAlert('v-alert','Seleccioná equipo en todos los ítems',false);return;}
     if(!precioUSD||precioUSD<=0){showAlert('v-alert','Completá todos los precios de venta',false);return;}
-    const data=JSON.parse(sel.value);
+    let data;
+    try{data=JSON.parse(eqEl.value.replace(/&#39;/g,"'"));}catch(e){showAlert('v-alert','Error leyendo datos del equipo',false);return;}
     const disp=getStockDisp(data.compraKey,data.modelo,data.capacidad,null,data.itemId);
-    if(cant>disp){showAlert('v-alert','Stock insuficiente para '+data.modelo+' '+data.capacidad+'. Disponible: '+disp,false);return;}
-    items.push({compraKey:data.compraKey,itemId:data.itemId||null,modelo:data.modelo,capacidad:data.capacidad,cantidad:cant,costo:data.costo,precioUSD,ganancia:(precioUSD-data.costo)*cant,color,estado,cap:capV,imei,bateria,ram,serie,ciclos,grado,tipo,categoria:catV});
+    if(cant>disp){showAlert('v-alert','Stock insuficiente para '+data.modelo+(data.capacidad?' '+data.capacidad:'')+'. Disponible: '+disp,false);return;}
+    items.push({compraKey:data.compraKey,itemId:data.itemId||null,modelo:data.modelo,capacidad:data.capacidad||capV,cantidad:cant,costo:data.costo||0,precioUSD,ganancia:(precioUSD-(data.costo||0))*cant,color:color||data.color||'',estado,cap:capV||data.capacidad||'',imei:imei||data.imei||'',bateria:bateria||data.bateria||'',ram,serie,ciclos,grado:grado||data.grado||'',tipo,categoria:catV});
   }
   if(!items.length){showAlert('v-alert','Agregá al menos un equipo',false);return;}
   const sub=items.reduce((s,i)=>s+i.precioUSD*i.cantidad,0);
