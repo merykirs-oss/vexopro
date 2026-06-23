@@ -1495,6 +1495,11 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     <p style="font-size:12px;color:var(--text2);margin-bottom:16px">Podés ajustar precio, descuento, comisión y condición de pago. Para cambiar el equipo vendido, eliminá esta venta y registrala de nuevo.</p>
     <input type="hidden" id="edit-v-key">
     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px" id="edit-v-items-preview"></div>
+    <!-- Métodos de pago registrados -->
+    <div style="margin-bottom:16px">
+      <div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">Forma de pago registrada</div>
+      <div id="edit-v-metodos-preview" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:13px"></div>
+    </div>
     <div class="form-grid">
       <div class="form-group"><label>Condición</label><select id="edit-v-condicion"><option value="contado">Contado</option><option value="fiado">A pagar (cta cte)</option></select></div>
       <div class="form-group"><label>Descuento (%)</label><input type="number" id="edit-v-descuento" min="0" max="100"></div>
@@ -3483,10 +3488,24 @@ function wizVentaGoTo(n){
   if(n===4){
     calcTotalVenta();
     const rf=$('v-resumen-final');if(rf){
-      const tot=$('v-total')?.textContent||'—';
-      const pag=$('v-pagado')?.textContent||'—';
-      const diff=$('v-pagado-diff')?.innerHTML||'';
-      const gan=$('v-ganancia')?.textContent||'—';
+      // Calcular totales directamente (no depender del DOM del paso 3)
+      const desc=parseFloat($('v-descuento')?.value)||0;
+      const com=parseFloat($('v-comision')?.value)||0;
+      let subUSD=0,ganBruta=0;
+      ventaItems.forEach(vid=>{
+        const eqEl=$('vi-eq-'+vid);if(!eqEl?.value)return;
+        try{const d=JSON.parse(eqEl.value.replace(/&#39;/g,"'"));const cant=parseInt($('vi-cant-'+vid)?.value)||1;const precio=parseFloat($('vi-prec-'+vid)?.value)||0;const costo=(d.itemData||d).costo||d.costo||0;subUSD+=precio*cant;ganBruta+=(precio-costo)*cant;}catch(e){}
+      });
+      const totalUSD=subUSD*(1-desc/100);
+      const gananciaUSD=ganBruta*(1-desc/100)*(1-com/100);
+      let pagadoUSD=0,pagadoARS=0;
+      metodoItems.forEach(mid=>{const sel=$('mi-tipo-'+mid);const monto=parseFloat($('mi-monto-'+mid)?.value)||0;if(!sel||!monto)return;const met=METODOS.find(m=>m.v===sel.value);if(met?.moneda==='USD')pagadoUSD+=monto;else pagadoARS+=monto;});
+      const faltaUSD=Math.max(0,totalUSD-pagadoUSD);
+      const tot=fmt(totalUSD);
+      const gan=fmt(gananciaUSD);
+      const pagDisplay=(pagadoUSD?fmt(pagadoUSD)+' USD':'')+((pagadoUSD&&pagadoARS)?' + ':'')+( pagadoARS?fmtARS(pagadoARS):'') || '—';
+      const diff=faltaUSD>0.01?'<div style="background:var(--red);color:#fff;padding:6px 10px;border-radius:6px;font-weight:700;font-size:12px;margin-top:4px">⚠️ Falta cobrar: '+fmt(faltaUSD)+' USD</div>':'';
+      const pag=pagDisplay;
       // Cliente
       const clienteId=$('v-cliente')?.value;
       const cl=clienteId&&clienteId!=='__nuevo__'?S.clientes[clienteId]:null;
@@ -3632,7 +3651,10 @@ async function saveVenta(){
         const comisionPct=METODOS_CON_COMISION.includes(sel.value)?(parseFloat(comInp?.value)||0):0;
         const comisionMontoOriginal=monto*(comisionPct/100);
         const comisionMontoUSD=met.moneda==='USD'?comisionMontoOriginal:(dolar.venta>0?comisionMontoOriginal/dolar.venta:0);
-        metodosUsados.push({tipo:sel.value,label:met.l,moneda:met.moneda,monto,comisionPct,comisionMontoUSD});
+        const metObj={tipo:sel.value,label:met.l,moneda:met.moneda,monto,comisionPct,comisionMontoUSD};
+        // Si es plan canje, guardar datos del equipo
+        if(sel.value==='plan_canje'&&canjeData[mid])metObj.equipoCanje=canjeData[mid];
+        metodosUsados.push(metObj);
       }
     }
   }
@@ -3675,6 +3697,35 @@ function editVenta(k){
   $('edit-v-ganancia').value=v.gananciaUSD||0;
   const mod=v.items.map(i=>i.modelo+(i.capacidad&&i.capacidad!=='N/A'?' '+i.capacidad:'')+(i.color?' · '+i.color:'')).join(', ');
   $('edit-v-items-preview').innerHTML='<strong>Cliente:</strong> '+(cl?.nombre||'—')+'<br><strong>Equipos:</strong> '+mod+'<br><span style="color:var(--text3);font-size:11px">El equipo no se puede modificar acá — eliminá la venta y volvé a registrarla si necesitás cambiarlo.</span>';
+  // Métodos de pago
+  const metPrev=$('edit-v-metodos-preview');
+  if(metPrev){
+    const mets=v.metodos||[];
+    if(!mets.length){metPrev.innerHTML='<span style="color:var(--text3)">No registrado</span>';}
+    else{
+      metPrev.innerHTML=mets.map(m=>{
+        let line='<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:4px 0;border-bottom:1px solid var(--border)">'+
+          '<span><strong>'+m.label+'</strong></span>'+
+          '<span style="font-family:var(--mono);color:'+(m.moneda==='USD'?'#0ca678':'var(--blue)')+'">'+
+            (m.moneda==='USD'?fmt(m.monto):fmtARS(m.monto))+
+          '</span></div>';
+        if(m.tipo==='plan_canje'&&m.equipoCanje){
+          const eq=m.equipoCanje;
+          line+='<div style="font-size:11px;color:var(--text2);padding:4px 0 6px 8px;border-bottom:1px solid var(--border)">'+
+            '📱 '+eq.modelo+(eq.capacidad?' '+eq.capacidad:'')+(eq.color&&eq.color!=='Sin asignar'?' · '+eq.color:'')+(eq.grado?' · '+eq.grado:'')+(eq.imei?' · IMEI: '+eq.imei:'')+
+          '</div>';
+        }
+        return line;
+      }).join('');
+      // Total
+      const totalUSD=mets.reduce((s,m)=>s+(m.moneda==='USD'?m.monto:0),0);
+      const totalARS=mets.reduce((s,m)=>s+(m.moneda==='ARS'?m.monto:0),0);
+      metPrev.innerHTML+='<div style="display:flex;gap:12px;padding-top:6px;font-size:12px;font-weight:700">'+
+        (totalUSD?'<span style="color:#0ca678">'+fmt(totalUSD)+' USD</span>':'')+
+        (totalARS?'<span style="color:var(--blue)">'+fmtARS(totalARS)+'</span>':'')+
+      '</div>';
+    }
+  }
   openModal('modal-edit-venta');
 }
 function guardarEditVenta(){
@@ -3710,6 +3761,23 @@ function getVentasRango(){
   if(ventaFiltro==='mes')return{desde:now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01',hasta:h};
   return{desde:null,hasta:null};
 }
+function mostrarInfoCanje(encodedData){
+  try{
+    const eq=JSON.parse(decodeURIComponent(encodedData));
+    $('canje-info-content').innerHTML=
+      '<div class="form-grid" style="margin-bottom:0">'+
+        '<div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px">Modelo</div><div style="font-weight:600;font-size:14px">'+(eq.modelo||'—')+'</div></div>'+
+        '<div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px">Capacidad</div><div>'+(eq.capacidad||'—')+'</div></div>'+
+        '<div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px">Color</div><div>'+(eq.color||'—')+'</div></div>'+
+        '<div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px">Estado</div><div>'+(eq.estado||'—')+'</div></div>'+
+        (eq.grado?'<div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px">Grado</div><div>'+eq.grado+'</div></div>':'')+
+        (eq.imei?'<div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px">IMEI</div><div style="font-family:var(--mono);font-size:12px">'+eq.imei+'</div></div>':'')+
+        (eq.bateria?'<div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px">Batería</div><div>🔋'+eq.bateria+'%</div></div>':'')+
+      '</div>';
+    openModal('modal-canje-info');
+  }catch(e){console.error(e);}
+}
+
 function renderVentas(){
   refreshClienteSelects();
   const{desde,hasta}=getVentasRango();
@@ -3756,7 +3824,14 @@ function renderVentas(){
   fil.forEach(([k,v])=>{
     const cl=S.clientes[v.clienteId];
     const mod=v.items.map(i=>'<span class="tag '+(i.estado==='Usado'?'tag-yellow':'tag-green')+'" style="margin:1px">'+i.modelo+(i.capacidad&&i.capacidad!=='N/A'?' '+i.capacidad:'')+(i.color?' · '+i.color:'')+(i.cantidad>1?' x'+i.cantidad:'')+'</span>').join(' ');
-    const metStr=(v.metodos||[]).map(m=>'<span class="tag tag-blue" style="margin:1px;font-size:10px">'+m.label+'</span>').join(' ')||(v.metodo||'—');
+    const metStr=(v.metodos||[]).map(m=>{
+      if(m.tipo==='plan_canje'&&m.equipoCanje){
+        const eq=m.equipoCanje;
+        const info=encodeURIComponent(JSON.stringify(eq));
+        return '<span class="tag tag-blue" style="margin:1px;font-size:10px;cursor:pointer;text-decoration:underline" onclick="mostrarInfoCanje(\''+info+'\')">🔄 Plan Canje</span>';
+      }
+      return '<span class="tag tag-blue" style="margin:1px;font-size:10px">'+m.label+'</span>';
+    }).join(' ')||(v.metodo||'—');
     const tieneDispositivo=v.items.some(i=>categoriasConGarantia().includes(i.categoria||'iphone'));
     const garantiaEmitida=tieneDispositivo?Object.values(S.garantias).find(g=>g.ventaId===k):null;
     const btnGarantia=!tieneDispositivo?'':(garantiaEmitida?'<span class="tag tag-green" style="font-size:10px;white-space:nowrap">✅ CERTIFICADO EMITIDO</span>':'<button class="btn btn-secondary btn-sm" data-emitir-garantia-venta="'+k+'" style="white-space:nowrap;font-size:11px">📜 Emitir certificado</button>');
@@ -5824,6 +5899,16 @@ function guardarEditTecnico(){
     .then(()=>closeModal('modal-edit-tecnico'));
 }
 </script>
+
+<div class="modal-overlay" id="modal-canje-info">
+  <div class="modal" style="max-width:420px">
+    <h3>🔄 Equipo recibido en canje</h3>
+    <div id="canje-info-content" style="margin:16px 0"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="closeModal('modal-canje-info')">Cerrar</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-overlay" id="modal-plan-canje">
   <div class="modal" style="max-width:520px">
