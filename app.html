@@ -1594,7 +1594,7 @@ let costosFiltro='actual';
 let metodoItems=[];
 let ventaCategoria='iphone';
 let compraCategoria='iphone';
-const METODOS=[{v:'efectivo_usd',l:'Efectivo USD',moneda:'USD'},{v:'efectivo_ars',l:'Efectivo ARS',moneda:'ARS'},{v:'usdt',l:'USDT',moneda:'USD'},{v:'transferencia_ars',l:'Transferencia ARS',moneda:'ARS'},{v:'transferencia_usd',l:'Transferencia USD',moneda:'USD'},{v:'mercadopago',l:'Mercado Pago',moneda:'ARS'},{v:'cripto',l:'Cripto (otras)',moneda:'USD'},{v:'cheque',l:'Cheque',moneda:'ARS'}];
+const METODOS=[{v:'efectivo_usd',l:'Efectivo USD',moneda:'USD'},{v:'efectivo_ars',l:'Efectivo ARS',moneda:'ARS'},{v:'usdt',l:'USDT',moneda:'USD'},{v:'transferencia_ars',l:'Transferencia ARS',moneda:'ARS'},{v:'transferencia_usd',l:'Transferencia USD',moneda:'USD'},{v:'mercadopago',l:'Mercado Pago',moneda:'ARS'},{v:'cripto',l:'Cripto (otras)',moneda:'USD'},{v:'cheque',l:'Cheque',moneda:'ARS'},{v:'plan_canje',l:'🔄 Plan Canje',moneda:'USD'}];
 let dolar = {compra:0,venta:0,oficial:0};
 
 let ventaFiltro = 'mes';
@@ -2236,7 +2236,8 @@ function initApp(){
 
   // Botones proveedores
   $('btn-save-prov').addEventListener('click',saveProveedor);
-  $('btn-cerrar-edit-prov').addEventListener('click',()=>closeModal('modal-edit-prov'));
+  $('btn-cerrar-canje')?.addEventListener('click',()=>closeModal('modal-plan-canje'));
+  $('btn-confirmar-canje')?.addEventListener('click',confirmarCanje);
   $('btn-guardar-edit-prov').addEventListener('click',guardarEditProv);
 
   // Filtros caja
@@ -2419,6 +2420,65 @@ function canalTag(c){
 
 // ─── MÉTODOS DE PAGO COMBINADOS ──────────────────────────────
 const METODOS_CON_COMISION=['transferencia_ars','transferencia_usd','mercadopago'];
+// ─── PLAN CANJE ──────────────────────────────────────────────
+let canjeData={}; // {metodoId: {equipo data}}
+
+function abrirModalCanje(metodoId){
+  $('canje-metodo-id').value=metodoId;
+  const monto=parseFloat($('mi-monto-'+metodoId)?.value)||0;
+  $('canje-valor-display').textContent=monto>0?fmt(monto):'(ingresá el monto en el campo de arriba)';
+  // Pre-fill si ya hay datos
+  const prev=canjeData[metodoId]||{};
+  if($('canje-modelo'))$('canje-modelo').value=prev.modelo||'';
+  if($('canje-imei'))$('canje-imei').value=prev.imei||'';
+  if($('canje-bat'))$('canje-bat').value=prev.bateria||'';
+  if($('canje-cap'))$('canje-cap').value=prev.capacidad||'128GB';
+  if($('canje-color'))$('canje-color').value=prev.color||'Sin asignar';
+  if($('canje-estado'))$('canje-estado').value=prev.estado||'Usado';
+  if($('canje-grado'))$('canje-grado').value=prev.grado||'A';
+  $('canje-alert').textContent='';
+  openModal('modal-plan-canje');
+}
+
+function confirmarCanje(){
+  const metodoId=$('canje-metodo-id').value;
+  const modelo=$('canje-modelo')?.value.trim();
+  if(!modelo){showAlert('canje-alert','Ingresá el modelo del equipo',false);return;}
+  canjeData[metodoId]={
+    modelo,capacidad:$('canje-cap')?.value||'',
+    color:$('canje-color')?.value||'',estado:$('canje-estado')?.value||'',
+    grado:$('canje-grado')?.value||'',imei:$('canje-imei')?.value.trim()||'',
+    bateria:$('canje-bat')?.value||''
+  };
+  // Actualizar label del botón para confirmar que está cargado
+  const b=$('mi-canje-btn-'+metodoId);
+  if(b)b.textContent='✅ '+modelo+' cargado — Click para editar';
+  closeModal('modal-plan-canje');
+}
+
+function procesarCanjesAlGuardar(ventaId,ventaFecha,clienteNombre){
+  // Por cada método de plan canje con datos de equipo, agregar al stock
+  metodoItems.forEach(mid=>{
+    const sel=$('mi-tipo-'+mid);
+    if(sel?.value!=='plan_canje')return;
+    const equipo=canjeData[mid];if(!equipo)return;
+    const costo=parseFloat($('mi-monto-'+mid)?.value)||0;
+    // Crear compra automática con el equipo canjeado
+    push(dbRef('compras'),{
+      fecha:ventaFecha,proveedor:clienteNombre||'Plan Canje',
+      ref:'CANJE-'+ventaId.slice(-6).toUpperCase(),
+      items:[{itemId:uid(),modelo:equipo.modelo,capacidad:equipo.capacidad,
+        color:equipo.color,estado:equipo.estado,grado:equipo.grado,
+        imei:equipo.imei,bateria:equipo.bateria,cantidad:1,precio:costo,
+        precioVenta:0,categoria:'iphone',tipo:'canje'}],
+      totalUSD:costo,condicionPago:'pagado',estadoEntrega:'recibido',
+      esCanje:true,ventaId
+    });
+  });
+  // Limpiar canjeData después de guardar
+  canjeData={};
+}
+
 function addMetodoItem(){
   const id=uid();metodoItems.push(id);
   const wrap=document.createElement('div');wrap.id='mi-'+id;
@@ -2427,7 +2487,23 @@ function addMetodoItem(){
   const lM=document.createElement('label');lM.textContent='Método';
   const sel=document.createElement('select');sel.id='mi-tipo-'+id;
   METODOS.forEach(m=>{const o=document.createElement('option');o.value=m.v;o.textContent=m.l;sel.appendChild(o);});
-  sel.addEventListener('change',()=>{toggleComisionMetodo(id);calcMetodos();});
+  sel.addEventListener('change',()=>{
+    toggleComisionMetodo(id);
+    // Si es plan canje, mostrar botón para cargar equipo
+    const canjeBtn=$('mi-canje-btn-'+id);
+    if(sel.value==='plan_canje'){
+      if(!canjeBtn){
+        const b=document.createElement('button');b.type='button';b.id='mi-canje-btn-'+id;
+        b.className='btn btn-secondary btn-sm';b.style.cssText='margin-top:6px;width:100%';
+        b.textContent='📋 Cargar datos del equipo recibido';
+        b.addEventListener('click',()=>abrirModalCanje(id));
+        wrap.appendChild(b);
+      }
+    }else{
+      if(canjeBtn)canjeBtn.remove();
+    }
+    calcMetodos();
+  });
   fgM.append(lM,sel);
   const fgA=document.createElement('div');fgA.className='form-group';
   const lA=document.createElement('label');lA.id='mi-lbl-'+id;lA.textContent='Monto';
@@ -2693,7 +2769,7 @@ function makeCompraItemEl(id,data=null,cat=null){
     lbl.textContent='Igual para todas las unidades';
     row2.appendChild(lbl);
     row2.appendChild(fg('Estado',mkSel('ci-estado-'+id,['Sellado','Usado'],data?.estado||'Sellado')));
-    row2.appendChild(fg('Grado',mkSel('ci-grado-'+id,['A+','A','A-','AB','B+'],data?.grado||'A')));
+    row2.appendChild(fg('Grado',mkSel('ci-grado-'+id,['A+','A/A+','A','A/A-','A-','AB+','AB','B+','B','Like New','Open Box','ASIS+','ASIS'],data?.grado||'A')));
     hidden('ci-ram-'+id,'');hidden('ci-serie-'+id,'');hidden('ci-ciclos-'+id,'');
   }else if(categoria==='mac'){
     row2.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px;padding:12px;background:var(--surface3);border-radius:8px';
@@ -3040,7 +3116,7 @@ function makeEditCompraItemEl(id,data=null){
   }
   if(categoria==='iphone'||categoria==='ipad'){
     fields.push(fg('Capacidad',mkSel('eci-cap-'+id,['64GB','128GB','256GB','512GB','1TB'],data?.capacidad||'128GB')));
-    fields.push(fg('Grado',mkSel('eci-grado-'+id,['A+','A','A-','AB','B+'],data?.grado||'A')));
+    fields.push(fg('Grado',mkSel('eci-grado-'+id,['A+','A/A+','A','A/A-','A-','AB+','AB','B+','B','Like New','Open Box','ASIS+','ASIS'],data?.grado||'A')));
   }else if(categoria==='mac'){
     fields.push(fg('Almacenamiento',mkSel('eci-cap-'+id,['256GB','512GB','1TB','2TB'],data?.capacidad||'256GB')));
     fields.push(fg('RAM',mkSel('eci-ram-'+id,['8GB','16GB','24GB','32GB','36GB','48GB','64GB','96GB','128GB'],data?.ram||'8GB')));
@@ -3256,7 +3332,7 @@ function addVentaItem(){
   const extraFields=[];
   if(categoria==='iphone'||categoria==='ipad'){
     extraFields.push(fg('Capacidad',mkSel('vi-cap-'+id,['64GB','128GB','256GB','512GB','1TB'],'128GB')));
-    extraFields.push(fg('Grado',mkSel('vi-grado-'+id,['A+','A','A-','AB','B+'],'A')));
+    extraFields.push(fg('Grado',mkSel('vi-grado-'+id,['A+','A/A+','A','A/A-','A-','AB+','AB','B+','B','Like New','Open Box','ASIS+','ASIS'],'A')));
     extraFields.push(fg('IMEI',inp('text','vi-imei-'+id,'15 dígitos',{maxLength:20})));
     extraFields.push(fg('% Batería',inp('number','vi-bat-'+id,'%',{min:0,max:100})));
   }else if(categoria==='mac'){
@@ -3567,6 +3643,9 @@ async function saveVenta(){
         push(dbRef('costos'),{fecha,desc:'Comisión '+m.label+' ('+m.comisionPct+'%) - Venta',categoria:'financiero',moneda:'USD',monto:m.comisionMontoUSD,frecuencia:'unica',auto:true,ventaId:ref.key});
       });
       // Si la venta incluye un dispositivo con garantía, ofrecer emitir el certificado ahora mismo
+      // Procesar canjes: agregar equipos recibidos al stock
+      const cl=S.clientes[clienteId];
+      procesarCanjesAlGuardar(ref.key,fecha,cl?.nombre||'Plan Canje');
       closeModal('modal-wizard-venta');
       resetVentaForm();
     })
@@ -3756,7 +3835,7 @@ function renderStock(){
 
     const COLORES_OPT=['Sin asignar','Negro','Blanco','Azul','Verde','Rojo','Amarillo','Violeta','Rosa','Naranja','Gris','Plata','Natural','Titanio','Starlight','Midnight','Gold','Desert Titanium'];
     const colorOpts=COLORES_OPT.map(col=>`<option${(r.color||'Sin asignar')===col?' selected':''}>${col}</option>`).join('');
-    const gradoOpts=['A+','A','A-','AB','B+'].map(g=>`<option${r.grado===g?' selected':''}>${g}</option>`).join('');
+    const gradoOpts=['A+','A/A+','A','A/A-','A-','AB+','AB','B+','B','Like New','Open Box','ASIS+','ASIS'].map(g=>`<option${r.grado===g?' selected':''}>${g}</option>`).join('');
     const estadoOpts=['Sellado','Usado'].map(e=>`<option${r.estado===e?' selected':''}>${e}</option>`).join('');
 
     const inpStyle='background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:4px 7px;font-size:12px;font-family:var(--sans);outline:none;width:100%;box-sizing:border-box';
@@ -5723,6 +5802,31 @@ function guardarEditTecnico(){
     .then(()=>closeModal('modal-edit-tecnico'));
 }
 </script>
+
+<div class="modal-overlay" id="modal-plan-canje">
+  <div class="modal" style="max-width:520px">
+    <h3>🔄 Plan Canje — Equipo recibido</h3>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:16px">Cargá los datos del equipo que el cliente entrega como parte de pago. El valor del canje se toma del monto ingresado en el método.</p>
+    <input type="hidden" id="canje-metodo-id">
+    <div class="form-grid">
+      <div class="form-group"><label>Modelo *</label><input type="text" id="canje-modelo" placeholder="Ej: iPhone 12 Pro"></div>
+      <div class="form-group"><label>Capacidad</label><select id="canje-cap"><option>64GB</option><option selected>128GB</option><option>256GB</option><option>512GB</option><option>1TB</option></select></div>
+      <div class="form-group"><label>Color</label><select id="canje-color"><option>Sin asignar</option><option>Negro</option><option>Blanco</option><option>Azul</option><option>Verde</option><option>Rojo</option><option>Amarillo</option><option>Violeta</option><option>Rosa</option><option>Naranja</option><option>Gris</option><option>Plata</option><option>Natural</option><option>Titanio</option><option>Starlight</option><option>Midnight</option><option>Gold</option></select></div>
+      <div class="form-group"><label>Estado</label><select id="canje-estado"><option>Usado</option><option>Sellado</option></select></div>
+      <div class="form-group"><label>Grado</label><select id="canje-grado"><option>A+</option><option>A/A+</option><option selected>A</option><option>A/A-</option><option>A-</option><option>AB+</option><option>AB</option><option>B+</option><option>B</option><option>Like New</option><option>Open Box</option><option>ASIS+</option><option>ASIS</option></select></div>
+      <div class="form-group"><label>IMEI</label><input type="text" id="canje-imei" placeholder="15 dígitos" maxlength="20"></div>
+      <div class="form-group"><label>% Batería</label><input type="number" id="canje-bat" placeholder="%" min="0" max="100"></div>
+    </div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-top:4px;font-size:13px">
+      💡 El costo en stock será el valor del canje: <strong id="canje-valor-display">—</strong>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="btn-cerrar-canje">Cancelar</button>
+      <button class="btn btn-primary" id="btn-confirmar-canje">✅ Confirmar canje</button>
+    </div>
+    <div id="canje-alert" style="margin-top:8px"></div>
+  </div>
+</div>
 
 <div class="modal-overlay" id="modal-edit-prov">
   <div class="modal">
