@@ -958,6 +958,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
   <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">
     <button class="btn btn-secondary btn-sm" id="btn-toggle-filtros-tec">🔍 Filtrar <span id="filtros-tec-arrow">▼</span></button>
     <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary" id="btn-nueva-rep-interna">🏪 Nueva reparación interna</button>
       <button class="btn btn-primary" id="btn-nueva-reparacion">🔧 Nueva reparación externa</button>
     </div>
   </div>
@@ -969,7 +970,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
         <div class="form-group"><label>Estado</label><select id="tf-estado"><option value="">Todos</option><option value="recibido">📥 Recibido</option><option value="enviado">📤 Enviado al técnico</option><option value="en_reparacion">🔧 En reparación</option><option value="listo">✅ Listo</option><option value="entregado">🏠 Entregado al cliente</option></select></div>
         <div class="form-group"><label>Desde</label><input type="date" id="tf-desde"></div>
         <div class="form-group"><label>Hasta</label><input type="date" id="tf-hasta"></div>
-        <div class="form-group"><label>Origen</label><select id="tf-origen"><option value="">Todos</option><option value="sistema">Del sistema</option><option value="externo">Externo</option><option value="garantia">🛡️ Por garantía</option></select></div>
+        <div class="form-group"><label>Origen</label><select id="tf-origen"><option value="">Todos</option><option value="interno">🏪 Interno</option><option value="sistema">Del sistema</option><option value="externo">Externo</option><option value="garantia">🛡️ Por garantía</option></select></div>
       </div>
       <button class="btn btn-secondary btn-sm" id="btn-limpiar-filtro-tec">Limpiar filtros</button>
     </div>
@@ -1017,6 +1018,58 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 </div>
 
 <!-- MODAL WIZARD NUEVA REPARACIÓN -->
+<!-- MODAL REPARACIÓN INTERNA -->
+<div class="modal-overlay" id="modal-rep-interna">
+  <div class="modal" style="max-width:560px;padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:92vh">
+    <div class="wiz-header">
+      <button class="wiz-close" id="btn-cerrar-rep-interna">✕</button>
+      <h3 style="margin:0;font-size:18px;color:#fff">🏪 Nueva Reparación Interna</h3>
+      <div class="wiz-steps">
+        <div class="wiz-step-dot riwiz" data-rid="1"></div>
+        <div class="wiz-step-dot riwiz" data-rid="2"></div>
+      </div>
+      <div class="wiz-labels"><span>Equipo</span><span>Técnico</span></div>
+    </div>
+    <div class="wiz-body">
+      <!-- PASO 1: BUSCAR EQUIPO EN STOCK -->
+      <div class="riwiz-step" data-riwiz-step="1">
+        <div class="wiz-step-title"><span class="num">1</span> ¿Qué equipo vas a reparar?</div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label>Buscar en stock (modelo o IMEI)</label>
+          <input type="text" id="ri-buscar" placeholder="Escribí para filtrar...">
+        </div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label>Equipo</label>
+          <select id="ri-equipo-sel" size="5" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px;font-family:var(--sans);font-size:13px">
+            <option value="">— Seleccioná un equipo —</option>
+          </select>
+        </div>
+        <div id="ri-equipo-preview" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:13px"></div>
+        <div id="ri-alert-1" style="margin-top:10px"></div>
+      </div>
+      <!-- PASO 2: TÉCNICO + PROBLEMA -->
+      <div class="riwiz-step" data-riwiz-step="2" style="display:none">
+        <div class="wiz-step-title"><span class="num">2</span> Técnico y problema</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Fecha</label><input type="date" id="ri-fecha"></div>
+          <div class="form-group"><label>Técnico *</label><select id="ri-tecnico"><option value="">— Seleccionar —</option></select></div>
+          <div class="form-group"><label>Costo estimado (USD)</label><input type="number" id="ri-costo" placeholder="0.00" min="0" step="0.01"></div>
+        </div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label>Descripción del problema *</label>
+          <textarea id="ri-problema" rows="3" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 12px;font-family:var(--sans);font-size:13px;outline:none;width:100%;resize:vertical;box-sizing:border-box" placeholder="Ej: Cambio de pantalla, batería, etc."></textarea>
+        </div>
+        <div id="ri-alert-2" style="margin-top:10px"></div>
+      </div>
+    </div>
+    <div class="wiz-footer">
+      <button class="btn btn-secondary" id="wizRIBack">← Atrás</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-primary" id="wizRINext">Siguiente →</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-wizard-rep">
   <div class="modal" style="max-width:600px;padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:92vh">
     <div class="wiz-header">
@@ -2191,6 +2244,11 @@ function initApp(){
     $('btn-toggle-nuevo-tecnico').textContent=open?'➕ Nuevo técnico':'✕ Cerrar';
   });
   $('btn-nueva-reparacion')?.addEventListener('click',abrirWizardRep);
+  $('btn-nueva-rep-interna')?.addEventListener('click',abrirRepInterna);
+  $('btn-cerrar-rep-interna')?.addEventListener('click',()=>closeModal('modal-rep-interna'));
+  $('wizRINext')?.addEventListener('click',riNext);
+  $('wizRIBack')?.addEventListener('click',()=>{if(riPaso===2)riGoTo(1);});
+  $('ri-buscar')?.addEventListener('input',e=>fillRIStockSelect(e.target.value));
   $('btn-cerrar-wizard-rep')?.addEventListener('click',()=>closeModal('modal-wizard-rep'));
   $('wizRepNext')?.addEventListener('click',repNext);
   $('wizRepBack')?.addEventListener('click',repBack);
@@ -5815,6 +5873,91 @@ function generarCertificadoPDF({codigo,cliente,item,fechaCompra,vencimiento,dias
   doc.save('Garantia_'+codigo+'.pdf');
 }
 
+// ─── REPARACIÓN INTERNA ──────────────────────────────────────
+let riPaso=1;
+let riEquipoData=null;
+
+function fillRIStockSelect(filtro){
+  const sel=$('ri-equipo-sel');if(!sel)return;
+  sel.innerHTML='<option value="">— Seleccioná un equipo —</option>';
+  const q=(filtro||'').toLowerCase();
+  Object.entries(S.compras).forEach(([ck,comp])=>{
+    comp.items.forEach(it=>{
+      const disp=getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId);
+      if(disp<=0)return;
+      const txt=(it.modelo||'')+(it.capacidad&&it.capacidad!=='N/A'?' '+it.capacidad:'')+(it.color&&it.color!=='Sin asignar'?' · '+it.color:'')+(it.imei?' · IMEI:'+it.imei:'');
+      if(q&&!txt.toLowerCase().includes(q))return;
+      const op=document.createElement('option');
+      op.value=JSON.stringify({compraKey:ck,itemId:it.itemId||'',modelo:it.modelo,capacidad:it.capacidad,color:it.color,imei:it.imei,grado:it.grado,bateria:it.bateria});
+      op.textContent=txt;
+      sel.appendChild(op);
+    });
+  });
+}
+
+function abrirRepInterna(){
+  riPaso=1;riEquipoData=null;
+  if($('ri-fecha'))$('ri-fecha').value=today();
+  if($('ri-costo'))$('ri-costo').value='';
+  if($('ri-problema'))$('ri-problema').value='';
+  if($('ri-buscar'))$('ri-buscar').value='';
+  if($('ri-equipo-preview'))$('ri-equipo-preview').style.display='none';
+  // Fill tecnicos
+  const sel=$('ri-tecnico');
+  if(sel){sel.innerHTML='<option value="">— Seleccionar —</option>';Object.entries(S.tecnicos).forEach(([k,t])=>sel.innerHTML+=`<option value="${k}">${t.nombre}${t.tipo==='externo'?' (Ext)':''}</option>`);}
+  riGoTo(1);
+  fillRIStockSelect('');
+  openModal('modal-rep-interna');
+}
+
+function riGoTo(paso){
+  riPaso=paso;
+  document.querySelectorAll('.riwiz-step').forEach(s=>s.style.display='none');
+  document.querySelector(`.riwiz-step[data-riwiz-step="${paso}"]`).style.display='block';
+  document.querySelectorAll('.wiz-step-dot.riwiz').forEach(d=>{
+    const dn=+d.dataset.rid;
+    d.classList.remove('active','done');
+    if(dn===paso)d.classList.add('active');
+    else if(dn<paso)d.classList.add('done');
+  });
+  $('wizRIBack').style.visibility=paso===1?'hidden':'visible';
+  $('wizRINext').textContent=paso===2?'✅ Guardar':'Siguiente →';
+}
+
+function riNext(){
+  if(riPaso===1){
+    const v=$('ri-equipo-sel')?.value;
+    if(!v){showAlert('ri-alert-1','Seleccioná un equipo del stock',false);return;}
+    try{riEquipoData=JSON.parse(v);}catch(e){return;}
+    const d=riEquipoData;
+    const prev=$('ri-equipo-preview');
+    prev.style.display='block';
+    prev.innerHTML='<strong>'+(d.modelo||'—')+'</strong>'+(d.capacidad&&d.capacidad!=='N/A'?' '+d.capacidad:'')+(d.color&&d.color!=='Sin asignar'?' · '+d.color:'')+(d.imei?' · IMEI: '+d.imei:'')+(d.grado?' · Grado: '+d.grado:'')+(d.bateria?' · 🔋'+d.bateria+'%':'');
+    riGoTo(2);
+  }else{
+    guardarRepInterna();
+  }
+}
+
+async function guardarRepInterna(){
+  const tecnicoId=$('ri-tecnico')?.value;
+  const problema=$('ri-problema')?.value.trim();
+  const costo=parseFloat($('ri-costo')?.value)||0;
+  const fecha=$('ri-fecha')?.value||today();
+  if(!tecnicoId){showAlert('ri-alert-2','Seleccioná un técnico',false);return;}
+  if(!problema){showAlert('ri-alert-2','Describí el problema',false);return;}
+  const eq=riEquipoData;
+  await push(dbRef('reparaciones'),{
+    fecha,tecnicoId,costo,problema,enGarantia:false,
+    estado:'recibido',origen:'interno',
+    clienteNombre:'Stock propio',clienteTel:'',
+    modelo:eq.modelo||'',capacidad:eq.capacidad||'',
+    color:eq.color||'',imei:eq.imei||'',
+    compraKey:eq.compraKey,itemId:eq.itemId
+  });
+  closeModal('modal-rep-interna');
+}
+
 // ─── REPARACIONES ────────────────────────────────────────────
 const REP_ESTADOS={
   recibido:'📥 Recibido',
@@ -6112,7 +6255,7 @@ function renderTecnicos(){
       const est=r.estado||'recibido';
       const estOpts=Object.entries(REP_ESTADOS).map(([v,lbl])=>'<option value="'+v+'"'+(v===est?' selected':'')+'>'+lbl+'</option>').join('');
       const garTag=r.enGarantia?'<span class="tag tag-green" style="font-size:10px">🛡️ Garantía</span>':'';
-      const origenTag=r.origen==='garantia'?'<span class="tag tag-purple" style="font-size:10px">🛡️ Garantía</span>':r.origen==='externo'?'<span class="tag tag-yellow" style="font-size:10px">Externo</span>':'';
+      const origenTag=r.origen==='garantia'?'<span class="tag tag-purple" style="font-size:10px">🛡️ Garantía</span>':r.origen==='externo'?'<span class="tag tag-yellow" style="font-size:10px">Externo</span>':r.origen==='interno'?'<span class="tag tag-blue" style="font-size:10px">🏪 Interno</span>':'';
       rows+='<tr><td class="mono" style="font-size:11px">'+fmtD(r.fecha)+'</td>'
         +'<td><strong>'+(r.modelo||'—')+'</strong>'+(r.capacidad?' <span class="tag tag-blue" style="font-size:10px">'+r.capacidad+'</span>':'')+(r.color?'<div style="font-size:11px;color:var(--text2)">'+r.color+'</div>':'')+(r.imei?'<div style="font-size:10px;color:var(--text3);font-family:var(--mono)">'+r.imei+'</div>':'')+'</td>'
         +'<td>'+(r.clienteNombre||'—')+(r.clienteTel?'<div style="font-size:11px;color:var(--text2)">'+r.clienteTel+'</div>':'')+'</td>'
