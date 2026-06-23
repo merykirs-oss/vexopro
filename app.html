@@ -2629,7 +2629,48 @@ function addMetodoItem(){
   btn.addEventListener('click',()=>{wrap.remove();metodoItems=metodoItems.filter(i=>i!==id);calcMetodos();});
   wrap.append(fgM,fgA,btn);
   $('v-metodos-container').appendChild(wrap);
-  // Fila opcional de % comisión, oculta salvo para transferencia/Mercado Pago
+
+  // Fila de recargo (siempre visible, colapsable)
+  const recRow=document.createElement('div');recRow.id='mi-recrow-'+id;
+  recRow.style.cssText='margin-bottom:6px;margin-top:-4px';
+  // Toggle link
+  const recToggle=document.createElement('div');
+  recToggle.style.cssText='font-size:11px;color:var(--accent);cursor:pointer;text-decoration:underline;margin-bottom:4px';
+  recToggle.textContent='+ Agregar recargo al cliente';
+  const recFields=document.createElement('div');
+  recFields.style.cssText='display:none;grid-template-columns:1fr 1fr 1fr;gap:8px';
+  recToggle.addEventListener('click',()=>{
+    const open=recFields.style.display!=='none';
+    recFields.style.display=open?'none':'grid';
+    recToggle.textContent=open?'+ Agregar recargo al cliente':'- Quitar recargo';
+    if(open){
+      const rf=$('mi-recargo-pct-'+id);if(rf)rf.value='';
+      const rff=$('mi-recargo-fijo-'+id);if(rff)rff.value='';
+      calcMetodos();
+    }
+  });
+  // Recargo %
+  const fgRPct=document.createElement('div');fgRPct.className='form-group';fgRPct.style.marginBottom='0';
+  const lRPct=document.createElement('label');lRPct.textContent='Recargo %';
+  const inpRPct=document.createElement('input');inpRPct.type='number';inpRPct.id='mi-recargo-pct-'+id;inpRPct.placeholder='Ej: 10';inpRPct.min='0';inpRPct.step='0.01';
+  inpRPct.addEventListener('input',calcMetodos);
+  fgRPct.append(lRPct,inpRPct);
+  // Recargo fijo
+  const fgRFijo=document.createElement('div');fgRFijo.className='form-group';fgRFijo.style.marginBottom='0';
+  const lRFijo=document.createElement('label');lRFijo.textContent='Recargo fijo';
+  const inpRFijo=document.createElement('input');inpRFijo.type='number';inpRFijo.id='mi-recargo-fijo-'+id;inpRFijo.placeholder='0.00';inpRFijo.min='0';inpRFijo.step='0.01';
+  inpRFijo.addEventListener('input',calcMetodos);
+  fgRFijo.append(lRFijo,inpRFijo);
+  // Total con recargo
+  const fgRTotal=document.createElement('div');fgRTotal.className='form-group';fgRTotal.style.marginBottom='0';
+  const lRTotal=document.createElement('label');lRTotal.textContent='Total c/recargo';
+  const spanRTotal=document.createElement('div');spanRTotal.id='mi-recargo-total-'+id;spanRTotal.style.cssText='font-family:var(--mono);font-size:13px;color:var(--red);padding:9px 0';spanRTotal.textContent='—';
+  fgRTotal.append(lRTotal,spanRTotal);
+  recFields.append(fgRPct,fgRFijo,fgRTotal);
+  recRow.append(recToggle,recFields);
+  wrap.insertAdjacentElement('afterend',recRow);
+
+  // Fila de % comisión (interna, oculta salvo para transferencia/Mercado Pago)
   const comRow=document.createElement('div');comRow.id='mi-comrow-'+id;comRow.style.cssText='display:none;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;margin-top:-4px';
   const fgCom=document.createElement('div');fgCom.className='form-group';
   const lCom=document.createElement('label');lCom.textContent='% Comisión (opcional)';
@@ -2641,7 +2682,7 @@ function addMetodoItem(){
   const spanComMonto=document.createElement('div');spanComMonto.id='mi-comisionmonto-'+id;spanComMonto.style.cssText='font-family:var(--mono);font-size:13px;color:var(--red);padding:9px 0';spanComMonto.textContent='—';
   fgComMonto.append(lComMonto,spanComMonto);
   comRow.append(fgCom,fgComMonto);
-  wrap.insertAdjacentElement('afterend',comRow);
+  recRow.insertAdjacentElement('afterend',comRow);
 }
 function toggleComisionMetodo(id){
   const sel=$('mi-tipo-'+id);
@@ -2660,9 +2701,23 @@ function calcMetodos(){
     if(!sel||!monto)return;
     const met=METODOS.find(m=>m.v===sel.value);
     if(!met)return;
-    if(met.moneda==='USD')totalUSD+=monto;
-    else totalARS+=monto;
-    // Mostrar el monto de comisión calculado (en la moneda del método) si corresponde
+    // Calcular recargo
+    const recPct=parseFloat($('mi-recargo-pct-'+id)?.value)||0;
+    const recFijo=parseFloat($('mi-recargo-fijo-'+id)?.value)||0;
+    const recargo=recFijo+(monto+recFijo)*(recPct/100);
+    const montoConRecargo=monto+recargo;
+    // Mostrar total con recargo
+    const spanRTotal=$('mi-recargo-total-'+id);
+    if(spanRTotal){
+      if(recargo>0.001){
+        spanRTotal.textContent='+'+(met.moneda==='USD'?fmt(recargo):fmtARS(recargo))+' = '+(met.moneda==='USD'?fmt(montoConRecargo):fmtARS(montoConRecargo));
+      }else{
+        spanRTotal.textContent='—';
+      }
+    }
+    if(met.moneda==='USD')totalUSD+=montoConRecargo;
+    else totalARS+=montoConRecargo;
+    // Mostrar el monto de comisión calculado
     const comInp=$('mi-comision-'+id);
     const comSpan=$('mi-comisionmonto-'+id);
     if(comSpan){
@@ -2820,7 +2875,8 @@ function makeCompraItemEl(id,data=null,cat=null){
   const categoria=cat||compraCategoria||data?.categoria||'iphone';
   const COLORES=['Sin asignar','Negro','Blanco','Azul','Verde','Rojo','Amarillo','Violeta','Rosa','Naranja','Gris','Plata','Natural','Titanio','Starlight','Midnight','Gold','Desert Titanium'];
   const usaUnidades=(categoria==='iphone'||categoria==='ipad');
-  const ph={iphone:'Ej: iPhone 15 Pro',ipad:'Ej: iPad Pro M4',mac:'Ej: MacBook Air M3',watch:'Ej: Series 10',audio:'Ej: AirPods Pro 2',accesorio:'Ej: Funda MagSafe',otro:'Nombre del producto'};
+  const IPHONE_MODELOS=['iPhone 13 Mini', 'iPhone 13', 'iPhone 13 Pro', 'iPhone 13 Pro Max', 'iPhone 14', 'iPhone 14 Plus', 'iPhone 14 Pro', 'iPhone 14 Pro Max', 'iPhone 15', 'iPhone 15 Plus', 'iPhone 15 Pro', 'iPhone 15 Pro Max', 'iPhone 16e', 'iPhone 16', 'iPhone 16 Plus', 'iPhone 16 Pro', 'iPhone 16 Pro Max', 'iPhone 17 Air', 'iPhone 17', 'iPhone 17 Pro', 'iPhone 17 Pro Max'];
+  const ph={iphone:'Seleccionar modelo',ipad:'Ej: iPad Pro M4',mac:'Ej: MacBook Air M3',watch:'Ej: Series 10',audio:'Ej: AirPods Pro 2',accesorio:'Ej: Funda MagSafe',otro:'Nombre del producto'};
 
   const w=document.createElement('div');w.id='ci-'+id;
   w.style.cssText='background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px;position:relative';
@@ -2840,7 +2896,27 @@ function makeCompraItemEl(id,data=null,cat=null){
   // ── FILA 1A: Modelo + Capacidad + Cantidad ──
   const row1=document.createElement('div');
   row1.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;align-items:end;margin-bottom:10px;padding-right:44px';
-  row1.appendChild(fg('Modelo',inp('text','ci-modelo-'+id,ph[categoria]||'Modelo',{value:data?.modelo||''})));
+  let modeloField;
+  if(categoria==='iphone'){
+    const modeloSel=mkSel('ci-modelo-'+id,['','...'].concat(IPHONE_MODELOS),data?.modelo||'');
+    modeloSel.options[0].text='— Seleccionar modelo —';
+    modeloSel.options[0].value='';
+    modeloSel.options[1].text='Otro (escribir)';
+    modeloSel.options[1].value='__otro__';
+    const modeloInp=inp('text','ci-modelo-otro-'+id,'Escribí el modelo',{value:'',style:'display:none;margin-top:6px'});
+    modeloSel.addEventListener('change',()=>{
+      modeloInp.style.display=modeloSel.value==='__otro__'?'block':'none';
+    });
+    const wrap=document.createElement('div');
+    wrap.appendChild(modeloSel);wrap.appendChild(modeloInp);
+    modeloField=fg('Modelo',wrap);
+    // Patch: make sure saveCompra reads the right value
+    modeloSel.id='ci-modelo-sel-'+id; // keep separate id
+    modeloSel.dataset.modeloFor=id;
+  }else{
+    modeloField=fg('Modelo',inp('text','ci-modelo-'+id,ph[categoria]||'Modelo',{value:data?.modelo||''}));
+  }
+  row1.appendChild(modeloField);
 
   let capEl;
   if(categoria==='iphone'||categoria==='ipad') capEl=mkSel('ci-cap-'+id,['64GB','128GB','256GB','512GB','1TB'],data?.capacidad||'128GB');
@@ -3078,7 +3154,15 @@ function saveCompra(){
   const items=[];
   for(const id of compraItems){
     const el=document.getElementById('ci-'+id);
-    const modelo=$('ci-modelo-'+id)?.value.trim();
+    // Leer modelo según categoría
+    let modelo;
+    if(categoria==='iphone'){
+      const sel=$('ci-modelo-sel-'+id);
+      if(sel?.value==='__otro__') modelo=($('ci-modelo-otro-'+id)?.value||'').trim();
+      else modelo=(sel?.value||'').trim();
+    }else{
+      modelo=($('ci-modelo-'+id)?.value||'').trim();
+    }
     const capacidad=$('ci-cap-'+id)?.value||'N/A';
     const ram=$('ci-ram-'+id)?.value||'';
     const serie=$('ci-serie-'+id)?.value.trim()||'';
@@ -3630,72 +3714,74 @@ function wizVentaGoTo(n){
   // Al llegar a confirmación (4), mostrar resumen estático
   if(n===4){
     calcTotalVenta();
-    const rf=$('v-resumen-final');if(rf){
-      // Calcular totales directamente (no depender del DOM del paso 3)
-      const desc=parseFloat($('v-descuento')?.value)||0;
-      const com=parseFloat($('v-comision')?.value)||0;
-      let subUSD=0,ganBruta=0;
-      ventaItems.forEach(vid=>{
-        const eqEl=$('vi-eq-'+vid);if(!eqEl?.value)return;
-        try{const d=JSON.parse(eqEl.value.replace(/&#39;/g,"'"));const cant=parseInt($('vi-cant-'+vid)?.value)||1;const precio=parseFloat($('vi-prec-'+vid)?.value)||0;const costo=(d.itemData||d).costo||d.costo||0;subUSD+=precio*cant;ganBruta+=(precio-costo)*cant;}catch(e){}
-      });
-      const totalUSD=subUSD*(1-desc/100);
-      const gananciaUSD=ganBruta*(1-desc/100)*(1-com/100);
-      let pagadoUSD=0,pagadoARS=0;
-      metodoItems.forEach(mid=>{const sel=$('mi-tipo-'+mid);const monto=parseFloat($('mi-monto-'+mid)?.value)||0;if(!sel||!monto)return;const met=METODOS.find(m=>m.v===sel.value);if(met?.moneda==='USD')pagadoUSD+=monto;else pagadoARS+=monto;});
-      const faltaUSD=Math.max(0,totalUSD-pagadoUSD);
-      const tot=fmt(totalUSD);
-      const gan=fmt(gananciaUSD);
-      const pagDisplay=(pagadoUSD?fmt(pagadoUSD)+' USD':'')+((pagadoUSD&&pagadoARS)?' + ':'')+( pagadoARS?fmtARS(pagadoARS):'') || '—';
-      const diff=faltaUSD>0.01?'<div style="background:var(--red);color:#fff;padding:6px 10px;border-radius:6px;font-weight:700;font-size:12px;margin-top:4px">⚠️ Falta cobrar: '+fmt(faltaUSD)+' USD</div>':'';
-      const pag=pagDisplay;
-      // Cliente
-      const clienteId=$('v-cliente')?.value;
-      const cl=clienteId&&clienteId!=='__nuevo__'?S.clientes[clienteId]:null;
-      const clienteNombre=cl?.nombre||$('v-nuevo-nombre')?.value||'—';
-      const clienteTel=cl?.tel||'';
-      // Equipos
-      const equiposHtml=ventaItems.map(id=>{
-        const eqEl=$('vi-eq-'+id);if(!eqEl?.value)return '';
-        try{
-          const d=JSON.parse(eqEl.value.replace(/&#39;/g,"'"));
-          const it=d.itemData||d;
-          const cant=parseInt($('vi-cant-'+id)?.value)||1;
-          const precio=parseFloat($('vi-prec-'+id)?.value)||0;
-          const modelo=it.modelo||$('vi-modelo-'+id)?.value||'—';
-          const cap=it.capacidad||$('vi-cap-'+id)?.value||'';
-          const color=it.color||$('vi-color-'+id)?.value||'';
-          const imei=it.imei||$('vi-imei-'+id)?.value||'';
-          return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span><strong>'+modelo+'</strong>'+(cap&&cap!=='N/A'?' <span style="color:var(--text2)">'+cap+'</span>':'')+(color?' · '+color:'')+(imei?' · IMEI '+imei:'')+(cant>1?' × '+cant:'')+'</span><span style="font-family:var(--mono);color:#0ca678">'+fmt(precio*cant)+'</span></div>';
-        }catch(e){return '';}
-      }).filter(Boolean).join('');
-      // Métodos de pago
-      const metStr=metodoItems.map(id=>{
-        const sel=$('mi-tipo-'+id);const monto=parseFloat($('mi-monto-'+id)?.value)||0;
-        if(!sel||!monto)return '';
-        const met=METODOS.find(m=>m.v===sel.value);
-        return met?'<span class="tag tag-blue" style="font-size:11px">'+met.l+' '+(met.moneda==='USD'?fmt(monto):fmtARS(monto))+'</span>':'';
-      }).filter(Boolean).join(' ');
-      const condicion=$('v-condicion')?.value==='fiado'?'<span class="tag tag-red">A pagar</span>':'<span class="tag tag-green">Contado</span>';
-      rf.innerHTML=
-        '<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">'+
-          '<div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Cliente</div>'+
-          '<div style="font-weight:600;font-size:15px">'+clienteNombre+'</div>'+
-          (clienteTel?'<div style="font-size:12px;color:var(--text2)">'+clienteTel+'</div>':'')+
-        '</div>'+
-        '<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">'+
-          '<div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px">Equipos</div>'+
-          (equiposHtml||'<div style="color:var(--text3)">—</div>')+
-        '</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">'+
-          '<div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Total</div><div style="font-family:var(--mono);font-size:18px;font-weight:800;color:#0ca678">'+tot+'</div></div>'+
-          '<div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Ganancia</div><div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--accent)">'+gan+'</div></div>'+
-          '<div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Condición</div><div style="margin-top:2px">'+condicion+'</div></div>'+
-        '</div>'+
-        (metStr?'<div style="margin-bottom:8px"><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Pago</div>'+metStr+'</div>':'')+
-        (pag!=='—'?'<div style="font-size:12px;color:var(--text2)">Pagado: '+pag+'</div>':'')+
-        (diff?'<div style="margin-top:4px">'+diff+'</div>':'');
-    }
+    const rf=$('v-resumen-final');if(!rf)return;
+    // Leer items directamente del DOM (cubre tanto items normales como de lote)
+    const allVItemIds=[...new Set([
+      ...ventaItems,
+      ...[...document.querySelectorAll('[id^="vi-eq-"]')].map(el=>el.id.replace('vi-eq-',''))
+    ])];
+    const desc=parseFloat($('v-descuento')?.value)||0;
+    const com=parseFloat($('v-comision')?.value)||0;
+    let subUSD=0,ganBruta=0;
+    allVItemIds.forEach(vid=>{
+      const eqEl=$('vi-eq-'+vid);if(!eqEl?.value)return;
+      try{const d=JSON.parse(eqEl.value.replace(/&#39;/g,"'"));const cant=parseInt($('vi-cant-'+vid)?.value)||1;const precio=parseFloat($('vi-prec-'+vid)?.value)||0;const costo=(d.itemData||d).costo||d.costo||0;subUSD+=precio*cant;ganBruta+=(precio-costo)*cant;}catch(e){}
+    });
+    const totalUSD=subUSD*(1-desc/100);
+    const gananciaUSD=ganBruta*(1-desc/100)*(1-com/100);
+    let pagadoUSD=0,pagadoARS=0;
+    metodoItems.forEach(mid=>{const sel=$('mi-tipo-'+mid);const monto=parseFloat($('mi-monto-'+mid)?.value)||0;if(!sel||!monto)return;const met=METODOS.find(m=>m.v===sel.value);if(met?.moneda==='USD')pagadoUSD+=monto;else pagadoARS+=monto;});
+    const faltaUSD=Math.max(0,totalUSD-pagadoUSD);
+    const tot=fmt(totalUSD);
+    const gan=fmt(gananciaUSD);
+    const pagDisplay=(pagadoUSD?fmt(pagadoUSD)+' USD':'')+((pagadoUSD&&pagadoARS)?' + ':'')+(pagadoARS?fmtARS(pagadoARS):'')||'—';
+    const diff=faltaUSD>0.01?'<div style="background:var(--red);color:#fff;padding:6px 10px;border-radius:6px;font-weight:700;font-size:12px;margin-top:4px">⚠️ Falta cobrar: '+fmt(faltaUSD)+' USD</div>':'';
+    const pag=pagDisplay;
+    const clienteId=$('v-cliente')?.value;
+    const cl=clienteId&&clienteId!=='__nuevo__'?S.clientes[clienteId]:null;
+    const clienteNombre=cl?.nombre||$('v-nuevo-nombre')?.value||'—';
+    const clienteTel=cl?.tel||'';
+    const equiposHtml=allVItemIds.map(id=>{
+      const eqEl=$('vi-eq-'+id);if(!eqEl?.value)return '';
+      try{
+        const d=JSON.parse(eqEl.value.replace(/&#39;/g,"'"));
+        const it=d.itemData||d;
+        const cant=parseInt($('vi-cant-'+id)?.value)||1;
+        const precio=parseFloat($('vi-prec-'+id)?.value)||0;
+        const modelo=it.modelo||$('vi-modelo-'+id)?.value||'—';
+        const cap=it.capacidad||$('vi-cap-'+id)?.value||'';
+        const color=it.color||$('vi-color-'+id)?.value||'';
+        const imei=it.imei||$('vi-imei-'+id)?.value||'';
+        return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span><strong>'+modelo+'</strong>'+(cap&&cap!=='N/A'?' <span style="color:var(--text2)">'+cap+'</span>':'')+(color&&color!=='Sin asignar'?' · '+color:'')+(imei?' · IMEI '+imei:'')+(cant>1?' × '+cant:'')+'</span><span style="font-family:var(--mono);color:#0ca678">'+fmt(precio*cant)+'</span></div>';
+      }catch(e){return '';}
+    }).filter(Boolean).join('');
+    const metStr=metodoItems.map(id=>{
+      const sel=$('mi-tipo-'+id);const monto=parseFloat($('mi-monto-'+id)?.value)||0;
+      if(!sel||!monto)return '';
+      const met=METODOS.find(m=>m.v===sel.value);
+      return met?'<span class="tag tag-blue" style="font-size:11px">'+met.l+' '+(met.moneda==='USD'?fmt(monto):fmtARS(monto))+'</span>':'';
+    }).filter(Boolean).join(' ');
+    const condicion=$('v-condicion')?.value==='fiado'?'<span class="tag tag-red">A pagar</span>':'<span class="tag tag-green">Contado</span>';
+    rf.innerHTML=
+      '<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">'+
+        '<div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Cliente</div>'+
+        '<div style="font-weight:600;font-size:15px">'+clienteNombre+'</div>'+
+        (clienteTel?'<div style="font-size:12px;color:var(--text2)">'+clienteTel+'</div>':'')+
+      '</div>'+
+      '<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">'+
+        '<div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px">Equipos</div>'+
+        (equiposHtml||'<div style="color:var(--text3)">Sin equipos cargados</div>')+
+      '</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">'+
+        '<div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Total</div><div style="font-family:var(--mono);font-size:18px;font-weight:800;color:#0ca678">'+tot+'</div></div>'+
+        '<div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Ganancia</div><div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--accent)">'+gan+'</div></div>'+
+        '<div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Condición</div><div style="margin-top:2px">'+condicion+'</div></div>'+
+      '</div>'+
+      (metStr?'<div style="margin-bottom:8px"><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Pago</div>'+metStr+'</div>':'')+
+      '<div style="margin-top:4px">'+
+        '<div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Pagado</div>'+
+        '<div style="font-size:13px">'+pag+'</div>'+diff+
+      '</div>';
   }
 }
 // Valida el paso actual antes de dejar avanzar; devuelve true si puede continuar
@@ -3794,7 +3880,10 @@ async function saveVenta(){
         const comisionPct=METODOS_CON_COMISION.includes(sel.value)?(parseFloat(comInp?.value)||0):0;
         const comisionMontoOriginal=monto*(comisionPct/100);
         const comisionMontoUSD=met.moneda==='USD'?comisionMontoOriginal:(dolar.venta>0?comisionMontoOriginal/dolar.venta:0);
-        const metObj={tipo:sel.value,label:met.l,moneda:met.moneda,monto,comisionPct,comisionMontoUSD};
+        const recPct=parseFloat($('mi-recargo-pct-'+mid)?.value)||0;
+        const recFijo=parseFloat($('mi-recargo-fijo-'+mid)?.value)||0;
+        const recargo=recFijo+(monto+recFijo)*(recPct/100);
+        const metObj={tipo:sel.value,label:met.l,moneda:met.moneda,monto,comisionPct,comisionMontoUSD,recargoPct:recPct,recargoFijo:recFijo,recargoTotal:recargo};
         // Si es plan canje, guardar datos del equipo
         if(sel.value==='plan_canje'&&canjeData[mid])metObj.equipoCanje=canjeData[mid];
         metodosUsados.push(metObj);
