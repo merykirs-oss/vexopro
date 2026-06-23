@@ -1463,6 +1463,24 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     </div>
     <div id="edit-c-items"></div>
     <button class="btn btn-add" id="btn-add-edit-compra-item">＋ Agregar equipo</button>
+
+    <!-- Aplicar precio de venta a todo el lote -->
+    <div style="margin-top:14px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px">💵 Aplicar precio de venta a todo el lote</div>
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+        <div class="form-group" style="margin-bottom:0;flex:1;min-width:140px">
+          <label>Precio de venta (USD)</label>
+          <input type="number" id="edit-c-pvta-lote" placeholder="0.00" min="0" step="0.01" style="color:#0ca678">
+        </div>
+        <div class="form-group" style="margin-bottom:0;flex:1;min-width:140px">
+          <label>Aplicar a modelo (opcional)</label>
+          <input type="text" id="edit-c-pvta-modelo" placeholder="Ej: iPhone 14 Pro (vacío = todos)">
+        </div>
+        <button class="btn btn-primary btn-sm" id="btn-aplicar-pvta-lote" style="white-space:nowrap">Aplicar a todo el lote</button>
+      </div>
+      <div id="edit-c-pvta-alert" style="margin-top:8px;font-size:12px"></div>
+    </div>
+
     <div class="modal-actions">
       <button class="btn btn-secondary" id="btn-cerrar-edit-compra">Cancelar</button>
       <button class="btn btn-primary" id="btn-guardar-edit-compra">Guardar</button>
@@ -2166,6 +2184,22 @@ function initApp(){
   $('btn-cerrar-edit-compra').addEventListener('click',()=>closeModal('modal-edit-compra'));
   $('btn-add-edit-compra-item').addEventListener('click',()=>addEditCompraItem());
   $('btn-guardar-edit-compra').addEventListener('click',guardarEditCompra);
+  $('btn-aplicar-pvta-lote')?.addEventListener('click',()=>{
+    const pv=parseFloat($('edit-c-pvta-lote')?.value)||0;
+    const filtroModelo=($('edit-c-pvta-modelo')?.value||'').toLowerCase().trim();
+    if(!pv){$('edit-c-pvta-alert').textContent='Ingresá un precio de venta.';$('edit-c-pvta-alert').style.color='var(--red)';return;}
+    const ck=$('edit-c-key')?.value;
+    const comp=S.compras[ck];if(!comp)return;
+    const updatedItems=comp.items.map(it=>{
+      if(filtroModelo&&!(it.modelo||'').toLowerCase().includes(filtroModelo))return it;
+      return{...it,precioVenta:pv};
+    });
+    update(dbRef('compras/'+ck),{items:updatedItems}).then(()=>{
+      $('edit-c-pvta-alert').textContent='✅ Precio aplicado'+(filtroModelo?' a los '+filtroModelo:' a todos los equipos del lote')+'.';
+      $('edit-c-pvta-alert').style.color='var(--accent)';
+      $('edit-c-pvta-lote').value='';$('edit-c-pvta-modelo').value='';
+    });
+  });
 
   // Modal editar venta
   $('btn-cerrar-edit-venta').addEventListener('click',()=>closeModal('modal-edit-venta'));
@@ -2852,11 +2886,14 @@ function saveCompra(){
     if(!precio||precio<=0){showAlert('c-alert','Completá todos los precios',false);return;}
     // Leer una tarjeta por unidad (solo IMEI, color, batería, precio venta varían)
     for(let u=0;u<cantidad;u++){
-      const color=$('ci-color-'+id+'-'+u)?.value||'Negro';
+      // Si el campo existe (detalle desplegado) usarlo, sino vacío
+      const colorEl=$('ci-color-'+id+'-'+u);
+      const color=colorEl?colorEl.value:'';
       const imei=$('ci-imei-'+id+'-'+u)?.value.trim()||'';
       const bateria=$('ci-bat-'+id+'-'+u)?.value||'';
-      // Precio venta: usar individual si existe, sino el de "todas"
-      const precioVenta=parseFloat($('ci-pvta-'+id+'-'+u)?.value)||pvTodasVal||0;
+      // Precio venta: individual si existe y tiene valor, sino el de "todas las unidades"
+      const pvIndividual=parseFloat($('ci-pvta-'+id+'-'+u)?.value)||0;
+      const precioVenta=pvIndividual||pvTodasVal||0;
       items.push({itemId:uid(),modelo,capacidad,color,estado:estadoLote,ram,serie,ciclos,cantidad:1,precio,precioVenta,imei,bateria,grado:gradoLote,tipo,categoria});
     }
   }
