@@ -2618,7 +2618,7 @@ function stockOptions(exclVK=null,categoriaFiltro=null,localFiltro=null){
 // ─── COMPRAS ─────────────────────────────────────────────────
 function makeCompraItemEl(id,data=null,cat=null){
   const categoria=cat||compraCategoria||data?.categoria||'iphone';
-  const COLORES=['Negro','Blanco','Azul','Verde','Rojo','Amarillo','Violeta','Rosa','Naranja','Gris','Plata','Natural','Titanio','Starlight','Midnight','Gold','Desert Titanium'];
+  const COLORES=['Sin asignar','Negro','Blanco','Azul','Verde','Rojo','Amarillo','Violeta','Rosa','Naranja','Gris','Plata','Natural','Titanio','Starlight','Midnight','Gold','Desert Titanium'];
   const usaUnidades=(categoria==='iphone'||categoria==='ipad');
   const ph={iphone:'Ej: iPhone 15 Pro',ipad:'Ej: iPad Pro M4',mac:'Ej: MacBook Air M3',watch:'Ej: Series 10',audio:'Ej: AirPods Pro 2',accesorio:'Ej: Funda MagSafe',otro:'Nombre del producto'};
 
@@ -2740,7 +2740,7 @@ function makeCompraItemEl(id,data=null,cat=null){
       const gridU=document.createElement('div');
       if(usaUnidades){
         gridU.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px';
-        gridU.appendChild(fg('Color',mkSel('ci-color-'+id+'-'+u,COLORES,dataU?.color||'Negro')));
+        const colorOpts2=['Sin asignar',...COLORES];gridU.appendChild(fg('Color',mkSel('ci-color-'+id+'-'+u,colorOpts2,dataU?.color||'Sin asignar')));
         const imeiEl=inp('text','ci-imei-'+id+'-'+u,'15 dígitos',{value:dataU?.imei||'',maxLength:20});
         gridU.appendChild(fg('IMEI',imeiEl));
         const batEl=inp('number','ci-bat-'+id+'-'+u,'%',{value:dataU?.bateria||'',min:0,max:100});
@@ -2987,7 +2987,7 @@ function makeEditCompraItemEl(id,data=null){
   const fg=(lbl,el)=>{const d=document.createElement('div');d.className='form-group';const l=document.createElement('label');l.textContent=lbl;d.append(l,el);return d;};
   const inp=(type,id2,ph,extra={})=>{const i=document.createElement('input');i.type=type;i.id=id2;i.placeholder=ph;Object.assign(i,extra);return i;};
   const mkSel=(id2,opts,val)=>{const s=document.createElement('select');s.id=id2;opts.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;if(o===val)op.selected=true;s.appendChild(op);});return s;};
-  const COLORES=['Negro','Blanco','Azul','Verde','Rojo','Amarillo','Violeta','Rosa','Naranja','Gris','Plata','Natural','Titanio','Starlight','Midnight','Gold','Desert Titanium'];
+  const COLORES=['Sin asignar','Negro','Blanco','Azul','Verde','Rojo','Amarillo','Violeta','Rosa','Naranja','Gris','Plata','Natural','Titanio','Starlight','Midnight','Gold','Desert Titanium'];
   const hidden=(id2,val)=>{const h=document.createElement('input');h.type='hidden';h.id=id2;h.value=val||'';w.appendChild(h);};
   hidden('eci-itemid-'+id,data?.itemId||uid());
   const btn=document.createElement('button');btn.className='btn btn-danger btn-remove-row';btn.textContent='✕';
@@ -3181,7 +3181,7 @@ function addVentaItem(){
   const inp=(type,id2,ph,extra={})=>{const i=document.createElement('input');i.type=type;i.id=id2;i.placeholder=ph;Object.assign(i,extra);return i;};
   const mkSel=(id2,opts,val)=>{const s=document.createElement('select');s.id=id2;opts.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;if(o===val)op.selected=true;s.appendChild(op);});return s;};
   const hidden=(id2,val='')=>{const h=document.createElement('input');h.type='hidden';h.id=id2;h.value=val;wrap.appendChild(h);};
-  const COLORES=['Negro','Blanco','Azul','Verde','Rojo','Amarillo','Violeta','Rosa','Naranja','Gris','Plata','Natural','Titanio','Starlight','Midnight','Gold','Desert Titanium'];
+  const COLORES=['Sin asignar','Negro','Blanco','Azul','Verde','Rojo','Amarillo','Violeta','Rosa','Naranja','Gris','Plata','Natural','Titanio','Starlight','Midnight','Gold','Desert Titanium'];
 
   // Selector de equipo desde stock
   const selEq=document.createElement('select');selEq.id='vi-eq-'+id;selEq.innerHTML=stockOptions(null,categoria,$('v-local')?.value||null);
@@ -3705,8 +3705,8 @@ function renderStock(){
     else if(r.disp===0) statusTag='<span class="tag tag-red">Vendido</span>';
     else statusTag='<span class="tag tag-green">Disponible</span>';
 
-    const COLORES_OPT=['Negro','Blanco','Azul','Verde','Rojo','Amarillo','Violeta','Rosa','Naranja','Gris','Plata','Natural','Titanio','Starlight','Midnight','Gold','Desert Titanium'];
-    const colorOpts=COLORES_OPT.map(col=>`<option${r.color===col?' selected':''}>${col}</option>`).join('');
+    const COLORES_OPT=['Sin asignar','Negro','Blanco','Azul','Verde','Rojo','Amarillo','Violeta','Rosa','Naranja','Gris','Plata','Natural','Titanio','Starlight','Midnight','Gold','Desert Titanium'];
+    const colorOpts=COLORES_OPT.map(col=>`<option${(r.color||'Sin asignar')===col?' selected':''}>${col}</option>`).join('');
     const gradoOpts=['A+','A','A-','AB','B+'].map(g=>`<option${r.grado===g?' selected':''}>${g}</option>`).join('');
     const estadoOpts=['Sellado','Usado'].map(e=>`<option${r.estado===e?' selected':''}>${e}</option>`).join('');
 
