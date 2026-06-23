@@ -2603,7 +2603,6 @@ function addMetodoItem(){
   const sel=document.createElement('select');sel.id='mi-tipo-'+id;
   METODOS.forEach(m=>{const o=document.createElement('option');o.value=m.v;o.textContent=m.l;sel.appendChild(o);});
   sel.addEventListener('change',()=>{
-    toggleComisionMetodo(id);
     // Si es plan canje, mostrar botón para cargar equipo
     const canjeBtn=$('mi-canje-btn-'+id);
     if(sel.value==='plan_canje'){
@@ -2625,9 +2624,14 @@ function addMetodoItem(){
   const inp=document.createElement('input');inp.type='number';inp.id='mi-monto-'+id;inp.placeholder='0.00';inp.min='0';inp.step='0.01';
   inp.addEventListener('input',calcMetodos);
   fgA.append(lA,inp);
+  // Monto a cobrar (neto + recargo)
+  const fgAC=document.createElement('div');fgAC.className='form-group';
+  const lAC=document.createElement('label');lAC.textContent='Monto a cobrar';
+  const spanAC=document.createElement('div');spanAC.id='mi-monto-cobrar-'+id;spanAC.style.cssText='font-family:var(--mono);font-size:14px;font-weight:700;color:#0ca678;padding:9px 0';spanAC.textContent='—';
+  fgAC.append(lAC,spanAC);
   const btn=document.createElement('button');btn.className='btn btn-danger btn-remove-row';btn.textContent='✕';
   btn.addEventListener('click',()=>{wrap.remove();metodoItems=metodoItems.filter(i=>i!==id);calcMetodos();});
-  wrap.append(fgM,fgA,btn);
+  wrap.append(fgM,fgA,fgAC,btn);
   $('v-metodos-container').appendChild(wrap);
 
   // Fila de recargo (siempre visible, colapsable)
@@ -2670,19 +2674,6 @@ function addMetodoItem(){
   recRow.append(recToggle,recFields);
   wrap.insertAdjacentElement('afterend',recRow);
 
-  // Fila de % comisión (interna, oculta salvo para transferencia/Mercado Pago)
-  const comRow=document.createElement('div');comRow.id='mi-comrow-'+id;comRow.style.cssText='display:none;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;margin-top:-4px';
-  const fgCom=document.createElement('div');fgCom.className='form-group';
-  const lCom=document.createElement('label');lCom.textContent='% Comisión (opcional)';
-  const inpCom=document.createElement('input');inpCom.type='number';inpCom.id='mi-comision-'+id;inpCom.placeholder='Ej: 3';inpCom.min='0';inpCom.max='100';inpCom.step='0.01';
-  inpCom.addEventListener('input',calcMetodos);
-  fgCom.append(lCom,inpCom);
-  const fgComMonto=document.createElement('div');fgComMonto.className='form-group';
-  const lComMonto=document.createElement('label');lComMonto.textContent='Costo financiero';
-  const spanComMonto=document.createElement('div');spanComMonto.id='mi-comisionmonto-'+id;spanComMonto.style.cssText='font-family:var(--mono);font-size:13px;color:var(--red);padding:9px 0';spanComMonto.textContent='—';
-  fgComMonto.append(lComMonto,spanComMonto);
-  comRow.append(fgCom,fgComMonto);
-  recRow.insertAdjacentElement('afterend',comRow);
 }
 function toggleComisionMetodo(id){
   const sel=$('mi-tipo-'+id);
@@ -2694,7 +2685,7 @@ function toggleComisionMetodo(id){
 }
 
 function calcMetodos(){
-  let totalUSD=0,totalARS=0;
+  let totalNetoUSD=0,totalNetoARS=0; // montos netos (sin recargo) para "falta cobrar"
   metodoItems.forEach(id=>{
     const sel=$('mi-tipo-'+id);
     const monto=parseFloat($('mi-monto-'+id)?.value)||0;
@@ -2706,39 +2697,33 @@ function calcMetodos(){
     const recFijo=parseFloat($('mi-recargo-fijo-'+id)?.value)||0;
     const recargo=recFijo+(monto+recFijo)*(recPct/100);
     const montoConRecargo=monto+recargo;
-    // Mostrar total con recargo
+    // Mostrar monto a cobrar
+    const spanAC=$('mi-monto-cobrar-'+id);
+    if(spanAC){
+      spanAC.textContent=recargo>0.001
+        ?(met.moneda==='USD'?fmt(montoConRecargo):fmtARS(montoConRecargo))
+        :(monto>0?(met.moneda==='USD'?fmt(monto):fmtARS(monto)):'—');
+    }
+    // Mostrar recargo total
     const spanRTotal=$('mi-recargo-total-'+id);
     if(spanRTotal){
-      if(recargo>0.001){
-        spanRTotal.textContent='+'+(met.moneda==='USD'?fmt(recargo):fmtARS(recargo))+' = '+(met.moneda==='USD'?fmt(montoConRecargo):fmtARS(montoConRecargo));
-      }else{
-        spanRTotal.textContent='—';
-      }
+      spanRTotal.textContent=recargo>0.001
+        ?'+'+(met.moneda==='USD'?fmt(recargo):fmtARS(recargo))
+        :'—';
     }
-    if(met.moneda==='USD')totalUSD+=montoConRecargo;
-    else totalARS+=montoConRecargo;
-    // Mostrar el monto de comisión calculado
-    const comInp=$('mi-comision-'+id);
-    const comSpan=$('mi-comisionmonto-'+id);
-    if(comSpan){
-      const pct=parseFloat(comInp?.value)||0;
-      if(pct>0){
-        const montoCom=monto*(pct/100);
-        comSpan.textContent=met.moneda==='USD'?fmt(montoCom):fmtARS(montoCom);
-      }else{
-        comSpan.textContent='—';
-      }
-    }
+    // Para "falta cobrar" usar solo el monto NETO
+    if(met.moneda==='USD')totalNetoUSD+=monto;
+    else totalNetoARS+=monto;
   });
-  const totalPagadoUSD=totalUSD+(dolar.venta>0?totalARS/dolar.venta:0);
+  const totalPagadoUSD=totalNetoUSD+(dolar.venta>0?totalNetoARS/dolar.venta:0);
   const vTotalEl=$('v-total');
   const vTotal=vTotalEl?parseFloat(vTotalEl.dataset.valor||0):0;
   const pagadoEl=$('v-pagado');
   const diffEl=$('v-pagado-diff');
   if(pagadoEl){
     let txt='';
-    if(totalUSD>0)txt+=fmt(totalUSD)+' USD';
-    if(totalARS>0)txt+=(txt?' + ':'')+fmtARS(totalARS)+' ARS';
+    if(totalNetoUSD>0)txt+=fmt(totalNetoUSD)+' USD';
+    if(totalNetoARS>0)txt+=(txt?' + ':'')+fmtARS(totalNetoARS)+' ARS';
     pagadoEl.textContent=txt||'—';
   }
   if(diffEl&&vTotal>0){
@@ -2771,7 +2756,7 @@ function addMetodoCompraItem(){
   sel.addEventListener('change',()=>calcMetodosCompra());
   fgM.append(lM,sel);
   const fgA=document.createElement('div');fgA.className='form-group';
-  const lA=document.createElement('label');lA.textContent='Monto';
+  const lA=document.createElement('label');lA.textContent='Monto neto';
   const inp=document.createElement('input');inp.type='number';inp.id='mc-monto-'+id;inp.placeholder='0.00';inp.min='0';inp.step='0.01';
   inp.addEventListener('input',calcMetodosCompra);
   fgA.append(lA,inp);
