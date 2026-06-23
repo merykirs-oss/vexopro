@@ -1850,7 +1850,7 @@ function checkTrial(userData){
     const textColor=urgent?'#c0392b':'#b13c3c';
     const titulo=diasRestantes===1?'⚠️ Último día de prueba gratuita':'⏳ Quedan '+diasRestantes+' días de prueba gratuita';
     bGlobal.style.display='block';
-    bGlobal.innerHTML='<div style="background:'+bgColor+';border:1px solid '+borderColor+';border-radius:10px;padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px"><div><div style="font-size:13px;font-weight:700;color:'+textColor+'">'+titulo+'</div><div style="font-size:12px;color:'+textColor+';opacity:0.8;margin-top:2px">Suscribite para continuar usando VexoPRO sin interrupciones</div></div><div style="display:flex;gap:6px;align-items:center"><a href="vexpro_suscripcion.html?from=app" target="_blank" style="background:#fff;color:#2d7a4f;border:1.5px solid #2d7a4f;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap">Ver planes</a><a href="'+wspUrl+'" target="_blank" style="background:#2d7a4f;color:#fff;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap">SUSCRIBIRME</a></div></div>';
+    bGlobal.innerHTML='<div style="background:'+bgColor+';border:1px solid '+borderColor+';border-radius:10px;padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px"><div><div style="font-size:13px;font-weight:700;color:'+textColor+'">'+titulo+'</div><div style="font-size:12px;color:'+textColor+';opacity:0.8;margin-top:2px">Suscribite para continuar usando VexoPRO sin interrupciones</div></div><div style="display:flex;gap:6px;align-items:center"><a href="/planes?from=app" target="_blank" style="background:#fff;color:#2d7a4f;border:1.5px solid #2d7a4f;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap">Ver planes</a><a href="'+wspUrl+'" target="_blank" style="background:#2d7a4f;color:#fff;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap">SUSCRIBIRME</a></div></div>';
   }
   return true;
 }
@@ -2464,7 +2464,7 @@ function showPage(name){
             💬 Suscribirme ahora
           </a>
           <div style="margin-top:16px">
-            <a href="vexpro_suscripcion.html" target="_blank" style="font-size:13px;color:var(--text3);text-decoration:underline">Ver planes y precios</a>
+            <a href="/planes" target="_blank" style="font-size:13px;color:var(--text3);text-decoration:underline">Ver planes y precios</a>
           </div>
         </div>`;
     } else {
@@ -4584,7 +4584,9 @@ async function saveConfigDolar(){
 
 // ─── CATÁLOGO PÚBLICO ────────────────────────────────────────
 function getCatalogoUrl(){
-  return `https://merykirs-oss.github.io/vexopro/catalogo.html?uid=${ownerUid}`;
+  const negocio=(S.config?.negocio||ownerData?.negocio||'').toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,'');
+  if(negocio) return `https://vexoprosolutions.com/catalogo.html?negocio=${negocio}`;
+  return `https://vexoprosolutions.com/catalogo.html?uid=${ownerUid}`;
 }
 
 function renderCatalogoEstado(){
