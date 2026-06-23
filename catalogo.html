@@ -166,8 +166,11 @@ function renderCatalogo(filtro=''){
 
   grid.innerHTML=filtered.map(r=>{
     const detalle=[r.cap&&r.cap!=='N/A'?r.cap:'',r.color,r.grado,r.tipo,r.bateria?'🔋'+r.bateria+'%':''].filter(Boolean).join(' · ');
-    const stockTag=r.disp<=2
-      ?`<span class="prod-stock stock-low">⚠️ Últimas ${r.disp} unidades</span>`
+    const mostrarStock=config?.catalogoMostrarStock===true;
+    const stockTag=mostrarStock
+      ?(r.disp<=2
+        ?`<span class="prod-stock stock-low">⚠️ Últimas ${r.disp} unidades</span>`
+        :`<span class="prod-stock stock-ok">✅ ${r.disp} disponibles</span>`)
       :`<span class="prod-stock stock-ok">✅ Disponible</span>`;
     const localTag=r.localNombre?`<div class="prod-local">📍 ${r.localNombre}</div>`:'';
     const msg=encodeURIComponent(`Hola! Vi el catálogo y me interesa el ${r.modelo}${r.cap&&r.cap!=='N/A'?' '+r.cap:''}${r.precioVenta>0?' a '+fmt(r.precioVenta):''}. ¿Está disponible?`);

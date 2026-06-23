@@ -697,6 +697,16 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
       </div>
     </div>
     <div id="catalogo-link-preview" style="display:none;margin-top:12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:12px;font-family:var(--mono);color:var(--accent);word-break:break-all"></div>
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-weight:600;font-size:13px">Mostrar unidades disponibles en catálogo</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">Para lotes de equipos iguales, muestra cuántas unidades quedan</div>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+        <input type="checkbox" id="cfg-catalogo-mostrar-stock" style="accent-color:var(--accent);width:16px;height:16px">
+        Mostrar stock
+      </label>
+    </div>
   </div>
   <div class="table-card"><h3>Inventario</h3><div id="tabla-stock"></div></div>
 </div>
@@ -1983,7 +1993,9 @@ function initApp(){
   $('cfg-dolar-manual')?.addEventListener('change',e=>{
     if($('cfg-dolar-manual-fields'))$('cfg-dolar-manual-fields').style.display=e.target.checked?'block':'none';
   });
-  $('btn-toggle-catalogo')?.addEventListener('click',toggleCatalogo);
+  $('cfg-catalogo-mostrar-stock')?.addEventListener('change',e=>{
+    update(dbRef('config'),{catalogoMostrarStock:e.target.checked});
+  });
   $('btn-copiar-link-catalogo')?.addEventListener('click',copiarLinkCatalogo);
 
   // ── Filtros Stock ──
@@ -2585,9 +2597,9 @@ function makeCompraItemEl(id,data=null,cat=null){
   const fg=(lbl,el)=>{const d=document.createElement('div');d.className='form-group';const l=document.createElement('label');l.textContent=lbl;d.append(l,el);return d;};
   const hidden=(id2,val)=>{const h=document.createElement('input');h.type='hidden';h.id=id2;h.value=val||'';w.appendChild(h);};
 
-  // ── FILA 1: Modelo + Capacidad + Cantidad + Precio costo + Eliminar ──
+  // ── FILA 1: Modelo + Capacidad + Cantidad + Precio costo + Precio venta + Eliminar ──
   const row1=document.createElement('div');
-  row1.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:10px;align-items:end;margin-bottom:12px';
+  row1.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr auto;gap:10px;align-items:end;margin-bottom:12px';
 
   row1.appendChild(fg('Modelo',inp('text','ci-modelo-'+id,ph[categoria]||'Modelo',{value:data?.modelo||''})));
 
@@ -2604,6 +2616,21 @@ function makeCompraItemEl(id,data=null,cat=null){
   const precEl=inp('number','ci-precio-'+id,'0',{value:data?.precio||'',min:0,step:0.01});
   precEl.addEventListener('input',calcTotalCompra);
   row1.appendChild(fg('Costo c/u (USD)',precEl));
+
+  // Precio de venta para TODAS las unidades — campo en cabecera
+  const pvTodas=inp('number','ci-pvta-todas-'+id,'0',{value:data?.precioVenta||'',min:0,step:0.01});
+  pvTodas.style.color='#0ca678';
+  pvTodas.addEventListener('input',()=>{
+    // Aplicar a todas las tarjetas individuales si están desplegadas
+    const cant=parseInt(cantEl.value)||1;
+    for(let x=0;x<cant;x++){const el2=$('ci-pvta-'+id+'-'+x);if(el2)el2.value=pvTodas.value;}
+  });
+  const pvTodasWrap=fg('Precio venta c/u (USD)',pvTodas);
+  const pvTodasHint=document.createElement('div');
+  pvTodasHint.style.cssText='font-size:10px;color:var(--text2);margin-top:3px';
+  pvTodasHint.textContent='Se aplica a todas';
+  pvTodasWrap.appendChild(pvTodasHint);
+  row1.appendChild(pvTodasWrap);
 
   const btnDel=document.createElement('button');btnDel.className='btn btn-danger btn-remove-row';btnDel.textContent='✕';
   btnDel.addEventListener('click',()=>{w.remove();compraItems=compraItems.filter(i=>i!==id);calcTotalCompra();});
@@ -2820,6 +2847,7 @@ function saveCompra(){
     // Campos COMPARTIDOS del lote
     const estadoLote=$('ci-estado-'+id)?.value||'Sellado';
     const gradoLote=$('ci-grado-'+id)?.value||'';
+    const pvTodasVal=parseFloat($('ci-pvta-todas-'+id)?.value)||0;
     if(!modelo){showAlert('c-alert','Completá todos los modelos',false);return;}
     if(!precio||precio<=0){showAlert('c-alert','Completá todos los precios',false);return;}
     // Leer una tarjeta por unidad (solo IMEI, color, batería, precio venta varían)
@@ -2827,7 +2855,8 @@ function saveCompra(){
       const color=$('ci-color-'+id+'-'+u)?.value||'Negro';
       const imei=$('ci-imei-'+id+'-'+u)?.value.trim()||'';
       const bateria=$('ci-bat-'+id+'-'+u)?.value||'';
-      const precioVenta=parseFloat($('ci-pvta-'+id+'-'+u)?.value)||0;
+      // Precio venta: usar individual si existe, sino el de "todas"
+      const precioVenta=parseFloat($('ci-pvta-'+id+'-'+u)?.value)||pvTodasVal||0;
       items.push({itemId:uid(),modelo,capacidad,color,estado:estadoLote,ram,serie,ciclos,cantidad:1,precio,precioVenta,imei,bateria,grado:gradoLote,tipo,categoria});
     }
   }
@@ -4000,6 +4029,7 @@ function renderConfig(){
   if($('cfg-dolar-manual-fields'))$('cfg-dolar-manual-fields').style.display=dolarManual?'block':'none';
   if($('cfg-dolar-compra'))$('cfg-dolar-compra').value=cfg.dolarManualCompra||'';
   if($('cfg-dolar-venta'))$('cfg-dolar-venta').value=cfg.dolarManualVenta||'';
+  if($('cfg-catalogo-mostrar-stock'))$('cfg-catalogo-mostrar-stock').checked=cfg.catalogoMostrarStock===true;
 }
 
 async function saveConfigNegocio(){
