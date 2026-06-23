@@ -2650,18 +2650,26 @@ function makeCompraItemEl(id,data=null,cat=null){
   unidadesBox.id='ci-unidades-'+id;
   w.appendChild(unidadesBox);
 
+  let unidadesVisible=false;
+
   function renderUnidades(){
     const cant=parseInt(cantEl.value)||1;
     unidadesBox.innerHTML='';
-    const titulo=document.createElement('div');
-    titulo.style.cssText='font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;padding-top:10px;border-top:1px solid var(--border)';
-    titulo.textContent='Detalle individual por unidad ('+cant+')';
-    unidadesBox.appendChild(titulo);
+
+    // Botón para desplegar
+    const btnToggle=document.createElement('button');
+    btnToggle.type='button';
+    btnToggle.style.cssText='margin-top:10px;width:100%;padding:8px;background:var(--surface3);border:1px dashed var(--border);border-radius:8px;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans)';
+    btnToggle.textContent=(unidadesVisible?'▲ Ocultar':'▼ Cargar detalle de unidades')+' ('+cant+')';
+    btnToggle.addEventListener('click',()=>{unidadesVisible=!unidadesVisible;renderUnidades();});
+    unidadesBox.appendChild(btnToggle);
+
+    if(!unidadesVisible) return;
 
     for(let u=0;u<cant;u++){
       const dataU=u===0?data:data?.unidades?.[u];
       const card=document.createElement('div');
-      card.style.cssText='background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px';
+      card.style.cssText='background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-top:6px';
 
       const numLabel=document.createElement('div');
       numLabel.style.cssText='font-size:11px;font-weight:700;color:var(--accent);margin-bottom:8px';
@@ -2670,7 +2678,6 @@ function makeCompraItemEl(id,data=null,cat=null){
 
       const gridU=document.createElement('div');
       if(usaUnidades){
-        // iPhone/iPad: Color, IMEI, Batería, Precio venta
         gridU.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px';
         gridU.appendChild(fg('Color',mkSel('ci-color-'+id+'-'+u,COLORES,dataU?.color||'Negro')));
         const imeiEl=inp('text','ci-imei-'+id+'-'+u,'15 dígitos',{value:dataU?.imei||'',maxLength:20});
@@ -2678,7 +2685,6 @@ function makeCompraItemEl(id,data=null,cat=null){
         const batEl=inp('number','ci-bat-'+id+'-'+u,'%',{value:dataU?.bateria||'',min:0,max:100});
         gridU.appendChild(fg('% Batería',batEl));
       }else{
-        // Otros: Color, Precio venta
         gridU.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px';
         gridU.appendChild(fg('Color',mkSel('ci-color-'+id+'-'+u,COLORES,dataU?.color||'Negro')));
         hidden('ci-imei-'+id+'-'+u,'');hidden('ci-bat-'+id+'-'+u,'');
@@ -2694,15 +2700,11 @@ function makeCompraItemEl(id,data=null,cat=null){
         applyAll.addEventListener('click',()=>{
           const val=pvEl.value;
           const total=parseInt(cantEl.value)||1;
-          for(let x=0;x<total;x++){
-            const el2=$('ci-pvta-'+id+'-'+x);
-            if(el2&&x!==0)el2.value=val;
-          }
+          for(let x=0;x<total;x++){const el2=$('ci-pvta-'+id+'-'+x);if(el2&&x!==0)el2.value=val;}
         });
         pvWrap.appendChild(applyAll);
       }
       gridU.appendChild(pvWrap);
-
       card.appendChild(gridU);
       unidadesBox.appendChild(card);
     }
@@ -2876,7 +2878,14 @@ function renderCompras(){
   ent.forEach(([k,c])=>{
     const total=c.totalUSD!=null?c.totalUSD:c.items.reduce((s,i)=>s+(i.precio*(i.cantidad||1)),0);
     const unids=c.items.reduce((s,i)=>s+(i.cantidad||1),0);
-    const mod=c.items.map(i=>'<span class="tag '+(i.estado==='Usado'?'tag-yellow':'tag-blue')+'" style="margin:1px">'+i.modelo+(i.capacidad&&i.capacidad!=='N/A'?' '+i.capacidad:'')+(i.color?' · '+i.color:'')+(i.estado?' · '+i.estado:'')+'</span>').join(' ');
+    // Agrupar por modelo+capacidad+estado para no repetir
+    const gruposMod={};
+    c.items.forEach(i=>{
+      const key=(i.modelo||'?')+'|'+(i.capacidad&&i.capacidad!=='N/A'?i.capacidad:'')+'|'+(i.estado||'');
+      if(!gruposMod[key])gruposMod[key]={modelo:i.modelo,cap:i.capacidad&&i.capacidad!=='N/A'?i.capacidad:'',estado:i.estado||'',cant:0};
+      gruposMod[key].cant+=i.cantidad||1;
+    });
+    const mod=Object.values(gruposMod).map(g=>'<span class="tag '+(g.estado==='Usado'?'tag-yellow':'tag-blue')+'" style="margin:1px">'+g.modelo+(g.cap?' '+g.cap:'')+(g.estado?' · '+g.estado:'')+(g.cant>1?' <strong>×'+g.cant+'</strong>':'')+'</span>').join(' ');
     const pagoTag=c.condicionPago==='pagado'?'<span class="tag tag-green">Pagado</span>':c.condicionPago==='parcial'?'<span class="tag tag-yellow">Parcial</span>':c.condicionPago==='pendiente'?'<span class="tag tag-red">Pendiente</span>':'<span class="tag tag-blue">—</span>';
     const estadoEnt=c.estadoEntrega||'en_camino';
     const entregaSel='<select class="compra-entrega-sel" data-compra-key="'+k+'" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font-size:12px;font-family:var(--sans)"><option value="en_camino"'+(estadoEnt==='en_camino'?' selected':'')+'>🚚 En camino</option><option value="recibido"'+(estadoEnt==='recibido'?' selected':'')+'>✅ Recibido</option></select>';
@@ -3630,44 +3639,61 @@ function renderStock(){
     else if(r.disp===0) statusTag='<span class="tag tag-red">Vendido</span>';
     else statusTag='<span class="tag tag-green">Disponible</span>';
 
-    // Detalles en una línea
-    const detalles=[
-      r.grado?'Grado '+r.grado:'',
-      r.estado||'',
-      r.tipo||'',
-    ].filter(Boolean).join(' · ');
+    const COLORES_OPT=['Negro','Blanco','Azul','Verde','Rojo','Amarillo','Violeta','Rosa','Naranja','Gris','Plata','Natural','Titanio','Starlight','Midnight','Gold','Desert Titanium'];
+    const colorOpts=COLORES_OPT.map(col=>`<option${r.color===col?' selected':''}>${col}</option>`).join('');
+    const gradoOpts=['A+','A','A-','AB','B+'].map(g=>`<option${r.grado===g?' selected':''}>${g}</option>`).join('');
+    const estadoOpts=['Sellado','Usado'].map(e=>`<option${r.estado===e?' selected':''}>${e}</option>`).join('');
 
-    // IMEI e info bateria
-    const imeiStr=r.imei?'<div style="font-size:11px;color:var(--text3);font-family:var(--mono)">IMEI: '+r.imei+'</div>':'';
-    const batStr=r.bateria?'<span style="font-size:11px;color:var(--accent)">🔋'+r.bateria+'%</span>':'';
+    const inpStyle='background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:4px 7px;font-size:12px;font-family:var(--sans);outline:none;width:100%;box-sizing:border-box';
+    const selStyle=inpStyle+';cursor:pointer';
 
     // Local selector
     const localOpts='<option value=""'+(r.localId?'':' selected')+'>Sin asignar</option>'+
       Object.entries(S.locales).map(([k,l])=>'<option value="'+k+'"'+(r.localId===k?' selected':'')+'>'+l.icono+' '+l.nombre+'</option>').join('');
-    const localSel='<select class="stock-local-sel" data-compra-key="'+r.compraKey+'" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font-size:12px;font-family:var(--sans);max-width:150px">'+localOpts+'</select>';
+
+    const ck=r.compraKey;const itId=r.itemId;
 
     tr+=`<tr>
       <td>
-        <strong>${r.modelo}</strong>
-        ${r.cap&&r.cap!=='N/A'?'<span class="tag tag-blue" style="margin-left:4px">'+r.cap+'</span>':''}
-        ${r.color?'<span style="font-size:11px;color:var(--text2);margin-left:4px">'+r.color+'</span>':''}
-        ${detalles?'<div style="font-size:11px;color:var(--text3)">'+detalles+'</div>':''}
-        ${imeiStr}
+        <div style="font-weight:600;font-size:13px">${r.modelo}${r.cap&&r.cap!=='N/A'?' <span class="tag tag-blue" style="font-size:10px">'+r.cap+'</span>':''}</div>
+        <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">
+          <select class="se-color" data-ck="${ck}" data-itid="${itId}" style="${selStyle};max-width:110px">${colorOpts}</select>
+          <select class="se-estado" data-ck="${ck}" data-itid="${itId}" style="${selStyle};max-width:90px">${estadoOpts}</select>
+          <select class="se-grado" data-ck="${ck}" data-itid="${itId}" style="${selStyle};max-width:75px">${gradoOpts}</select>
+        </div>
+        <div style="margin-top:4px"><input class="se-imei" data-ck="${ck}" data-itid="${itId}" type="text" value="${r.imei||''}" placeholder="IMEI" style="${inpStyle};max-width:160px;font-family:var(--mono);font-size:11px"></div>
       </td>
-      <td>${batStr||'—'}</td>
+      <td><input class="se-bat" data-ck="${ck}" data-itid="${itId}" type="number" value="${r.bateria||''}" placeholder="%" min="0" max="100" style="${inpStyle};max-width:65px"></td>
       <td style="font-size:12px;color:var(--text2)">${r.proveedor||'—'}</td>
       <td style="font-size:11px;color:var(--text2)">${r.ref}</td>
-      <td class="mono" style="color:var(--yellow)">${fmt(r.costo)}</td>
-      <td class="mono" style="color:#0ca678">${r.precioVenta?fmt(r.precioVenta):'<span style="color:var(--text3)">—</span>'}</td>
+      <td><input class="se-costo" data-ck="${ck}" data-itid="${itId}" type="number" value="${r.costo||''}" placeholder="0" min="0" step="0.01" style="${inpStyle};max-width:85px;color:var(--yellow);font-family:var(--mono)"></td>
+      <td><input class="se-pvta" data-ck="${ck}" data-itid="${itId}" type="number" value="${r.precioVenta||''}" placeholder="0" min="0" step="0.01" style="${inpStyle};max-width:85px;color:#0ca678;font-family:var(--mono)"></td>
       <td>${statusTag}</td>
-      <td>${localSel}</td>
+      <td><select class="stock-local-sel" data-compra-key="${ck}" style="${selStyle};max-width:150px">${localOpts}</select></td>
     </tr>`;
   });
 
   el.innerHTML='<table><thead><tr><th>Equipo</th><th>Batería</th><th>Proveedor</th><th>Referencia</th><th>Costo</th><th>Precio venta</th><th>Estado</th><th>Punto de venta</th></tr></thead><tbody>'+tr+'</tbody></table>';
-  el.querySelectorAll('.stock-local-sel').forEach(sel=>sel.addEventListener('change',()=>{
-    update(dbRef('compras/'+sel.dataset.compraKey),{localId:sel.value});
-  }));
+
+  // Guardar cambios por item en Firebase
+  function saveItemField(ck,itId,field,val){
+    // Actualizar el item específico dentro de compras/{ck}/items
+    const comp=S.compras[ck];if(!comp)return;
+    const items=comp.items.map(it=>{
+      if(it.itemId===itId||(itId===''&&!it.itemId))return{...it,[field]:val};
+      return it;
+    });
+    update(dbRef('compras/'+ck),{items});
+  }
+
+  el.querySelectorAll('.se-color').forEach(el2=>el2.addEventListener('change',()=>saveItemField(el2.dataset.ck,el2.dataset.itid,'color',el2.value)));
+  el.querySelectorAll('.se-estado').forEach(el2=>el2.addEventListener('change',()=>saveItemField(el2.dataset.ck,el2.dataset.itid,'estado',el2.value)));
+  el.querySelectorAll('.se-grado').forEach(el2=>el2.addEventListener('change',()=>saveItemField(el2.dataset.ck,el2.dataset.itid,'grado',el2.value)));
+  el.querySelectorAll('.se-imei').forEach(el2=>el2.addEventListener('change',()=>saveItemField(el2.dataset.ck,el2.dataset.itid,'imei',el2.value.trim())));
+  el.querySelectorAll('.se-bat').forEach(el2=>el2.addEventListener('change',()=>saveItemField(el2.dataset.ck,el2.dataset.itid,'bateria',el2.value)));
+  el.querySelectorAll('.se-costo').forEach(el2=>el2.addEventListener('change',()=>saveItemField(el2.dataset.ck,el2.dataset.itid,'precio',parseFloat(el2.value)||0)));
+  el.querySelectorAll('.se-pvta').forEach(el2=>el2.addEventListener('change',()=>saveItemField(el2.dataset.ck,el2.dataset.itid,'precioVenta',parseFloat(el2.value)||0)));
+  el.querySelectorAll('.stock-local-sel').forEach(sel=>sel.addEventListener('change',()=>update(dbRef('compras/'+sel.dataset.compraKey),{localId:sel.value})));
   renderCatalogoEstado();
 }
 
