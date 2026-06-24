@@ -977,7 +977,6 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
   </div>
 
   <!-- PANTALLAZO POR TÉCNICO (solo los que tienen algo activo) -->
-  <div id="tec-pantallazo" style="margin-bottom:20px"></div>
 
   <!-- REPARACIONES COMPLETAS -->
   <div class="table-card">
@@ -6335,7 +6334,6 @@ function renderTecnicos(){
     '<div class="stat-card sc-red"><div class="lbl">Costo total</div><div class="val">'+fmt(tg)+'</div></div>';
   if($('badge-reparaciones'))$('badge-reparaciones').textContent=pendientes+' pendientes';
   if($('badge-tecnicos'))$('badge-tecnicos').textContent=Object.keys(S.tecnicos).length;
-  renderPantallazoTecnicos();
   const tfTecSel=$('tf-tecnico');
   if(tfTecSel){const cur=tfTecSel.value;tfTecSel.innerHTML='<option value="">Todos</option>';Object.entries(S.tecnicos).forEach(([k,t])=>{const op=document.createElement('option');op.value=k;op.textContent=t.nombre;if(k===cur)op.selected=true;tfTecSel.appendChild(op);});}
   const tfTec=$('tf-tecnico')?.value||'';
