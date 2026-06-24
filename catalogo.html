@@ -304,61 +304,45 @@ document.getElementById('search-input').addEventListener('input',e=>renderCatalo
 
 // ── PDF DEL CATÁLOGO ──────────────────────────────────────────
 function descargarPDF(){
-  const negocio=config.negocio||document.getElementById('nombre-negocio').textContent||'Catálogo';
+  const negocio=config.negocio||document.getElementById('nombre-negocio').textContent||'Catalogo';
   const color=config.colorPrimario||'#2d7a4f';
-  const logoUrl=config.logoUrl||'';
   const fecha=new Date().toLocaleDateString('es-AR');
-
-  // Usar los datos ya cargados en el catálogo
   const items=buildStock();
-
-  if(!items.length){alert('No hay productos disponibles para descargar.');return;}
+  if(!items.length){alert('No hay productos disponibles.');return;}
 
   let cards=items.map(r=>`
-    <div style="border:1px solid #e0e0e0;border-radius:10px;padding:14px;background:#fff;break-inside:avoid;page-break-inside:avoid">
+    <div style="border:1px solid #ddd;border-radius:10px;padding:14px;background:#fff;break-inside:avoid;page-break-inside:avoid;margin-bottom:12px">
       <div style="font-size:10px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px">${r.categoria||'iPhone'}</div>
-      <div style="font-size:15px;font-weight:700;color:#1a2e24;line-height:1.2">${r.modelo}</div>
-      ${r.cap&&r.cap!=='N/A'?`<div style="font-size:12px;color:#4a6358;margin-top:2px">${r.cap}${r.color&&r.color!=='Sin asignar'?' · '+r.color:''}${r.grado?' · '+r.grado:''}</div>`:''}
+      <div style="font-size:15px;font-weight:700;color:#1a2e24">${r.modelo}${r.cap&&r.cap!=='N/A'?' <span style="font-weight:400;font-size:13px;color:#4a6358">'+r.cap+'</span>':''}</div>
+      ${r.color&&r.color!=='Sin asignar'?`<div style="font-size:12px;color:#4a6358;margin-top:2px">${r.color}${r.grado?' · '+r.grado:''}</div>`:''}
       ${r.bateria?`<div style="font-size:11px;color:${color};margin-top:2px">🔋 ${r.bateria}%</div>`:''}
-      <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center">
-        <div style="font-size:20px;font-weight:700;color:${color};font-family:monospace">${r.precioVenta?'$'+r.precioVenta.toLocaleString():'Consultar'}</div>
-        <div style="font-size:11px;background:#e8f5e9;color:${color};padding:3px 8px;border-radius:4px;font-weight:600">${config.catalogoMostrarStock&&r.disp>1?r.disp+' u.':'✅ Disponible'}</div>
-      </div>
+      <div style="margin-top:10px;font-size:20px;font-weight:700;color:${color};font-family:monospace">${r.precioVenta?'$'+r.precioVenta.toLocaleString():'Consultar'}</div>
     </div>`).join('');
 
-  const logoHtml=logoUrl?`<img src="${logoUrl}" style="max-height:50px;max-width:140px;object-fit:contain;background:rgba(255,255,255,0.15);border-radius:6px;padding:4px" onerror="this.style.display='none'">`:'';
-
-  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <title>${negocio} — Catálogo</title>
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${negocio}</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Helvetica Neue',Arial,sans-serif;background:#f5f5f5;color:#1a2e24}
-    @media print{body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
-  </style>
-  </head><body>
-  <div style="background:${color};color:#fff;padding:20px 28px;display:flex;align-items:center;gap:16px;margin-bottom:20px">
-    ${logoHtml}
-    <div>
-      <div style="font-size:22px;font-weight:700">${negocio}</div>
-      <div style="font-size:13px;opacity:0.85">Catálogo de productos · ${fecha}</div>
-    </div>
+    body{font-family:Arial,sans-serif;background:#f5f5f5}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:20px}
+    @media print{body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}.grid{padding:10px}}
+  </style></head><body>
+  <div style="background:${color};color:#fff;padding:18px 24px;margin-bottom:4px">
+    <div style="font-size:22px;font-weight:700">${negocio}</div>
+    <div style="font-size:12px;opacity:0.85">Catálogo · ${fecha}</div>
   </div>
-  <div style="padding:0 20px 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
-    ${cards}
-  </div>
-  <script>window.onload=function(){setTimeout(function(){window.print();},300);}<\/script>
+  <div class="grid">${cards}</div>
   </body></html>`;
 
+  // Descargar como archivo HTML (el usuario lo abre y hace Ctrl+P / guardar como PDF)
   const blob=new Blob([html],{type:'text/html;charset=utf-8'});
   const url=URL.createObjectURL(blob);
-  const w=window.open(url,'_blank');
-  if(!w){
-    // Fallback si popups bloqueados
-    const a=document.createElement('a');
-    a.href=url;a.download=negocio+' — Catálogo.html';
-    a.click();
-  }
-  setTimeout(()=>URL.revokeObjectURL(url),5000);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=negocio.replace(/[^a-zA-Z0-9]/g,'_')+'_catalogo.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),3000);
 }
 })();
 </script>
