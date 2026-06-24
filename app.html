@@ -1373,6 +1373,19 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
       <div class="form-group"><label>Nombre del negocio</label><input type="text" id="cfg-negocio" placeholder="Ej: Nexo Celulares"></div>
       <div class="form-group"><label>WhatsApp de contacto</label><input type="text" id="cfg-wsp" placeholder="Ej: 5491112345678"></div>
       <div class="form-group"><label>Dirección</label><input type="text" id="cfg-direccion" placeholder="Ej: Av. Corrientes 1234, CABA"></div>
+      <div class="form-group"><label>URL del logo</label><input type="text" id="cfg-logo-url" placeholder="https://... (imagen PNG o JPG)"></div>
+      <div class="form-group">
+        <label>Color primario del negocio</label>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="color" id="cfg-color-primario" value="#2d7a4f" style="width:48px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px">
+          <input type="text" id="cfg-color-hex" placeholder="#2d7a4f" maxlength="7" style="flex:1;font-family:var(--mono)">
+        </div>
+      </div>
+    </div>
+    <!-- Preview logo -->
+    <div id="cfg-logo-preview" style="display:none;margin-bottom:14px;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:12px">
+      <img id="cfg-logo-img" src="" style="max-height:50px;max-width:150px;object-fit:contain;border-radius:4px">
+      <span style="font-size:12px;color:var(--text2)">Vista previa del logo</span>
     </div>
     <div class="form-actions"><button class="btn btn-primary" id="btn-save-cfg-negocio">Guardar</button></div>
     <div id="cfg-negocio-alert"></div>
@@ -2102,6 +2115,15 @@ function initApp(){
 
   // Botones garantias
   $('btn-save-cfg-negocio')?.addEventListener('click',saveConfigNegocio);
+  // Color picker sync
+  $('cfg-color-primario')?.addEventListener('input',e=>{if($('cfg-color-hex'))$('cfg-color-hex').value=e.target.value;});
+  $('cfg-color-hex')?.addEventListener('input',e=>{const v=e.target.value;if(/^#[0-9a-fA-F]{6}$/.test(v)&&$('cfg-color-primario'))$('cfg-color-primario').value=v;});
+  // Logo preview on URL change
+  $('cfg-logo-url')?.addEventListener('input',e=>{
+    const url=e.target.value.trim();
+    if(url&&$('cfg-logo-img')){$('cfg-logo-img').src=url;$('cfg-logo-preview').style.display='flex';}
+    else if($('cfg-logo-preview'))$('cfg-logo-preview').style.display='none';
+  });
   $('btn-save-cfg-garantia')?.addEventListener('click',saveConfigGarantia);
   $('btn-save-cfg-ventas')?.addEventListener('click',saveConfigVentas);
   $('btn-save-cfg-dolar')?.addEventListener('click',saveConfigDolar);
@@ -4495,6 +4517,11 @@ function renderConfig(){
   if($('cfg-negocio'))$('cfg-negocio').value=cfg.negocio||ownerData?.negocio||'';
   if($('cfg-wsp'))$('cfg-wsp').value=cfg.wsp||'';
   if($('cfg-direccion'))$('cfg-direccion').value=cfg.direccion||'';
+  if($('cfg-logo-url'))$('cfg-logo-url').value=cfg.logoUrl||'';
+  if($('cfg-color-primario'))$('cfg-color-primario').value=cfg.colorPrimario||'#2d7a4f';
+  if($('cfg-color-hex'))$('cfg-color-hex').value=cfg.colorPrimario||'#2d7a4f';
+  if(cfg.logoUrl&&$('cfg-logo-img')){$('cfg-logo-img').src=cfg.logoUrl;$('cfg-logo-preview').style.display='flex';}
+  else if($('cfg-logo-preview'))$('cfg-logo-preview').style.display='none';
   // Garantías
   if($('cfg-dias-garantia'))$('cfg-dias-garantia').value=cfg.diasGarantia||30;
   if($('cfg-pie-certificado'))$('cfg-pie-certificado').value=cfg.pieCertificado||'Para verificar la vigencia de esta garantía, comunicate con nosotros indicando el código {codigo}.';
@@ -4533,13 +4560,16 @@ async function saveConfigNegocio(){
   const negocio=$('cfg-negocio').value.trim();
   const wsp=$('cfg-wsp').value.trim();
   const direccion=$('cfg-direccion').value.trim();
+  const logoUrl=$('cfg-logo-url')?.value.trim()||'';
+  const colorPrimario=$('cfg-color-primario')?.value||'#2d7a4f';
   if(!negocio){showAlert('cfg-negocio-alert','Ingresá el nombre del negocio',false);return;}
-  await update(dbRef('config'),{negocio,wsp,direccion});
-  // Actualizar sidebar
+  await update(dbRef('config'),{negocio,wsp,direccion,logoUrl,colorPrimario});
   if($('negocio-nombre'))$('negocio-nombre').textContent=negocio;
-  // Actualizar en usuarios también
   await update(ref(db,'usuarios/'+ownerUid),{negocio});
   ownerData={...ownerData,negocio};
+  // Preview logo
+  if(logoUrl&&$('cfg-logo-img')){$('cfg-logo-img').src=logoUrl;$('cfg-logo-preview').style.display='flex';}
+  else if($('cfg-logo-preview'))$('cfg-logo-preview').style.display='none';
   showAlert('cfg-negocio-alert','✅ Datos del negocio guardados');
 }
 
@@ -4602,7 +4632,7 @@ function renderCatalogoEstado(){
     linkBtn.style.display='';
     const url=getCatalogoUrl();
     preview.style.display='';
-    preview.innerHTML='<a href="'+url+'" target="_blank" style="color:var(--accent);text-decoration:none">'+url+'</a>';
+    preview.innerHTML='<a href="'+url+'" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none">🌐 Ver catálogo</a>';
   }else{
     lbl.textContent='Desactivado';lbl.style.color='var(--text3)';
     btn.textContent='Activar catálogo';btn.className='btn btn-primary';

@@ -68,13 +68,19 @@ body{font-family:var(--sans);background:#f5f5f5;color:var(--text);min-height:100
 <body>
 
 <div id="header">
-  <div>
-    <h1 id="nombre-negocio">Cargando...</h1>
-    <p>Catálogo de productos disponibles</p>
+  <div style="display:flex;align-items:center;gap:14px">
+    <img id="logo-negocio" src="" style="display:none;max-height:44px;max-width:120px;object-fit:contain;border-radius:6px;background:rgba(255,255,255,0.15);padding:4px">
+    <div>
+      <h1 id="nombre-negocio">Cargando...</h1>
+      <p>Catálogo de productos disponibles</p>
+    </div>
   </div>
-  <a id="wsp-link-header" href="#" target="_blank" class="wsp-header" style="display:none">
-    💬 Consultanos
-  </a>
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+    <button onclick="descargarPDF()" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">📄 Descargar PDF</button>
+    <a id="wsp-link-header" href="#" target="_blank" class="wsp-header" style="display:none">
+      💬 Consultanos
+    </a>
+  </div>
 </div>
 
 <div id="search-bar">
@@ -271,6 +277,15 @@ onValue(ref(db,`${base}/config`),s=>{
   }
   wspNegocio=config.wsp||'';
   document.getElementById('nombre-negocio').textContent=config.negocio||document.getElementById('nombre-negocio').textContent;
+  // Aplicar color primario del negocio
+  if(config.colorPrimario){
+    document.documentElement.style.setProperty('--accent',config.colorPrimario);
+    const h=document.getElementById('header');if(h)h.style.background=config.colorPrimario;
+  }
+  // Aplicar logo
+  const logoEl=document.getElementById('logo-negocio');
+  if(config.logoUrl&&logoEl){logoEl.src=config.logoUrl;logoEl.style.display='block';}
+  else if(logoEl)logoEl.style.display='none';
   const wspLink=document.getElementById('wsp-link-header');
   if(wspNegocio){
     wspLink.href=`https://wa.me/${wspNegocio}`;
@@ -286,5 +301,50 @@ onValue(ref(db,`${base}/ventas`),s=>{ventas=s.val()||{};checkReady('ventas');ren
 onValue(ref(db,`${base}/locales`),s=>{locales=s.val()||{};checkReady('locales');renderCatalogo(document.getElementById('search-input').value);});
 
 document.getElementById('search-input').addEventListener('input',e=>renderCatalogo(e.target.value));
+
+// ── PDF DEL CATÁLOGO ──────────────────────────────────────────
+function descargarPDF(){
+  const negocio=config.negocio||document.getElementById('nombre-negocio').textContent||'Catálogo';
+  const color=config.colorPrimario||'#2d7a4f';
+  const logoUrl=config.logoUrl||'';
+  const items=buildStock().filter(r=>r.precioVenta>0||r.disp>0);
+  const fecha=new Date().toLocaleDateString('es-AR');
+
+  let cards=items.map(r=>`
+    <div style="border:1px solid #e0e0e0;border-radius:10px;padding:14px;background:#fff;break-inside:avoid">
+      <div style="font-size:10px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px">${r.categoria||'iPhone'}</div>
+      <div style="font-size:15px;font-weight:700;color:#1a2e24;line-height:1.2">${r.modelo}</div>
+      ${r.cap&&r.cap!=='N/A'?`<div style="font-size:12px;color:#4a6358;margin-top:2px">${r.cap}${r.color&&r.color!=='Sin asignar'?' · '+r.color:''}${r.grado?' · '+r.grado:''}</div>`:''}
+      ${r.bateria?`<div style="font-size:11px;color:#2d7a4f;margin-top:2px">🔋 ${r.bateria}%</div>`:''}
+      <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:20px;font-weight:700;color:${color};font-family:monospace">${r.precioVenta?'$'+r.precioVenta.toLocaleString():'Consultar'}</div>
+        ${config.catalogoMostrarStock&&r.disp>1?`<div style="font-size:11px;background:#e8f5e9;color:#2d7a4f;padding:3px 8px;border-radius:4px;font-weight:600">${r.disp} u.</div>`:'<div style="font-size:11px;background:#e8f5e9;color:#2d7a4f;padding:3px 8px;border-radius:4px;font-weight:600">✅ Disponible</div>'}
+      </div>
+    </div>`).join('');
+
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Helvetica Neue',Arial,sans-serif;background:#f5f5f5;color:#1a2e24}
+    @media print{body{background:#fff}}
+  </style>
+  </head><body>
+  <div style="background:${color};color:#fff;padding:20px 28px;display:flex;align-items:center;gap:16px;margin-bottom:20px">
+    ${logoUrl?`<img src="${logoUrl}" style="max-height:50px;max-width:140px;object-fit:contain;background:rgba(255,255,255,0.15);border-radius:6px;padding:4px">`:''}
+    <div>
+      <div style="font-size:22px;font-weight:700">${negocio}</div>
+      <div style="font-size:13px;opacity:0.85">Catálogo de productos · ${fecha}</div>
+    </div>
+  </div>
+  <div style="padding:0 20px 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+    ${cards}
+  </div>
+  </body></html>`;
+
+  const blob=new Blob([html],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  const w=window.open(url,'_blank');
+  setTimeout(()=>{w.print();URL.revokeObjectURL(url);},500);
+}
 })();
 </script>
