@@ -3006,6 +3006,12 @@ function makeCompraItemEl(id,data=null,cat=null){
 
     if(!unidadesVisible) return;
 
+    // Tip del lector
+    const tip=document.createElement('div');
+    tip.style.cssText='font-size:11px;color:var(--accent);padding:6px 10px;background:var(--accent-dim);border-radius:6px;margin-top:6px;margin-bottom:8px';
+    tip.textContent='📷 Lector de código de barras: escaneá cada IMEI y avanza solo al siguiente.';
+    unidadesBox.appendChild(tip);
+
     for(let u=0;u<cant;u++){
       const dataU=u===0?data:data?.unidades?.[u];
       const card=document.createElement('div');
@@ -3020,7 +3026,16 @@ function makeCompraItemEl(id,data=null,cat=null){
       if(usaUnidades){
         gridU.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px';
         const colorOpts2=['Sin asignar',...COLORES];gridU.appendChild(fg('Color',mkSel('ci-color-'+id+'-'+u,colorOpts2,dataU?.color||'Sin asignar')));
-        const imeiEl=inp('text','ci-imei-'+id+'-'+u,'15 dígitos',{value:dataU?.imei||'',maxLength:20});
+        const imeiEl=inp('text','ci-imei-'+id+'-'+u,'📷 Escaneá o escribí',{value:dataU?.imei||'',maxLength:20});
+        // Lector de código de barras: Enter avanza al siguiente IMEI
+        imeiEl.addEventListener('keydown',e=>{
+          if(e.key==='Enter'){
+            e.preventDefault();
+            const sig=$('ci-imei-'+id+'-'+(u+1));
+            if(sig){sig.focus();sig.select();}
+            else $('ci-bat-'+id+'-'+u)?.focus();
+          }
+        });
         gridU.appendChild(fg('IMEI',imeiEl));
         const batEl=inp('number','ci-bat-'+id+'-'+u,'%',{value:dataU?.bateria||'',min:0,max:100});
         gridU.appendChild(fg('% Batería',batEl));
