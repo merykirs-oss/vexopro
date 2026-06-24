@@ -314,7 +314,6 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     <button id="nav-tecnicos" data-page="tecnicos">🔧 Reparaciones</button>
     <div class="nav-sep">Finanzas</div>
     <button id="nav-proveedores" data-page="proveedores">🏢 Proveedores</button>
-    <button id="nav-cc-proveedores" data-page="cc-proveedores">📑 Cta. Cte. Proveedores</button>
     <button id="nav-caja" data-page="caja">💵 Caja</button>
     <button id="nav-costos" data-page="costos">📋 Costos</button>
     <div class="nav-sep">Puntos de Venta</div>
@@ -762,24 +761,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
   <div id="lista-cc"></div>
 </div>
 
-<div id="page-cc-proveedores" class="page">
-  <div class="page-header"><h2>📑 Cuenta Corriente Proveedores</h2><p>Lo que le debés a cada proveedor por compras sin pagar completas.</p></div>
-  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px">
-    <span style="font-size:13px;font-weight:600;color:var(--text2)">🔔 Alertar si no pagué en:</span>
-    <button class="btn btn-secondary btn-sm ccp-alerta active-filter" data-dias="5">5 días</button>
-    <button class="btn btn-secondary btn-sm ccp-alerta" data-dias="15">15 días</button>
-    <button class="btn btn-secondary btn-sm ccp-alerta" data-dias="30">30 días</button>
-    <button class="btn btn-secondary btn-sm ccp-alerta" data-dias="0">Sin alerta</button>
-    <div style="display:flex;align-items:center;gap:6px">
-      <span style="font-size:12px;color:var(--text2)">Personalizado:</span>
-      <input type="number" id="ccp-dias-custom" placeholder="días" min="1" style="width:70px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font-size:12px;outline:none">
-      <button class="btn btn-secondary btn-sm" id="btn-ccp-custom">Aplicar</button>
-    </div>
-  </div>
-  <div id="stats-ccp" class="stats-row"></div>
-  <div style="margin-bottom:12px"><input type="text" id="ccp-filtro-nombre" placeholder="🔍 Buscar proveedor..." style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 12px;font-size:13px;font-family:var(--sans);outline:none;width:100%;max-width:320px;box-sizing:border-box"></div>
-  <div id="lista-ccp"></div>
-</div>
+
 
 <div id="page-garantias" class="page">
   <div class="page-header"><h2>🛡️ Garantías</h2></div>
@@ -1159,23 +1141,52 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 
 
 <div id="page-proveedores" class="page">
-  <div class="page-header"><h2>🏢 Proveedores</h2><p>Directorio de proveedores con historial de compras.</p></div>
-  <div id="stats-proveedores" class="stats-row"></div>
-  <div class="form-card">
-    <h3>➕ Nuevo Proveedor</h3>
-    <div class="form-grid">
-      <div class="form-group"><label>Nombre / Empresa *</label><input type="text" id="pv-nombre" placeholder="Ej: Sunrise Guangzhou"></div>
-      <div class="form-group"><label>Contacto</label><input type="text" id="pv-contacto" placeholder="Nombre del contacto"></div>
-      <div class="form-group"><label>Teléfono / WhatsApp</label><input type="text" id="pv-tel" placeholder="+86..."></div>
-      <div class="form-group"><label>Email</label><input type="email" id="pv-email" placeholder="proveedor@mail.com"></div>
-      <div class="form-group"><label>País</label><input type="text" id="pv-pais" placeholder="Ej: China, EEUU..."></div>
-      <div class="form-group"><label>Categoría</label><select id="pv-categoria"><option value="celulares">Celulares</option><option value="accesorios">Accesorios</option><option value="repuestos">Repuestos</option><option value="otros">Otros</option></select></div>
-    </div>
-    <div class="form-group"><label>Notas</label><input type="text" id="pv-notas" placeholder="Condiciones de pago, tiempos de entrega..."></div>
-    <div class="form-actions"><button class="btn btn-primary" id="btn-save-prov">Guardar proveedor</button></div>
-    <div id="pv-alert"></div>
+  <div class="page-header"><h2>🏢 Proveedores</h2></div>
+
+  <!-- TABS -->
+  <div style="display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid var(--border)">
+    <button class="prov-tab" data-prov-tab="directorio" style="padding:12px 24px;font-size:14px;font-weight:700;border:none;background:none;color:var(--accent);cursor:pointer;border-bottom:3px solid var(--accent);margin-bottom:-2px">🏢 Proveedores</button>
+    <button class="prov-tab" data-prov-tab="cta" style="padding:12px 24px;font-size:14px;font-weight:700;border:none;background:none;color:var(--text2);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px">💳 Cuenta corriente</button>
   </div>
-  <div class="table-card"><h3>Proveedores <span id="badge-proveedores" class="tag tag-blue"></span></h3><div id="tabla-proveedores"></div></div>
+
+  <!-- PANEL DIRECTORIO -->
+  <div id="prov-panel-directorio">
+    <div id="stats-proveedores" class="stats-row"></div>
+    <div class="form-card">
+      <h3>➕ Nuevo Proveedor</h3>
+      <div class="form-grid">
+        <div class="form-group"><label>Nombre / Empresa *</label><input type="text" id="pv-nombre" placeholder="Ej: Sunrise Guangzhou"></div>
+        <div class="form-group"><label>Contacto</label><input type="text" id="pv-contacto" placeholder="Nombre del contacto"></div>
+        <div class="form-group"><label>Teléfono / WhatsApp</label><input type="text" id="pv-tel" placeholder="+86..."></div>
+        <div class="form-group"><label>Email</label><input type="email" id="pv-email" placeholder="proveedor@mail.com"></div>
+        <div class="form-group"><label>País</label><input type="text" id="pv-pais" placeholder="Ej: China, EEUU..."></div>
+        <div class="form-group"><label>Categoría</label><select id="pv-categoria"><option value="celulares">Celulares</option><option value="accesorios">Accesorios</option><option value="repuestos">Repuestos</option><option value="otros">Otros</option></select></div>
+      </div>
+      <div class="form-group"><label>Notas</label><input type="text" id="pv-notas" placeholder="Condiciones de pago, tiempos de entrega..."></div>
+      <div class="form-actions"><button class="btn btn-primary" id="btn-save-prov">Guardar proveedor</button></div>
+      <div id="pv-alert"></div>
+    </div>
+    <div class="table-card"><h3>Proveedores <span id="badge-proveedores" class="tag tag-blue"></span></h3><div id="tabla-proveedores"></div></div>
+  </div>
+
+  <!-- PANEL CUENTA CORRIENTE -->
+  <div id="prov-panel-cta" style="display:none">
+    <div id="stats-ccp" class="stats-row"></div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px">
+      <span style="font-size:13px;font-weight:600;color:var(--text2)">🔔 Alertar si no pagué en:</span>
+      <button class="btn btn-secondary btn-sm ccp-alerta active-filter" data-dias="5">5 días</button>
+      <button class="btn btn-secondary btn-sm ccp-alerta" data-dias="15">15 días</button>
+      <button class="btn btn-secondary btn-sm ccp-alerta" data-dias="30">30 días</button>
+      <button class="btn btn-secondary btn-sm ccp-alerta" data-dias="0">Sin alerta</button>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:12px;color:var(--text2)">Personalizado:</span>
+        <input type="number" id="ccp-dias-custom" placeholder="días" min="1" style="width:70px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font-size:12px;outline:none">
+        <button class="btn btn-secondary btn-sm" id="btn-ccp-custom">Aplicar</button>
+      </div>
+    </div>
+    <div style="margin-bottom:12px"><input type="text" id="ccp-filtro-nombre" placeholder="🔍 Buscar proveedor..." style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 12px;font-size:13px;font-family:var(--sans);outline:none;width:100%;max-width:320px;box-sizing:border-box"></div>
+    <div id="lista-ccp"></div>
+  </div>
 </div>
 
 <div id="page-caja" class="page">
@@ -2359,6 +2370,18 @@ function initApp(){
   });
 
   // Botones proveedores
+  // Proveedores tabs
+  document.querySelectorAll('.prov-tab').forEach(btn=>btn.addEventListener('click',()=>{
+    const tab=btn.dataset.provTab;
+    document.querySelectorAll('.prov-tab').forEach(b=>{
+      const active=b.dataset.provTab===tab;
+      b.style.color=active?'var(--accent)':'var(--text2)';
+      b.style.borderBottom=active?'3px solid var(--accent)':'3px solid transparent';
+    });
+    $('prov-panel-directorio').style.display=tab==='directorio'?'block':'none';
+    $('prov-panel-cta').style.display=tab==='cta'?'block':'none';
+    if(tab==='cta')renderCC();
+  }));
   $('btn-save-prov').addEventListener('click',saveProveedor);
   $('btn-cerrar-canje')?.addEventListener('click',()=>closeModal('modal-plan-canje'));
   $('btn-confirmar-canje')?.addEventListener('click',confirmarCanje);
@@ -4494,7 +4517,7 @@ const MODULOS_SIDEBAR={
   inicio:'nav-inicio',compras:'nav-compras',ventas:'nav-ventas',stock:'nav-stock',
   clientes:'nav-clientes',cuentacorriente:'nav-cuentacorriente',
   garantias:'nav-garantias',tecnicos:'nav-tecnicos',
-  proveedores:'nav-proveedores','cc-proveedores':'nav-cc-proveedores',
+  proveedores:'nav-proveedores',
   caja:'nav-caja',costos:'nav-costos',informes:'nav-informes'
 };
 function aplicarPermisosSidebar(){
