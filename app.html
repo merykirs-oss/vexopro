@@ -4600,7 +4600,9 @@ function renderCatalogoEstado(){
     lbl.textContent='✅ Activo';lbl.style.color='#0ca678';
     btn.textContent='Desactivar catálogo';btn.className='btn btn-secondary';
     linkBtn.style.display='';
-    preview.style.display='';preview.textContent=getCatalogoUrl();
+    const url=getCatalogoUrl();
+    preview.style.display='';
+    preview.innerHTML='<a href="'+url+'" target="_blank" style="color:var(--accent);text-decoration:none">'+url+'</a>';
   }else{
     lbl.textContent='Desactivado';lbl.style.color='var(--text3)';
     btn.textContent='Activar catálogo';btn.className='btn btn-primary';
