@@ -5522,20 +5522,23 @@ function renderGarProveedores(){
   if($('badge-gar-proveedores'))$('badge-gar-proveedores').textContent=recs.length;
   if(!recs.length){el.innerHTML='<div class="empty-state"><div class="big">🏭</div><p>Sin reclamos a proveedores.</p></div>';return;}
   const TIPOS={cambio:'🔄 Cambio',credito:'💵 Crédito',reparacion:'🔧 Reparación'};
-  const ESTADOS={pendiente:'<span class="tag tag-yellow">⏳ Pendiente</span>',en_proceso:'<span class="tag tag-yellow">🔧 En proceso</span>',resuelto:'<span class="tag tag-green">✅ Resuelto</span>'};
   let rows='';
   recs.forEach(([k,r])=>{
+    const est=r.estado||'pendiente';
+    const estOpts=['pendiente','en_proceso','resuelto'].map(v=>`<option value="${v}"${est===v?' selected':''}>${v==='pendiente'?'⏳ Pendiente':v==='en_proceso'?'🔧 En proceso':'✅ Resuelto'}</option>`).join('');
+    const detalle=r.tipo==='credito'&&r.credito?'<span style="color:#0ca678;font-family:var(--mono)">'+fmt(r.credito.monto)+' USD</span>':r.tipo==='cambio'&&r.nuevoEquipo?r.nuevoEquipo.modelo:r.tipo==='reparacion'&&r.reparacion?r.reparacion.problema:'';
     rows+=`<tr>
       <td class="mono" style="font-size:11px">${fmtD(r.fecha)}</td>
       <td>${r.proveedor||'—'}</td>
       <td><strong>${r.equipoModelo||'—'}</strong>${r.equipoCapacidad?' <span class="tag tag-blue" style="font-size:10px">'+r.equipoCapacidad+'</span>':''}${r.equipoImei?'<div style="font-size:10px;color:var(--text3);font-family:var(--mono)">'+r.equipoImei+'</div>':''}</td>
       <td><span class="tag tag-blue">${TIPOS[r.tipo]||r.tipo}</span></td>
-      <td>${r.tipo==='credito'&&r.credito?'<span style="color:#0ca678;font-family:var(--mono)">'+fmt(r.credito.monto)+' USD</span>':r.tipo==='cambio'&&r.nuevoEquipo?r.nuevoEquipo.modelo:r.tipo==='reparacion'&&r.reparacion?r.reparacion.problema:''}</td>
-      <td>${ESTADOS[r.estado]||r.estado}</td>
+      <td>${detalle}</td>
+      <td><select class="gprov-est-sel" data-key="${k}" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font-size:12px;font-family:var(--sans)">${estOpts}</select></td>
       <td><button class="btn btn-danger btn-sm" data-del-gprov="${k}">🗑</button></td>
     </tr>`;
   });
   el.innerHTML='<table><thead><tr><th>Fecha</th><th>Proveedor</th><th>Equipo</th><th>Tipo</th><th>Detalle</th><th>Estado</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  el.querySelectorAll('.gprov-est-sel').forEach(sel=>sel.addEventListener('change',()=>update(dbRef('garantiasProveedores/'+sel.dataset.key),{estado:sel.value})));
   el.querySelectorAll('[data-del-gprov]').forEach(btn=>btn.addEventListener('click',()=>{if(confirm('¿Eliminar?'))remove(dbRef('garantiasProveedores/'+btn.dataset.delGprov));}));
 }
 
