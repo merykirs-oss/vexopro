@@ -1509,14 +1509,76 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 
 <!-- PÁGINA ADMIN (solo Mery) -->
 <div id="page-admin" class="page">
-  <div class="page-header"><h2>⚙️ Panel Admin</h2><p>Gestión de suscriptores de VexoPRO.</p></div>
-  <div class="table-card">
-    <h3>Usuarios registrados <span id="badge-admin" class="tag tag-blue"></span></h3>
-    <div id="tabla-admin"></div>
+  <div class="page-header"><h2>⚙️ Panel Admin VexoPRO</h2></div>
+
+  <!-- TABS -->
+  <div style="display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid var(--border)">
+    <button class="admin-tab" data-admin-tab="usuarios" style="padding:12px 20px;font-size:13px;font-weight:700;border:none;background:none;color:var(--accent);cursor:pointer;border-bottom:3px solid var(--accent);margin-bottom:-2px">👥 Usuarios</button>
+    <button class="admin-tab" data-admin-tab="suscripciones" style="padding:12px 20px;font-size:13px;font-weight:700;border:none;background:none;color:var(--text2);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px">💳 Suscripciones</button>
+  </div>
+
+  <!-- PANEL USUARIOS -->
+  <div id="admin-panel-usuarios">
+    <div class="table-card">
+      <h3>Usuarios registrados <span id="badge-admin" class="tag tag-blue"></span></h3>
+      <div id="tabla-admin"></div>
+    </div>
+  </div>
+
+  <!-- PANEL SUSCRIPCIONES -->
+  <div id="admin-panel-suscripciones" style="display:none">
+
+    <!-- Stats -->
+    <div id="stats-suscripciones" class="stats-row" style="margin-bottom:16px"></div>
+
+    <!-- Alertas de vencimiento -->
+    <div id="admin-alertas" style="margin-bottom:16px"></div>
+
+    <!-- Filtros -->
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+      <input type="text" id="sus-filtro" placeholder="🔍 Buscar negocio..." style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 12px;font-size:13px;font-family:var(--sans);outline:none;max-width:260px;box-sizing:border-box">
+      <select id="sus-filtro-estado" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 12px;font-size:13px;font-family:var(--sans);outline:none">
+        <option value="">Todos los estados</option>
+        <option value="activo">✅ Activos</option>
+        <option value="vencido">❌ Vencidos</option>
+        <option value="trial">🔔 En trial</option>
+        <option value="por_vencer">⚠️ Por vencer</option>
+      </select>
+    </div>
+
+    <div class="table-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="margin:0">Control de suscripciones <span id="badge-suscripciones" class="tag tag-blue"></span></h3>
+      </div>
+      <div id="tabla-suscripciones"></div>
+    </div>
   </div>
 </div>
 
 </main>
+</div>
+
+<div class="modal-overlay" id="modal-sus-pago">
+  <div class="modal" style="max-width:460px">
+    <h3>💳 Registrar pago de suscripción</h3>
+    <input type="hidden" id="sus-pago-uid">
+    <div class="form-group" style="margin-bottom:14px"><label>Negocio</label><input type="text" id="sus-pago-negocio" disabled style="opacity:0.7"></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Monto (USD)</label><input type="number" id="sus-pago-monto" placeholder="60" min="0" step="0.01" value="60"></div>
+      <div class="form-group"><label>Fecha de pago</label><input type="date" id="sus-pago-fecha"></div>
+      <div class="form-group"><label>Método</label><select id="sus-pago-metodo"><option>Transferencia USD</option><option>USDT</option><option>Efectivo USD</option><option>Mercado Pago</option><option>Otro</option></select></div>
+      <div class="form-group"><label>Meses abonados</label><input type="number" id="sus-pago-meses" value="1" min="1" max="12"></div>
+    </div>
+    <div class="form-group"><label>Nota</label><input type="text" id="sus-pago-nota" placeholder="Ej: pago mes de julio"></div>
+    <div id="sus-pago-vto-preview" style="background:var(--accent-dim);border:1px solid var(--accent);border-radius:8px;padding:10px 14px;font-size:13px;margin:10px 0;display:none">
+      Nuevo vencimiento: <strong id="sus-pago-vto-fecha"></strong>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="btn-cerrar-sus-pago">Cancelar</button>
+      <button class="btn btn-primary" id="btn-guardar-sus-pago">✅ Registrar pago</button>
+    </div>
+    <div id="sus-pago-alert"></div>
+  </div>
 </div>
 
 <div class="modal-overlay" id="modal-pago">
@@ -2288,7 +2350,16 @@ function initApp(){
   $('rep-venta-sel')?.addEventListener('change',onRepVentaChange);
 
   // Modal pago
-  $('btn-cerrar-pago').addEventListener('click',()=>closeModal('modal-pago'));
+  // Admin tabs
+  document.querySelectorAll('.admin-tab').forEach(btn=>btn.addEventListener('click',()=>adminSwitchTab(btn.dataset.adminTab)));
+  $('btn-cerrar-sus-pago')?.addEventListener('click',()=>closeModal('modal-sus-pago'));
+  $('btn-guardar-sus-pago')?.addEventListener('click',guardarSusPago);
+  $('sus-pago-meses')?.addEventListener('input',()=>{
+    const uid=$('sus-pago-uid')?.value;
+    import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js').then(m=>m.get(m.ref(db,'suscripciones/'+uid))).then(s=>calcSusPagoVto((s.val()||{}).vencimiento||''));
+  });
+  $('sus-filtro')?.addEventListener('input',renderSuscripciones);
+  $('sus-filtro-estado')?.addEventListener('change',renderSuscripciones);
   $('btn-guardar-pago').addEventListener('click',guardarPago);
   $('btn-cerrar-pago-prov').addEventListener('click',()=>closeModal('modal-pago-prov'));
   $('btn-guardar-pago-prov').addEventListener('click',guardarPagoProveedor);
@@ -2487,7 +2558,7 @@ function showPage(name){
   if(name==='costos')renderCostos();
   if(name==='informes'){renderInformes();refreshInfLocalSelect();}
   if(name==='gestion-locales')renderGestionLocales();
-  if(name==='admin')renderAdmin();
+  if(name==='admin'){renderAdmin();adminSwitchTab('usuarios');}
   if(name==='config')renderConfig();
   if(name==='equipo'){
     if(currentUser?.email!==ADMIN_EMAIL && ownerData?.pagado!==true && ownerData?.trial!==false){
@@ -4873,6 +4944,147 @@ function renderEquipo(){
 }
 
 // ─── ADMIN ───────────────────────────────────────────────────
+// ─── ADMIN TABS ──────────────────────────────────────────────
+function adminSwitchTab(tab){
+  document.querySelectorAll('.admin-tab').forEach(b=>{
+    const active=b.dataset.adminTab===tab;
+    b.style.color=active?'var(--accent)':'var(--text2)';
+    b.style.borderBottom=active?'3px solid var(--accent)':'3px solid transparent';
+  });
+  $('admin-panel-usuarios').style.display=tab==='usuarios'?'block':'none';
+  $('admin-panel-suscripciones').style.display=tab==='suscripciones'?'block':'none';
+  if(tab==='suscripciones')renderSuscripciones();
+}
+
+// ─── SUSCRIPCIONES ───────────────────────────────────────────
+async function renderSuscripciones(){
+  const el=$('tabla-suscripciones');if(!el)return;
+  el.innerHTML='<div class="empty-state"><div class="big">⏳</div><p>Cargando...</p></div>';
+  try{
+    const {ref:fbRef,get,getDatabase}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+    const snap=await get(fbRef(db,'usuarios'));
+    const usuarios=snap.val()||{};
+    const snapSus=await get(fbRef(db,'suscripciones'));
+    const suscripciones=snapSus.val()||{};
+    const hoy=new Date();hoy.setHours(0,0,0,0);
+
+    const filtroNom=($('sus-filtro')?.value||'').toLowerCase();
+    const filtroEst=$('sus-filtro-estado')?.value||'';
+
+    let filas=Object.entries(usuarios).map(([uid,u])=>{
+      const sus=suscripciones[uid]||{};
+      const vtoStr=sus.vencimiento||'';
+      const vto=vtoStr?new Date(vtoStr):null;
+      const diasRestantes=vto?Math.ceil((vto-hoy)/(1000*60*60*24)):null;
+      let estado='trial';
+      if(vto){
+        if(diasRestantes<0)estado='vencido';
+        else if(diasRestantes<=7)estado='por_vencer';
+        else estado='activo';
+      }
+      const ultimoPago=sus.pagos?Object.values(sus.pagos).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''))[0]:null;
+      return{uid,negocio:u.negocio||u.email||uid,email:u.email||'',vto,vtoStr,diasRestantes,estado,ultimoPago,sus};
+    });
+
+    // Filtros
+    if(filtroNom)filas=filas.filter(r=>r.negocio.toLowerCase().includes(filtroNom)||r.email.toLowerCase().includes(filtroNom));
+    if(filtroEst)filas=filas.filter(r=>r.estado===filtroEst);
+    filas.sort((a,b)=>(a.diasRestantes??999)-(b.diasRestantes??999));
+
+    // Stats
+    const total=Object.keys(usuarios).length;
+    const activos=filas.filter(r=>r.estado==='activo').length;
+    const vencidos=filas.filter(r=>r.estado==='vencido').length;
+    const porVencer=filas.filter(r=>r.estado==='por_vencer').length;
+    if($('stats-suscripciones'))$('stats-suscripciones').innerHTML=
+      '<div class="stat-card sc-blue"><div class="lbl">Total negocios</div><div class="val">'+total+'</div></div>'+
+      '<div class="stat-card sc-green"><div class="lbl">✅ Activos</div><div class="val">'+activos+'</div></div>'+
+      '<div class="stat-card sc-yellow"><div class="lbl">⚠️ Por vencer</div><div class="val">'+porVencer+'</div></div>'+
+      '<div class="stat-card sc-red"><div class="lbl">❌ Vencidos</div><div class="val">'+vencidos+'</div></div>';
+    if($('badge-suscripciones'))$('badge-suscripciones').textContent=filas.length;
+
+    // Alertas
+    const alertas=filas.filter(r=>r.estado==='por_vencer'||r.estado==='vencido');
+    if($('admin-alertas')&&alertas.length){
+      $('admin-alertas').innerHTML='<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:12px 16px;font-size:13px">'+
+        '⚠️ <strong>'+alertas.length+' negocio'+(alertas.length>1?'s':'')+' requieren atención:</strong> '+
+        alertas.map(r=>'<span style="font-weight:600">'+r.negocio+'</span> ('+( r.estado==='vencido'?'vencido hace '+Math.abs(r.diasRestantes)+' días':'vence en '+r.diasRestantes+' días')+')').join(' · ')+'</div>';
+    }else if($('admin-alertas'))$('admin-alertas').innerHTML='';
+
+    if(!filas.length){el.innerHTML='<div class="empty-state"><div class="big">📋</div><p>Sin resultados.</p></div>';return;}
+
+    const ESTADO_TAG={
+      activo:'<span class="tag tag-green">✅ Activo</span>',
+      trial:'<span class="tag tag-blue">🔔 Trial</span>',
+      por_vencer:'<span class="tag tag-yellow">⚠️ Por vencer</span>',
+      vencido:'<span class="tag tag-red">❌ Vencido</span>'
+    };
+
+    let rows=filas.map(r=>{
+      const vtoDisplay=r.vtoStr?fmtD(r.vtoStr)+'<div style="font-size:10px;color:var(--text2)">'+(r.diasRestantes>0?'en '+r.diasRestantes+' días':r.diasRestantes===0?'hoy':'hace '+Math.abs(r.diasRestantes)+' días')+'</div>':'<span style="color:var(--text3)">—</span>';
+      const ultimoPagoDisplay=r.ultimoPago?'<div style="font-size:12px">$'+r.ultimoPago.monto+' USD</div><div style="font-size:10px;color:var(--text2)">'+fmtD(r.ultimoPago.fecha)+(r.ultimoPago.metodo?' · '+r.ultimoPago.metodo:'')+'</div>':'<span style="color:var(--text3)">Nunca</span>';
+      return`<tr>
+        <td><strong style="font-size:13px">${r.negocio}</strong><div style="font-size:11px;color:var(--text2)">${r.email}</div></td>
+        <td>${ESTADO_TAG[r.estado]||r.estado}</td>
+        <td style="font-size:12px">${vtoDisplay}</td>
+        <td>${ultimoPagoDisplay}</td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="abrirModalSusPago('${r.uid}','${r.negocio.replace(/'/g,"\\'")}','${r.vtoStr}')">💳 Registrar pago</button>
+        </td>
+      </tr>`;
+    }).join('');
+    el.innerHTML='<table><thead><tr><th>Negocio</th><th>Estado</th><th>Vencimiento</th><th>Último pago</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  }catch(e){el.innerHTML='<div class="empty-state"><p>Error al cargar.</p></div>';console.error(e);}
+}
+
+function abrirModalSusPago(uid,negocio,vtoActual){
+  $('sus-pago-uid').value=uid;
+  $('sus-pago-negocio').value=negocio;
+  $('sus-pago-fecha').value=today();
+  $('sus-pago-monto').value='60';
+  $('sus-pago-meses').value='1';
+  $('sus-pago-nota').value='';
+  $('sus-pago-alert').textContent='';
+  calcSusPagoVto(vtoActual);
+  openModal('modal-sus-pago');
+}
+
+function calcSusPagoVto(vtoActual){
+  const meses=parseInt($('sus-pago-meses')?.value)||1;
+  const base=vtoActual&&new Date(vtoActual)>new Date()?new Date(vtoActual):new Date();
+  base.setMonth(base.getMonth()+meses);
+  const vtoNew=base.toISOString().slice(0,10);
+  if($('sus-pago-vto-fecha'))$('sus-pago-vto-fecha').textContent=fmtD(vtoNew);
+  if($('sus-pago-vto-preview'))$('sus-pago-vto-preview').style.display='block';
+  return vtoNew;
+}
+
+async function guardarSusPago(){
+  const uid=$('sus-pago-uid').value;
+  const monto=parseFloat($('sus-pago-monto')?.value)||0;
+  const fecha=$('sus-pago-fecha')?.value||today();
+  const metodo=$('sus-pago-metodo')?.value||'';
+  const nota=$('sus-pago-nota')?.value.trim()||'';
+  const meses=parseInt($('sus-pago-meses')?.value)||1;
+  if(!monto){showAlert('sus-pago-alert','Ingresá el monto',false);return;}
+
+  // Calcular nuevo vencimiento
+  const snapSus=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js').then(m=>m.get(m.ref(db,'suscripciones/'+uid)));
+  const susActual=snapSus.val()||{};
+  const vtoActual=susActual.vencimiento||'';
+  const vtoNew=calcSusPagoVto(vtoActual);
+
+  // Guardar pago y actualizar vencimiento
+  const {ref:fbRef,push:fbPush,update:fbUpdate}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+  await fbPush(fbRef(db,'suscripciones/'+uid+'/pagos'),{fecha,monto,metodo,nota,meses});
+  await fbUpdate(fbRef(db,'suscripciones/'+uid),{vencimiento:vtoNew,estado:'activo'});
+  // Actualizar también en usuarios para que el checkTrial funcione
+  await fbUpdate(fbRef(db,'usuarios/'+uid),{suscripcionVto:vtoNew,suscripcionActiva:true});
+
+  closeModal('modal-sus-pago');
+  renderSuscripciones();
+}
+
 async function renderAdmin(){
   const tabla=$('tabla-admin'),badge=$('badge-admin');
   if(!tabla)return;
