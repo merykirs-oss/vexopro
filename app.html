@@ -637,7 +637,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
             <div id="v-pagado" style="font-family:var(--mono);font-size:14px;color:var(--blue)">—</div>
             <div id="v-pagado-diff" style="margin-top:6px"></div>
           </div>
-          <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+          <div id="v-ganancia-panel" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
             <div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Ganancia</div>
             <div id="v-ganancia" style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--accent)">—</div>
           </div>
@@ -1393,6 +1393,9 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     </div>
     <div class="form-actions"><button class="btn btn-primary" id="btn-save-cfg-negocio">Guardar</button></div>
     <div id="cfg-negocio-alert"></div>
+    <div style="margin-top:10px">
+      <button class="btn btn-secondary btn-sm" id="btn-repetir-tutorial">🎓 Ver tutorial de nuevo</button>
+    </div>
   </div>
 
   <!-- GARANTÍAS -->
@@ -1897,6 +1900,8 @@ onAuthStateChanged(auth, async user=>{
       $('user-email-label').textContent=user.email;
       if(udOwner.negocio)$('negocio-nombre').textContent=udOwner.negocio;
       initApp();
+      // Tutorial primera vez
+      if(!udOwner.tutorialVisto)setTimeout(()=>iniciarTutorial('owner',null,dbRef,update,user.uid),1200);
     } else {
       // Puede ser un EMPLEADO — buscar en subUsuarios de algún negocio
       const snapEmp=await get(ref(db,'empleados/'+user.uid));
@@ -1922,6 +1927,8 @@ onAuthStateChanged(auth, async user=>{
       $('user-email-label').textContent=udEmp.nombre||user.email;
       $('negocio-nombre').textContent=udEmp.negocioNombre||'Mi Negocio';
       initApp();
+      // Tutorial primera vez para empleado
+      if(!udEmp.tutorialVisto)setTimeout(()=>iniciarTutorial('employee',currentUserPermisos,dbRef,update,user.uid),1200);
     }
   }else{
     currentUser=null;currentUserRole=null;ownerUid=null;currentUserPermisos=null;
@@ -3723,6 +3730,7 @@ function calcTotalVenta(){
   const gEl=$('v-ganancia');
   gEl.textContent=sub>0?fmt(gn):'—';
   gEl.style.color=gn>=0?'#0ca678':'var(--red)';
+  if($('v-ganancia-panel'))$('v-ganancia-panel').style.display=currentUserRole==='owner'?'':'none';
   ventaItems.forEach(id=>calcItem(id));
 }
 // ─── WIZARD DE VENTA ───────────────────────────────────────
@@ -3812,7 +3820,7 @@ function wizVentaGoTo(n){
       '</div>'+
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">'+
         '<div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Total</div><div style="font-family:var(--mono);font-size:18px;font-weight:800;color:#0ca678">'+tot+'</div></div>'+
-        '<div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Ganancia</div><div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--accent)">'+gan+'</div></div>'+
+        (currentUserRole==='owner'?'<div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Ganancia</div><div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--accent)">'+gan+'</div></div>':'')+
         '<div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Condición</div><div style="margin-top:2px">'+condicion+'</div></div>'+
       '</div>'+
       (metStr?'<div style="margin-bottom:8px"><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px">Pago</div>'+metStr+'</div>':'')+
@@ -4105,9 +4113,9 @@ function renderVentas(){
     const tieneDispositivo=v.items.some(i=>categoriasConGarantia().includes(i.categoria||'iphone'));
     const garantiaEmitida=tieneDispositivo?Object.values(S.garantias).find(g=>g.ventaId===k):null;
     const btnGarantia=!tieneDispositivo?'':(garantiaEmitida?'<span class="tag tag-green" style="font-size:10px;white-space:nowrap">✅ CERTIFICADO EMITIDO</span>':'<button class="btn btn-secondary btn-sm" data-emitir-garantia-venta="'+k+'" style="white-space:nowrap;font-size:11px">📜 Emitir certificado</button>');
-    rows+='<tr><td class="mono" style="font-size:11px">'+fmtD(v.fecha)+'</td><td>'+(cl?.nombre||'—')+'</td><td>'+mod+'</td><td class="mono" style="color:#0ca678">'+fmt(v.totalUSD)+'</td><td class="mono" style="color:#0ca678;font-size:11px">'+fmt(v.gananciaUSD)+'</td><td>'+(v.condicion==='fiado'?'<span class="tag tag-red">A pagar</span>':'<span class="tag tag-green">Contado</span>')+'</td><td>'+canalTag(v.canal)+'</td><td>'+metStr+'</td><td>'+btnGarantia+'</td><td style="display:flex;gap:4px"><button class="btn btn-secondary btn-sm" data-edit-venta="'+k+'">✏️</button><button class="btn btn-danger btn-sm" data-del-venta="'+k+'">🗑</button></td></tr>';
+    rows+='<tr><td class="mono" style="font-size:11px">'+fmtD(v.fecha)+'</td><td>'+(cl?.nombre||'—')+'</td><td>'+mod+'</td><td class="mono" style="color:#0ca678">'+fmt(v.totalUSD)+'</td>'+(currentUserRole==='owner'?'<td class="mono" style="color:#0ca678;font-size:11px">'+fmt(v.gananciaUSD)+'</td>':'')+'<td>'+(v.condicion==='fiado'?'<span class="tag tag-red">A pagar</span>':'<span class="tag tag-green">Contado</span>')+'</td><td>'+canalTag(v.canal)+'</td><td>'+metStr+'</td><td>'+btnGarantia+'</td><td style="display:flex;gap:4px"><button class="btn btn-secondary btn-sm" data-edit-venta="'+k+'">✏️</button><button class="btn btn-danger btn-sm" data-del-venta="'+k+'">🗑</button></td></tr>';
   });
-  el.innerHTML='<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Equipos</th><th>Total USD</th><th>Ganancia</th><th>Cond.</th><th>Canal</th><th>Método</th><th>Garantía</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  el.innerHTML='<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Equipos</th><th>Total USD</th>'+(currentUserRole==='owner'?'<th>Ganancia</th>':'')+'<th>Cond.</th><th>Canal</th><th>Método</th><th>Garantía</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
   el.querySelectorAll('[data-emitir-garantia-venta]').forEach(btn=>btn.addEventListener('click',()=>emitirGarantia(btn.dataset.emitirGarantiaVenta,'v-alert')));
   el.querySelectorAll('[data-edit-venta]').forEach(btn=>btn.addEventListener('click',()=>editVenta(btn.dataset.editVenta)));
   el.querySelectorAll('[data-del-venta]').forEach(btn=>btn.addEventListener('click',()=>{
@@ -4582,6 +4590,9 @@ function renderConfig(){
   if($('cfg-dolar-compra'))$('cfg-dolar-compra').value=cfg.dolarManualCompra||'';
   if($('cfg-dolar-venta'))$('cfg-dolar-venta').value=cfg.dolarManualVenta||'';
   if($('cfg-catalogo-mostrar-stock'))$('cfg-catalogo-mostrar-stock').checked=cfg.catalogoMostrarStock===true;
+  // Botón para repetir tutorial
+  const tutBtn=$('btn-repetir-tutorial');
+  if(tutBtn)tutBtn.onclick=()=>iniciarTutorial(currentUserRole,currentUserPermisos,dbRef,update,currentUser?.uid);
 }
 
 async function saveConfigNegocio(){
@@ -6601,5 +6612,140 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
+<!-- TUTORIAL OVERLAY -->
+<div id="tutorial-overlay" style="display:none;position:fixed;inset:0;z-index:9999">
+  <!-- Fondo oscuro con hueco para el elemento destacado -->
+  <div id="tutorial-backdrop" style="position:fixed;inset:0;background:rgba(0,0,0,0.55);pointer-events:none"></div>
+  <!-- Spotlight (hueco transparente) -->
+  <div id="tutorial-spotlight" style="position:fixed;border-radius:10px;box-shadow:0 0 0 9999px rgba(0,0,0,0.55);transition:all 0.3s;pointer-events:none;z-index:10000"></div>
+  <!-- Card del paso -->
+  <div id="tutorial-card" style="position:fixed;z-index:10001;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 24px;max-width:340px;box-shadow:0 8px 40px rgba(0,0,0,0.25)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div id="tutorial-badge" style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.7px"></div>
+      <button onclick="cerrarTutorial()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;padding:0;line-height:1">✕</button>
+    </div>
+    <div id="tutorial-emoji" style="font-size:36px;margin-bottom:8px"></div>
+    <div id="tutorial-titulo" style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px"></div>
+    <div id="tutorial-desc" style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:18px"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <div id="tutorial-dots" style="display:flex;gap:5px"></div>
+      <div style="display:flex;gap:8px">
+        <button id="tutorial-btn-skip" onclick="cerrarTutorial()" style="background:none;border:1px solid var(--border);border-radius:8px;color:var(--text2);padding:8px 14px;font-size:12px;cursor:pointer;font-family:var(--sans)">Saltar</button>
+        <button id="tutorial-btn-next" onclick="tutorialNext()" style="background:var(--accent);border:none;border-radius:8px;color:#fff;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans)">Siguiente →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── TUTORIAL ────────────────────────────────────────────────
+let tutorialPasos=[];
+let tutorialIdx=0;
+
+function buildTutorialPasos(){
+  const isOwner=window._tutorialRole==='owner';
+  const perms=window._tutorialPerms||{};
+  const canSee=mod=>isOwner||(perms.modulos?.[mod]===true);
+
+  const todos=[
+    {emoji:'🎉',titulo:'¡Bienvenido a VexoPRO!',desc:'Te vamos a guiar en 1 minuto por los módulos principales del sistema. Podés saltar el tutorial en cualquier momento.',target:null,roles:'all'},
+    {emoji:'📊',titulo:'Stock',desc:'Acá ves todo tu inventario agrupado por modelo. Tocá "Ver equipos" para ver cada unidad y editar IMEI, color, grado, precio y más.',target:'nav-stock',mod:'stock'},
+    {emoji:'📦',titulo:'Compras',desc:'Registrá tus pedidos a proveedores. Podés cargar muchas unidades de un modelo a la vez, asignarles precio de venta y usar el lector de código de barras para los IMEI.',target:'nav-compras',mod:'compras'},
+    {emoji:'🛒',titulo:'Ventas',desc:'Registrá cada venta en 4 pasos: cliente → equipo → forma de pago → confirmar. Podés combinar métodos de pago y agregar recargos.',target:'nav-ventas',mod:'ventas'},
+    {emoji:'👥',titulo:'Clientes',desc:'Tu base de clientes con historial de compras y cuenta corriente. Distinguís entre minoristas y mayoristas, y los mayoristas tienen acceso a venta por lote.',target:'nav-clientes',mod:'clientes'},
+    {emoji:'🏢',titulo:'Proveedores',desc:'Directorio de tus proveedores y su cuenta corriente. Llevás el control de lo que les debés y podés registrar reclamos de garantía.',target:'nav-proveedores',mod:'proveedores'},
+    {emoji:'💵',titulo:'Caja',desc:'Control de todos tus movimientos de dinero. Las ventas se registran automáticamente. Podés agregar movimientos manuales y ver el balance por período.',target:'nav-caja',mod:'caja'},
+    {emoji:'🛡️',titulo:'Garantías',desc:'Gestioná las garantías que le das a tus clientes y los reclamos a proveedores. Emitís certificados y los clientes pueden verificar el código.',target:'nav-garantias',mod:'garantias'},
+    {emoji:'🔧',titulo:'Reparaciones',desc:'Llevás el seguimiento de equipos en reparación, tanto de clientes como de tu propio stock. Asignás técnicos y controlás el estado.',target:'nav-reparaciones',mod:'reparaciones'},
+    {emoji:'📈',titulo:'Informes',desc:'Resumen ejecutivo de tu negocio: ventas, ganancia, top modelos, top clientes y comparación entre períodos.',target:'nav-informes',roles:'owner'},
+    {emoji:'💰',titulo:'Las ganancias son tuyas',desc:'La columna "Ganancia" en ventas, el panel de ganancia al cargar una venta, y los informes — solo vos los ves. Tus empleados ven el total pero no lo que ganás.',target:null,roles:'owner'},
+    {emoji:'⚙️',titulo:'Configuración',desc:'Personalizá el nombre del negocio, color, garantías, métodos de pago, tipo de cambio y el catálogo público. También gestionás a tu equipo desde acá.',target:'nav-config',roles:'owner'},
+    {emoji:'🌐',titulo:'Catálogo público',desc:'Tus clientes pueden ver tu stock en tiempo real desde un link. Podés activarlo, personalizar el color y descargarlo como PDF para compartir por WhatsApp.',target:'nav-stock',roles:'owner'},
+  ];
+
+  return todos.filter(p=>{
+    if(p.roles==='owner'&&!isOwner)return false;
+    if(p.mod&&!canSee(p.mod))return false;
+    return true;
+  });
+}
+
+function posicionarSpotlight(targetId){
+  const sp=$('tutorial-spotlight');
+  const card=$('tutorial-card');
+  if(!targetId){
+    sp.style.display='none';
+    card.style.top='50%';card.style.left='50%';
+    card.style.transform='translate(-50%,-50%)';
+    return;
+  }
+  const el=document.getElementById(targetId);
+  if(!el){sp.style.display='none';return;}
+  const r=el.getBoundingClientRect();
+  const pad=8;
+  sp.style.display='block';
+  sp.style.left=(r.left-pad)+'px';
+  sp.style.top=(r.top-pad)+'px';
+  sp.style.width=(r.width+pad*2)+'px';
+  sp.style.height=(r.height+pad*2)+'px';
+  // Posicionar card cerca del elemento
+  const cardW=340,cardH=260;
+  let cx=r.right+16,cy=r.top;
+  if(cx+cardW>window.innerWidth)cx=r.left-cardW-16;
+  if(cy+cardH>window.innerHeight)cy=window.innerHeight-cardH-20;
+  if(cy<10)cy=10;
+  card.style.transform='none';
+  card.style.left=Math.max(10,cx)+'px';
+  card.style.top=cy+'px';
+}
+
+function renderTutorialStep(){
+  const paso=tutorialPasos[tutorialIdx];
+  const total=tutorialPasos.length;
+  document.getElementById('tutorial-badge').textContent='Paso '+(tutorialIdx+1)+' de '+total;
+  document.getElementById('tutorial-emoji').textContent=paso.emoji;
+  document.getElementById('tutorial-titulo').textContent=paso.titulo;
+  document.getElementById('tutorial-desc').textContent=paso.desc;
+  // Dots
+  const dots=document.getElementById('tutorial-dots');
+  dots.innerHTML=tutorialPasos.map((_,i)=>'<div style="width:7px;height:7px;border-radius:50%;background:'+(i===tutorialIdx?'var(--accent)':'var(--border)')+'"></div>').join('');
+  // Botón final
+  const btn=document.getElementById('tutorial-btn-next');
+  const skip=document.getElementById('tutorial-btn-skip');
+  if(tutorialIdx===total-1){btn.textContent='✅ ¡Listo!';skip.style.display='none';}
+  else{btn.textContent='Siguiente →';skip.style.display='';}
+  posicionarSpotlight(paso.target||null);
+  // Scroll sidebar element into view
+  if(paso.target){const el=document.getElementById(paso.target);if(el)el.scrollIntoView({block:'center',behavior:'smooth'});}
+}
+
+function tutorialNext(){
+  if(tutorialIdx<tutorialPasos.length-1){tutorialIdx++;renderTutorialStep();}
+  else cerrarTutorial();
+}
+
+function cerrarTutorial(){
+  document.getElementById('tutorial-overlay').style.display='none';
+  document.getElementById('tutorial-spotlight').style.display='none';
+  // Marcar como visto en Firebase
+  if(window._tutorialDbRef&&window._tutorialUid){
+    window._tutorialDbRef('tutorialVisto/'+window._tutorialUid).then&&null;
+    try{window._tutorialUpdateFn(window._tutorialDbRef('usuarios/'+window._tutorialUid),{tutorialVisto:true});}catch(e){}
+  }
+}
+
+function iniciarTutorial(role,perms,dbRefFn,updateFn,uid){
+  window._tutorialRole=role;
+  window._tutorialPerms=perms;
+  window._tutorialDbRef=dbRefFn;
+  window._tutorialUpdateFn=updateFn;
+  window._tutorialUid=uid;
+  tutorialPasos=buildTutorialPasos();
+  tutorialIdx=0;
+  document.getElementById('tutorial-overlay').style.display='block';
+  renderTutorialStep();
+}
+</script>
+
 </body>
 </html>
