@@ -1558,6 +1558,18 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 </main>
 </div>
 
+<div class="modal-overlay" id="modal-sus-historial">
+  <div class="modal" style="max-width:500px">
+    <h3>📋 Historial de pagos</h3>
+    <div id="sus-hist-header" style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border)"></div>
+    <div id="sus-hist-tabla"></div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-secondary" onclick="closeModal('modal-sus-historial')">Cerrar</button>
+      <button class="btn btn-primary" id="sus-hist-btn-pago">💳 Registrar pago</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-sus-pago">
   <div class="modal" style="max-width:460px">
     <h3>💳 Registrar pago de suscripción</h3>
@@ -5032,7 +5044,7 @@ async function renderSuscripciones(){
       const vtoDisplay=r.vtoStr?fmtD(r.vtoStr)+'<div style="font-size:10px;color:var(--text2)">'+(r.diasRestantes>0?'en '+r.diasRestantes+' días':r.diasRestantes===0?'hoy':'hace '+Math.abs(r.diasRestantes)+' días')+'</div>':'<span style="color:var(--text3)">—</span>';
       const ultimoPagoDisplay=r.ultimoPago?'<div style="font-size:12px">$'+r.ultimoPago.monto+' USD</div><div style="font-size:10px;color:var(--text2)">'+fmtD(r.ultimoPago.fecha)+(r.ultimoPago.metodo?' · '+r.ultimoPago.metodo:'')+'</div>':'<span style="color:var(--text3)">Nunca</span>';
       return`<tr>
-        <td><strong style="font-size:13px">${r.negocio}</strong><div style="font-size:11px;color:var(--text2)">${r.email}</div></td>
+        <td><strong style="font-size:13px;color:var(--accent);cursor:pointer;text-decoration:underline" onclick="abrirHistorialSus('${r.uid}','${r.negocio.replace(/'/g,"\\'")}','${r.vtoStr}')">${r.negocio}</strong><div style="font-size:11px;color:var(--text2)">${r.email}</div></td>
         <td>${ESTADO_TAG[r.estado]||r.estado}</td>
         <td style="font-size:12px">${vtoDisplay}</td>
         <td>${ultimoPagoDisplay}</td>
@@ -5057,6 +5069,52 @@ function abrirModalSusPago(uid,negocio,vtoActual){
   openModal('modal-sus-pago');
 }
 window.abrirModalSusPago=abrirModalSusPago;
+
+async function abrirHistorialSus(uid,negocio,vtoActual){
+  $('sus-hist-header').innerHTML='<div style="font-size:16px;font-weight:700">'+negocio+'</div>';
+  $('sus-hist-tabla').innerHTML='<div style="color:var(--text2);font-size:13px">Cargando...</div>';
+  $('sus-hist-btn-pago').onclick=()=>{closeModal('modal-sus-historial');abrirModalSusPago(uid,negocio,vtoActual);};
+  openModal('modal-sus-historial');
+  try{
+    const {ref:fbRef,get}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+    const [snapSus,snapUser]=await Promise.all([
+      get(fbRef(db,'suscripciones/'+uid)),
+      get(fbRef(db,'usuarios/'+uid))
+    ]);
+    const sus=snapSus.val()||{};
+    const user=snapUser.val()||{};
+    const pagos=sus.pagos?Object.entries(sus.pagos).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||'')):[];
+    const fechaRegistro=user.fechaRegistro||user.createdAt||'';
+    // Header con info del cliente
+    $('sus-hist-header').innerHTML=
+      '<div style="font-size:16px;font-weight:700;margin-bottom:6px">'+negocio+'</div>'+
+      '<div style="font-size:12px;color:var(--text2);display:flex;gap:16px;flex-wrap:wrap">'+
+        (user.email?'<span>📧 '+user.email+'</span>':'')+
+        (fechaRegistro?'<span>📅 Cliente desde: '+fmtD(fechaRegistro.slice(0,10))+'</span>':'')+
+        (sus.vencimiento?'<span>⏳ Vence: '+fmtD(sus.vencimiento)+'</span>':'')+
+        '<span>💳 '+pagos.length+' pago'+(pagos.length!==1?'s':'')+'</span>'+
+      '</div>';
+    if(!pagos.length){
+      $('sus-hist-tabla').innerHTML='<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px">Sin pagos registrados aún.</div>';
+      return;
+    }
+    const totalPagado=pagos.reduce((s,[,p])=>s+(p.monto||0),0);
+    let rows=pagos.map(([,p])=>`<tr>
+      <td class="mono" style="font-size:12px">${fmtD(p.fecha)}</td>
+      <td class="mono" style="color:#0ca678;font-weight:600">$${p.monto} USD</td>
+      <td style="font-size:12px;color:var(--text2)">${p.metodo||'—'}</td>
+      <td style="font-size:12px;color:var(--text2)">${p.meses?p.meses+' mes'+(p.meses>1?'es':''):'—'}</td>
+      <td style="font-size:12px;color:var(--text2)">${p.nota||'—'}</td>
+    </tr>`).join('');
+    $('sus-hist-tabla').innerHTML=
+      '<table><thead><tr><th>Fecha</th><th>Monto</th><th>Método</th><th>Período</th><th>Nota</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+      '<div style="margin-top:12px;padding:10px 14px;background:var(--surface2);border-radius:8px;font-size:13px;display:flex;justify-content:space-between">'+
+        '<span style="color:var(--text2)">Total cobrado</span>'+
+        '<span style="font-family:var(--mono);font-weight:700;color:#0ca678">$'+totalPagado.toLocaleString()+' USD</span>'+
+      '</div>';
+  }catch(e){$('sus-hist-tabla').innerHTML='<div style="color:var(--red)">Error al cargar.</div>';}
+}
+window.abrirHistorialSus=abrirHistorialSus;
 
 function calcSusPagoVto(vtoActual){
   const meses=parseInt($('sus-pago-meses')?.value)||1;
