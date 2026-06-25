@@ -3255,8 +3255,11 @@ function saveCompra(){
       metodosUsados.forEach(m=>{
         push(dbRef('caja'),{fecha,tipo:'egreso',moneda:m.moneda,monto:m.monto,categoria:'compra',desc:'Compra a '+proveedor+' - '+m.label,auto:true,compraId:refC.key});
       });
+      // Auto-agregar proveedor si no existe
+      const yaExiste=Object.values(S.proveedores||{}).some(p=>(p.nombre||'').toLowerCase()===proveedor.toLowerCase());
+      if(!yaExiste&&proveedor)push(dbRef('proveedores'),{nombre:proveedor,contacto:'',tel:'',email:'',pais:'',categoria:'celulares',notas:'',fechaAlta:fecha});
       resetCompraForm();
-      setTimeout(()=>cerrarWizardCompra(),1200); // cierra el wizard después de mostrar el mensaje de éxito
+      setTimeout(()=>cerrarWizardCompra(),1200);
     })
     .catch(()=>showAlert('c-alert','Error al guardar',false));
 }
