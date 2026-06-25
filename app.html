@@ -1795,6 +1795,7 @@ const showAlert = (id,msg,ok=true) => {
   setTimeout(()=>el.innerHTML='',3500);
 };
 const openModal = id => $(id).classList.add('open');
+window.openModal=openModal;
 // Exporta un array de objetos a un archivo CSV descargable, compatible con Excel
 function exportCSV(filename,headers,rows){
   const esc=v=>{
@@ -1812,6 +1813,7 @@ function exportCSV(filename,headers,rows){
   URL.revokeObjectURL(url);
 }
 const closeModal = id => $(id).classList.remove('open');
+window.closeModal=closeModal;
 const arsToUsd = n => dolar.venta>0?n/dolar.venta:0;
 const usdToArs = n => n*dolar.venta;
 const metodoARS = m => ['efectivo_ars','mercadopago','transferencia','mixto_usd_ars','mixto_usd_mp'].includes(m);
