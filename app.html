@@ -3320,7 +3320,9 @@ function saveCompra(){
   }
   const pagadoUSD=metodosUsados.reduce((s,m)=>s+(m.moneda==='USD'?m.monto:(dolar.venta>0?m.monto/dolar.venta:0)),0);
   const condicion=pagadoUSD>=totalUSD-0.01?'pagado':(pagadoUSD>0?'parcial':'pendiente');
-  push(dbRef('compras'),{fecha,proveedor,ref:refv,items,totalUSD,metodos:metodosUsados,condicionPago:condicion,fechaEntrega,estadoEntrega,localId})
+  // localId now stored per-item; also keep at root for backward compat
+  const itemsConLocal=items.map(it=>({...it,localId:localId||''}));
+  push(dbRef('compras'),{fecha,proveedor,ref:refv,items:itemsConLocal,totalUSD,metodos:metodosUsados,condicionPago:condicion,fechaEntrega,estadoEntrega,localId})
     .then((refC)=>{
       showAlert('c-alert','✅ Pedido guardado correctamente');
       metodosUsados.forEach(m=>{
@@ -4217,7 +4219,7 @@ function renderStock(){
         ref:comp.ref||fmtD(comp.fecha),proveedor:comp.proveedor||'',fecha:comp.fecha,
         costo:it.precio||0,precioVenta:it.precioVenta||0,
         disp,enCamino:comp.estadoEntrega==='en_camino',
-        localId:comp.localId||'',compraKey:ck,itemId:it.itemId||'',
+        localId:it.localId||comp.localId||'',compraKey:ck,itemId:it.itemId||'',
         categoria:it.categoria||'iphone'
       });
     });
@@ -4245,7 +4247,7 @@ function renderStock(){
   const sfCat=$('sf-categoria')?.value||'';
   let filtered=allItems;
   if(sfModelo)filtered=filtered.filter(r=>(r.modelo||'').toLowerCase().includes(sfModelo)||(r.imei||'').toLowerCase().includes(sfModelo));
-  if(sfLocal)filtered=filtered.filter(r=>r.localId===sfLocal);
+  if(sfLocal)filtered=filtered.filter(r=>(r.localId||'')===sfLocal);
   if(sfCat)filtered=filtered.filter(r=>r.categoria===sfCat);
   if(sfEstado==='disponible')filtered=filtered.filter(r=>r.disp>0&&!r.enCamino);
   if(sfEstado==='vendido')filtered=filtered.filter(r=>r.disp===0&&!r.enCamino);
@@ -4301,7 +4303,7 @@ function renderStock(){
         <td style="font-size:11px;color:var(--text2)">${r.ref}</td>
         <td><input class="se-costo" data-ck="${ck}" data-itid="${itId}" type="number" value="${r.costo||''}" min="0" step="0.01" style="${inpSt};max-width:75px;color:var(--yellow);font-family:var(--mono)"></td>
         <td><input class="se-pvta" data-ck="${ck}" data-itid="${itId}" type="number" value="${r.precioVenta||''}" min="0" step="0.01" style="${inpSt};max-width:75px;color:#0ca678;font-family:var(--mono)"></td>
-        <td><select class="stock-local-sel" data-compra-key="${ck}" style="${inpSt};max-width:130px">${localOpts}</select></td>
+        <td><select class="stock-local-sel" data-compra-key="${ck}" data-itid="${itId}" style="${inpSt};max-width:130px">${localOpts}</select></td>
       </tr>`;
     });
     containerEl.innerHTML=`<table style="width:100%;font-size:11px">
@@ -4315,7 +4317,12 @@ function renderStock(){
     containerEl.querySelectorAll('.se-bat').forEach(e=>e.addEventListener('change',()=>saveItemField(e.dataset.ck,e.dataset.itid,'bateria',e.value)));
     containerEl.querySelectorAll('.se-costo').forEach(e=>e.addEventListener('change',()=>saveItemField(e.dataset.ck,e.dataset.itid,'precio',parseFloat(e.value)||0)));
     containerEl.querySelectorAll('.se-pvta').forEach(e=>e.addEventListener('change',()=>saveItemField(e.dataset.ck,e.dataset.itid,'precioVenta',parseFloat(e.value)||0)));
-    containerEl.querySelectorAll('.stock-local-sel').forEach(s=>s.addEventListener('change',()=>update(dbRef('compras/'+s.dataset.compraKey),{localId:s.value})));
+    containerEl.querySelectorAll('.stock-local-sel').forEach(s=>s.addEventListener('change',()=>{
+      const ck2=s.dataset.compraKey,itId2=s.dataset.itid;
+      const comp2=S.compras[ck2];if(!comp2)return;
+      const its2=comp2.items.map(it=>it.itemId===itId2||(!it.itemId&&itId2==='')?{...it,localId:s.value}:it);
+      update(dbRef('compras/'+ck2),{items:its2});
+    }));
     // Initial grado visibility
     containerEl.querySelectorAll('.se-estado').forEach(e=>{const ge=e.closest('tr')?.querySelector('.se-grado');if(ge)ge.parentElement.style.display=e.value==='Sellado'?'none':'';});
   }
@@ -4545,7 +4552,8 @@ function renderPaginaLocal(localKey){
   $('pl-titulo').textContent=local.icono+' '+local.nombre;
 
   const ventasLocal=Object.entries(S.ventas).filter(([,v])=>(v.localId||LOCAL_GENERAL_ID)===localKey);
-  const comprasLocal=Object.entries(S.compras).filter(([,c])=>(c.localId||LOCAL_GENERAL_ID)===localKey);
+  // For backward compat: compra matches local if ANY item is in that local, or compra.localId matches
+  const comprasLocal=Object.entries(S.compras).filter(([,c])=>c.items?.some(it=>(it.localId||c.localId||LOCAL_GENERAL_ID)===localKey)||(c.localId||LOCAL_GENERAL_ID)===localKey);
   const totalVentas=ventasLocal.reduce((s,[,v])=>s+(v.totalUSD||0),0);
   const totalGanancia=ventasLocal.reduce((s,[,v])=>s+(v.gananciaUSD||0),0);
   const stockDisp=comprasLocal.reduce((s,[ck,c])=>s+c.items.reduce((a,it)=>a+getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId),0),0);
@@ -5048,6 +5056,7 @@ function abrirModalSusPago(uid,negocio,vtoActual){
   calcSusPagoVto(vtoActual);
   openModal('modal-sus-pago');
 }
+window.abrirModalSusPago=abrirModalSusPago;
 
 function calcSusPagoVto(vtoActual){
   const meses=parseInt($('sus-pago-meses')?.value)||1;
@@ -5299,7 +5308,7 @@ function renderInfPorLocal(ventasR){
     const vs=ventasR.filter(v=>(v.localId||'')===k);
     const vTotal=vs.reduce((s,v)=>s+(v.totalUSD||0),0);
     const gTotal=vs.reduce((s,v)=>s+(v.gananciaUSD||0),0);
-    const stockL=Object.entries(S.compras).filter(([,c])=>c.localId===k).reduce((s,[ck,c])=>s+c.items.reduce((a,it)=>a+getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId),0),0);
+    const stockL=Object.entries(S.compras).reduce((s,[ck,comp])=>s+comp.items.filter(it=>(it.localId||comp.localId||'')===k).reduce((a,it)=>a+getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId),0),0);
     html+='<div class="stat-card sc-blue"><div class="lbl">'+(l.icono||'🏪')+' '+l.nombre+'</div><div class="val">'+fmt(vTotal)+'</div><div class="sub">Ganancia: '+fmt(gTotal)+' · Stock: '+stockL+' u.</div></div>';
   });
   // Sin local asignado
