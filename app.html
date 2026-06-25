@@ -6974,20 +6974,18 @@ function buildTutorialPasos(){
 }
 
 function posicionarSpotlight(targetId){
-  const sp=$('tutorial-spotlight');
-  const card=$('tutorial-card');
-  const cardW=Math.min(340,window.innerWidth-40);
-  const cardH=card.offsetHeight||280;
-  if(!targetId){
-    sp.style.display='none';
-    card.style.top='50%';card.style.left='50%';
+  const sp=document.getElementById('tutorial-spotlight');
+  const card=document.getElementById('tutorial-card');
+  if(!targetId||!document.getElementById(targetId)){
+    if(sp)sp.style.display='none';
+    card.style.position='fixed';
     card.style.transform='translate(-50%,-50%)';
+    card.style.top='50%';
+    card.style.left='50%';
     return;
   }
+  card.style.transform='none';
   const el=document.getElementById(targetId);
-  if(!el){sp.style.display='none';
-    card.style.top='50%';card.style.left='50%';
-    card.style.transform='translate(-50%,-50%)';return;}
   const r=el.getBoundingClientRect();
   const pad=8;
   sp.style.display='block';
@@ -6995,19 +6993,15 @@ function posicionarSpotlight(targetId){
   sp.style.top=(r.top-pad)+'px';
   sp.style.width=(r.width+pad*2)+'px';
   sp.style.height=(r.height+pad*2)+'px';
-  card.style.transform='none';
-  // Intentar poner a la derecha del elemento
-  let cx=r.right+16;
-  let cy=r.top;
-  // Si no cabe a la derecha, poner a la izquierda
+  const cardW=card.offsetWidth||320;
+  const cardH=card.offsetHeight||240;
+  let cx=r.right+16,cy=r.top;
   if(cx+cardW>window.innerWidth-10)cx=r.left-cardW-16;
-  // Si tampoco cabe a la izquierda, centrar horizontalmente
   if(cx<10)cx=(window.innerWidth-cardW)/2;
-  // Ajustar vertical para que no se salga
   if(cy+cardH>window.innerHeight-20)cy=window.innerHeight-cardH-20;
   if(cy<10)cy=10;
-  card.style.left=Math.max(10,cx)+'px';
-  card.style.top=cy+'px';
+  card.style.left=Math.round(cx)+'px';
+  card.style.top=Math.round(cy)+'px';
 }
 
 function renderTutorialStep(){
@@ -7017,17 +7011,15 @@ function renderTutorialStep(){
   document.getElementById('tutorial-emoji').textContent=paso.emoji;
   document.getElementById('tutorial-titulo').textContent=paso.titulo;
   document.getElementById('tutorial-desc').textContent=paso.desc;
-  // Dots
   const dots=document.getElementById('tutorial-dots');
   dots.innerHTML=tutorialPasos.map((_,i)=>'<div style="width:7px;height:7px;border-radius:50%;background:'+(i===tutorialIdx?'var(--accent)':'var(--border)')+'"></div>').join('');
-  // Botón final
   const btn=document.getElementById('tutorial-btn-next');
   const skip=document.getElementById('tutorial-btn-skip');
   if(tutorialIdx===total-1){btn.textContent='✅ ¡Listo!';skip.style.display='none';}
   else{btn.textContent='Siguiente →';skip.style.display='';}
-  posicionarSpotlight(paso.target||null);
-  // Scroll sidebar element into view
   if(paso.target){const el=document.getElementById(paso.target);if(el)el.scrollIntoView({block:'center',behavior:'smooth'});}
+  // Posicionar después de que el DOM se actualice
+  requestAnimationFrame(()=>requestAnimationFrame(()=>posicionarSpotlight(paso.target||null)));
 }
 
 function tutorialNext(){
