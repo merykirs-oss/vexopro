@@ -4159,6 +4159,7 @@ function renderVentas(){
   const fMetodo=$('vf-metodo')?.value||'';
   const fGarantia=$('vf-garantia')?.value||'';
   let fil=Object.entries(S.ventas)
+    .filter(([,v])=>localPermitido(v.localId||''))
     .filter(([,v])=>!desde||v.fecha>=desde&&v.fecha<=hasta)
     .filter(([,v])=>!fDesde||v.fecha>=fDesde)
     .filter(([,v])=>!fHasta||v.fecha<=fHasta)
@@ -4252,14 +4253,24 @@ function renderStock(){
 
   // Llenar local select en filtro
   const sfLocalSel=$('sf-local');
-  if(sfLocalSel){const cur=sfLocalSel.value;sfLocalSel.innerHTML='<option value="">Todos</option>';Object.entries(S.locales).forEach(([k,l])=>{const op=document.createElement('option');op.value=k;op.textContent=(l.icono||'🏪')+' '+l.nombre;if(k===cur)op.selected=true;sfLocalSel.appendChild(op);});}
+  if(sfLocalSel){
+    const cur=sfLocalSel.value;
+    const locPerms=currentUserPermisos?.locales||['all'];
+    const isRestricted=currentUserRole!=='owner'&&!locPerms.includes('all');
+    sfLocalSel.parentElement.style.display=isRestricted?'none':'';
+    sfLocalSel.innerHTML='<option value="">Todos</option>';
+    Object.entries(S.locales).filter(([k])=>localPermitido(k)).forEach(([k,l])=>{
+      const op=document.createElement('option');op.value=k;op.textContent=(l.icono||'🏪')+' '+l.nombre;if(k===cur)op.selected=true;sfLocalSel.appendChild(op);
+    });
+  }
 
   // Filtros
   const sfModelo=($('sf-modelo')?.value||'').toLowerCase().trim();
   const sfLocal=$('sf-local')?.value||'';
   const sfEstado=$('sf-estado-stock')?.value||'';
   const sfCat=$('sf-categoria')?.value||'';
-  let filtered=allItems;
+  // Empleados con local restringido solo ven su local
+  let filtered=allItems.filter(r=>localPermitido(r.localId||''));
   if(sfModelo)filtered=filtered.filter(r=>(r.modelo||'').toLowerCase().includes(sfModelo)||(r.imei||'').toLowerCase().includes(sfModelo));
   if(sfLocal)filtered=filtered.filter(r=>(r.localId||'')===sfLocal);
   if(sfCat)filtered=filtered.filter(r=>r.categoria===sfCat);
@@ -4536,13 +4547,21 @@ function renderNavLocales(){
 }
 // Llena los <select> de punto de venta en los formularios de Compras y Ventas
 function refreshLocalSelects(){
-  const ent=Object.entries(S.locales).sort((a,b)=>(a[1].nombre||'').localeCompare(b[1].nombre||''));
-  const opciones='<option value="">— Sin asignar (General) —</option>'+ent.map(([k,l])=>'<option value="'+k+'">'+l.icono+' '+l.nombre+'</option>').join('');
+  const ent=Object.entries(S.locales)
+    .filter(([k])=>localPermitido(k))
+    .sort((a,b)=>(a[1].nombre||'').localeCompare(b[1].nombre||''));
+  const locPerms=currentUserPermisos?.locales||['all'];
+  const isRestricted=currentUserRole!=='owner'&&!locPerms.includes('all');
+  // Si tiene un solo local, no mostrar "Sin asignar"
+  const opciones=(isRestricted&&ent.length===1?'':'<option value="">— Sin asignar (General) —</option>')+
+    ent.map(([k,l])=>'<option value="'+k+'">'+l.icono+' '+l.nombre+'</option>').join('');
   ['c-local','v-local'].forEach(id=>{
     const sel=$(id);if(!sel)return;
     const valorActual=sel.value;
     sel.innerHTML=opciones;
-    if([...sel.options].some(o=>o.value===valorActual))sel.value=valorActual;
+    // Auto-seleccionar si solo tiene un local
+    if(isRestricted&&ent.length===1)sel.value=ent[0][0];
+    else if([...sel.options].some(o=>o.value===valorActual))sel.value=valorActual;
   });
 }
 // Muestra la página de un local específico, actualizando título y contenido según la pestaña activa
@@ -6903,7 +6922,7 @@ if('serviceWorker' in navigator){
   <!-- Spotlight (hueco transparente) -->
   <div id="tutorial-spotlight" style="position:fixed;border-radius:10px;box-shadow:0 0 0 9999px rgba(0,0,0,0.55);transition:all 0.3s;pointer-events:none;z-index:10000"></div>
   <!-- Card del paso -->
-  <div id="tutorial-card" style="position:fixed;z-index:10001;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 24px;max-width:340px;box-shadow:0 8px 40px rgba(0,0,0,0.25)">
+  <div id="tutorial-card" style="position:fixed;z-index:10001;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 24px;max-width:340px;width:calc(100vw - 40px);box-shadow:0 8px 40px rgba(0,0,0,0.25);display:flex;flex-direction:column;gap:0">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
       <div id="tutorial-badge" style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.7px"></div>
       <button onclick="cerrarTutorial()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;padding:0;line-height:1">✕</button>
@@ -6957,6 +6976,8 @@ function buildTutorialPasos(){
 function posicionarSpotlight(targetId){
   const sp=$('tutorial-spotlight');
   const card=$('tutorial-card');
+  const cardW=Math.min(340,window.innerWidth-40);
+  const cardH=card.offsetHeight||280;
   if(!targetId){
     sp.style.display='none';
     card.style.top='50%';card.style.left='50%';
@@ -6964,7 +6985,9 @@ function posicionarSpotlight(targetId){
     return;
   }
   const el=document.getElementById(targetId);
-  if(!el){sp.style.display='none';return;}
+  if(!el){sp.style.display='none';
+    card.style.top='50%';card.style.left='50%';
+    card.style.transform='translate(-50%,-50%)';return;}
   const r=el.getBoundingClientRect();
   const pad=8;
   sp.style.display='block';
@@ -6972,13 +6995,17 @@ function posicionarSpotlight(targetId){
   sp.style.top=(r.top-pad)+'px';
   sp.style.width=(r.width+pad*2)+'px';
   sp.style.height=(r.height+pad*2)+'px';
-  // Posicionar card cerca del elemento
-  const cardW=340,cardH=260;
-  let cx=r.right+16,cy=r.top;
-  if(cx+cardW>window.innerWidth)cx=r.left-cardW-16;
-  if(cy+cardH>window.innerHeight)cy=window.innerHeight-cardH-20;
-  if(cy<10)cy=10;
   card.style.transform='none';
+  // Intentar poner a la derecha del elemento
+  let cx=r.right+16;
+  let cy=r.top;
+  // Si no cabe a la derecha, poner a la izquierda
+  if(cx+cardW>window.innerWidth-10)cx=r.left-cardW-16;
+  // Si tampoco cabe a la izquierda, centrar horizontalmente
+  if(cx<10)cx=(window.innerWidth-cardW)/2;
+  // Ajustar vertical para que no se salga
+  if(cy+cardH>window.innerHeight-20)cy=window.innerHeight-cardH-20;
+  if(cy<10)cy=10;
   card.style.left=Math.max(10,cx)+'px';
   card.style.top=cy+'px';
 }
