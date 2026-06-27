@@ -1994,7 +1994,7 @@ onAuthStateChanged(auth, async user=>{
       if(udOwner.negocio)$('negocio-nombre').textContent=udOwner.negocio;
       initApp();
       // Tutorial primera vez
-      if(!udOwner.tutorialVisto)setTimeout(()=>iniciarTutorial('owner',null,dbRef,update,user.uid),1200);
+      if(!udOwner.tutorialVisto)setTimeout(()=>iniciarTutorial('owner',null,dbRef,update,user.uid,ref),1200);
     } else {
       // Puede ser un EMPLEADO — buscar en subUsuarios de algún negocio
       const snapEmp=await get(ref(db,'empleados/'+user.uid));
@@ -2021,7 +2021,7 @@ onAuthStateChanged(auth, async user=>{
       $('negocio-nombre').textContent=udEmp.negocioNombre||'Mi Negocio';
       initApp();
       // Tutorial primera vez para empleado
-      if(!udEmp.tutorialVisto)setTimeout(()=>iniciarTutorial('employee',currentUserPermisos,dbRef,update,user.uid),1200);
+      if(!udEmp.tutorialVisto)setTimeout(()=>iniciarTutorial('employee',currentUserPermisos,dbRef,update,user.uid,ref),1200);
     }
   }else{
     currentUser=null;currentUserRole=null;ownerUid=null;currentUserPermisos=null;
@@ -4348,7 +4348,25 @@ function renderStock(){
 
   function renderEquiposDetalle(containerEl,items){
     const inpSt='background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:4px 6px;font-size:11px;font-family:var(--sans);outline:none;width:100%;box-sizing:border-box';
-    let rows='';
+
+    // Barra de "aplicar precio a todas las unidades de este modelo"
+    const barraId='pvta-barra-'+Math.random().toString(36).slice(2);
+    const barra=document.createElement('div');
+    barra.style.cssText='display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--accent-dim);border-bottom:1px solid var(--border);flex-wrap:wrap';
+    barra.innerHTML=`
+      <span style="font-size:12px;font-weight:600;color:var(--accent)">💵 Aplicar precio de venta a todas las unidades:</span>
+      <input type="number" id="${barraId}" placeholder="0.00" min="0" step="0.01"
+        style="background:var(--surface);border:1px solid var(--border);border-radius:6px;color:#0ca678;padding:5px 10px;font-size:13px;font-family:var(--mono);outline:none;width:110px;font-weight:700">
+      <button onclick="
+        const val=document.getElementById('${barraId}').value;
+        if(!val)return;
+        this.closest('div').parentElement.querySelectorAll('.se-pvta').forEach(el=>{
+          el.value=val;
+          el.dispatchEvent(new Event('change'));
+        });
+      " style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans)">Aplicar a todas</button>
+    `;
+    containerEl.appendChild(barra);
     items.forEach(r=>{
       const ck=r.compraKey,itId=r.itemId;
       let statusTag=r.enCamino?'<span class="tag tag-yellow" style="font-size:10px">🚚</span>':r.disp===0?'<span class="tag tag-red" style="font-size:10px">Vendido</span>':'<span class="tag tag-green" style="font-size:10px">✅</span>';
@@ -4370,18 +4388,20 @@ function renderStock(){
         <td><select class="stock-local-sel" data-compra-key="${ck}" data-itid="${itId}" style="${inpSt};max-width:130px">${localOpts}</select></td>
       </tr>`;
     });
-    containerEl.innerHTML=`<table style="width:100%;font-size:11px">
+    const tabla=document.createElement('div');
+    tabla.innerHTML=`<table style="width:100%;font-size:11px">
       <thead><tr style="background:var(--surface3)">
         <th></th><th>IMEI</th><th>Batería</th><th>Color</th><th>Estado</th><th>Grado</th><th>Proveedor</th><th>N° Pedido</th><th>Costo</th><th>Precio venta</th><th>Punto de venta</th>
       </tr></thead><tbody>${rows}</tbody></table>`;
-    containerEl.querySelectorAll('.se-color').forEach(e=>e.addEventListener('change',()=>saveItemField(e.dataset.ck,e.dataset.itid,'color',e.value)));
-    containerEl.querySelectorAll('.se-estado').forEach(e=>e.addEventListener('change',()=>{saveItemField(e.dataset.ck,e.dataset.itid,'estado',e.value);const ge=e.closest('tr')?.querySelector('.se-grado');if(ge)ge.parentElement.style.display=e.value==='Sellado'?'none':'';}));
-    containerEl.querySelectorAll('.se-grado').forEach(e=>e.addEventListener('change',()=>saveItemField(e.dataset.ck,e.dataset.itid,'grado',e.value)));
-    containerEl.querySelectorAll('.se-imei').forEach(e=>e.addEventListener('change',()=>saveItemField(e.dataset.ck,e.dataset.itid,'imei',e.value.trim())));
-    containerEl.querySelectorAll('.se-bat').forEach(e=>e.addEventListener('change',()=>saveItemField(e.dataset.ck,e.dataset.itid,'bateria',e.value)));
-    containerEl.querySelectorAll('.se-costo').forEach(e=>e.addEventListener('change',()=>saveItemField(e.dataset.ck,e.dataset.itid,'precio',parseFloat(e.value)||0)));
-    containerEl.querySelectorAll('.se-pvta').forEach(e=>e.addEventListener('change',()=>saveItemField(e.dataset.ck,e.dataset.itid,'precioVenta',parseFloat(e.value)||0)));
-    containerEl.querySelectorAll('.stock-local-sel').forEach(s=>s.addEventListener('change',()=>{
+    containerEl.appendChild(tabla);
+    tabla.querySelectorAll('.se-color').forEach(e=>e.addEventListener('change',()=>saveItemField(e.dataset.ck,e.dataset.itid,'color',e.value)));
+    tabla.querySelectorAll('.se-estado').forEach(e=>e.addEventListener('change',()=>{saveItemField(e.dataset.ck,e.dataset.itid,'estado',e.value);const ge=e.closest('tr')?.querySelector('.se-grado');if(ge)ge.parentElement.style.display=e.value==='Sellado'?'none':'';}));
+    tabla.querySelectorAll('.se-grado').forEach(e=>e.addEventListener('change',()=>saveItemField(e.dataset.ck,e.dataset.itid,'grado',e.value)));
+    tabla.querySelectorAll('.se-imei').forEach(e=>e.addEventListener('change',()=>saveItemField(e.dataset.ck,e.dataset.itid,'imei',e.value.trim())));
+    tabla.querySelectorAll('.se-bat').forEach(e=>e.addEventListener('change',()=>saveItemField(e.dataset.ck,e.dataset.itid,'bateria',e.value)));
+    tabla.querySelectorAll('.se-costo').forEach(e=>e.addEventListener('change',()=>saveItemField(e.dataset.ck,e.dataset.itid,'precio',parseFloat(e.value)||0)));
+    tabla.querySelectorAll('.se-pvta').forEach(e=>e.addEventListener('change',()=>saveItemField(e.dataset.ck,e.dataset.itid,'precioVenta',parseFloat(e.value)||0)));
+    tabla.querySelectorAll('.stock-local-sel').forEach(s=>s.addEventListener('change',()=>{
       const ck2=s.dataset.compraKey,itId2=s.dataset.itid;
       const comp2=S.compras[ck2];if(!comp2)return;
       const its2=comp2.items.map(it=>it.itemId===itId2||(!it.itemId&&itId2==='')?{...it,localId:s.value}:it);
@@ -4751,7 +4771,7 @@ function renderConfig(){
   if($('cfg-catalogo-mostrar-stock'))$('cfg-catalogo-mostrar-stock').checked=cfg.catalogoMostrarStock===true;
   // Botón para repetir tutorial
   const tutBtn=$('btn-repetir-tutorial');
-  if(tutBtn)tutBtn.onclick=()=>iniciarTutorial(currentUserRole,currentUserPermisos,dbRef,update,currentUser?.uid);
+  if(tutBtn)tutBtn.onclick=()=>iniciarTutorial(currentUserRole,currentUserPermisos,dbRef,update,currentUser?.uid,ref);
 }
 
 async function saveConfigNegocio(){
@@ -7218,19 +7238,22 @@ function tutorialNext(){
 function cerrarTutorial(){
   document.getElementById('tutorial-overlay').style.display='none';
   document.getElementById('tutorial-spotlight').style.display='none';
-  // Marcar como visto en Firebase
-  if(window._tutorialDbRef&&window._tutorialUid){
-    window._tutorialDbRef('tutorialVisto/'+window._tutorialUid).then&&null;
-    try{window._tutorialUpdateFn(window._tutorialDbRef('usuarios/'+window._tutorialUid),{tutorialVisto:true});}catch(e){}
-  }
+  // Marcar como visto en Firebase usando update global
+  try{
+    if(window._tutorialUpdateFn&&window._tutorialUid){
+      const path='usuarios/'+window._tutorialUid;
+      window._tutorialUpdateFn(window._tutorialRefFn(path),{tutorialVisto:true});
+    }
+  }catch(e){console.error('tutorial save',e);}
 }
 
-function iniciarTutorial(role,perms,dbRefFn,updateFn,uid){
+function iniciarTutorial(role,perms,dbRefFn,updateFn,uid,refFn){
   window._tutorialRole=role;
   window._tutorialPerms=perms;
   window._tutorialDbRef=dbRefFn;
   window._tutorialUpdateFn=updateFn;
   window._tutorialUid=uid;
+  window._tutorialRefFn=refFn;
   tutorialPasos=buildTutorialPasos();
   tutorialIdx=0;
   document.getElementById('tutorial-overlay').style.display='block';
