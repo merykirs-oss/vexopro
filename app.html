@@ -3035,9 +3035,9 @@ function makeCompraItemEl(id,data=null,cat=null){
   const fg=(lbl,el)=>{const d=document.createElement('div');d.className='form-group';const l=document.createElement('label');l.textContent=lbl;d.append(l,el);return d;};
   const hidden=(id2,val)=>{const h=document.createElement('input');h.type='hidden';h.id=id2;h.value=val||'';w.appendChild(h);};
 
-  // ── FILA PRINCIPAL: Modelo + Capacidad + Cantidad + Costo + PVenta ──
+  // ── FILA 1: Modelo + Capacidad + Cantidad ──
   const row1=document.createElement('div');
-  row1.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:10px;align-items:end;margin-bottom:12px';
+  row1.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;align-items:end;margin-bottom:10px;padding-right:50px';
   let modeloField;
   if(categoria==='iphone'){
     const modeloSel=mkSel('ci-modelo-'+id,['','...'].concat(IPHONE_MODELOS),data?.modelo||'');
@@ -3069,10 +3069,15 @@ function makeCompraItemEl(id,data=null,cat=null){
 
   const cantEl=inp('number','ci-cant-'+id,'1',{value:data?.cantidad||1,min:1});
   row1.appendChild(fg('Cantidad',cantEl));
+  w.appendChild(row1);
+
+  // ── FILA 2: Costo + Precio venta (bien alineados) ──
+  const row1b=document.createElement('div');
+  row1b.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start;margin-bottom:12px';
 
   const precEl=inp('number','ci-precio-'+id,'0',{value:data?.precio||'',min:0,step:0.01});
   precEl.addEventListener('input',calcTotalCompra);
-  row1.appendChild(fg('Costo c/u (USD)',precEl));
+  row1b.appendChild(fg('Costo c/u (USD)',precEl));
 
   const pvTodas=inp('number','ci-pvta-todas-'+id,'0',{value:data?.precioVenta||'',min:0,step:0.01});
   pvTodas.style.color='#0ca678';
@@ -3080,13 +3085,13 @@ function makeCompraItemEl(id,data=null,cat=null){
     const cant=parseInt(cantEl.value)||1;
     for(let x=0;x<cant;x++){const el2=$('ci-pvta-'+id+'-'+x);if(el2)el2.value=pvTodas.value;}
   });
-  const pvTodasWrap=fg('Precio venta c/u',pvTodas);
+  const pvTodasWrap=fg('Precio venta c/u (USD)',pvTodas);
   const pvTodasHint=document.createElement('div');
-  pvTodasHint.style.cssText='font-size:10px;color:var(--text2);margin-top:3px';
-  pvTodasHint.textContent='Se aplica a todas';
+  pvTodasHint.style.cssText='font-size:10px;color:var(--accent);margin-top:3px';
+  pvTodasHint.textContent='↑ Se aplica a todas las unidades';
   pvTodasWrap.appendChild(pvTodasHint);
-  row1.appendChild(pvTodasWrap);
-  w.appendChild(row1);
+  row1b.appendChild(pvTodasWrap);
+  w.appendChild(row1b);
 
   // ── FILA 2: Campos COMPARTIDOS (iguales para todas las unidades) ──
   const row2=document.createElement('div');
@@ -3314,6 +3319,7 @@ function saveCompra(){
   const items=[];
   for(const id of compraItems){
     const el=document.getElementById('ci-'+id);
+    const categoria=el?.dataset.categoria||compraCategoria;
     // Leer modelo según categoría
     let modelo;
     if(categoria==='iphone'){
@@ -3330,7 +3336,6 @@ function saveCompra(){
     const tipo=$('ci-tipo-'+id)?.value||'';
     const cantidad=parseInt($('ci-cant-'+id)?.value)||1;
     const precio=parseFloat($('ci-precio-'+id)?.value);
-    const categoria=el?.dataset.categoria||compraCategoria;
     // Campos COMPARTIDOS del lote
     const estadoLote=$('ci-estado-'+id)?.value||'Sellado';
     const gradoLote=$('ci-grado-'+id)?.value||'';
