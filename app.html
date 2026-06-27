@@ -3037,7 +3037,7 @@ function makeCompraItemEl(id,data=null,cat=null){
 
   // ── FILA 1: Modelo + Capacidad + Cantidad ──
   const row1=document.createElement('div');
-  row1.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;align-items:end;margin-bottom:10px;padding-right:50px';
+  row1.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;align-items:start;margin-bottom:10px;padding-right:54px';
   let modeloField;
   if(categoria==='iphone'){
     const modeloSel=mkSel('ci-modelo-'+id,['','...'].concat(IPHONE_MODELOS),data?.modelo||'');
@@ -3045,7 +3045,8 @@ function makeCompraItemEl(id,data=null,cat=null){
     modeloSel.options[0].value='';
     modeloSel.options[1].text='Otro (escribir)';
     modeloSel.options[1].value='__otro__';
-    const modeloInp=inp('text','ci-modelo-otro-'+id,'Escribí el modelo',{value:'',style:'display:none;margin-top:6px'});
+    const modeloInp=inp('text','ci-modelo-otro-'+id,'Escribí el modelo',{value:''});
+    modeloInp.style.cssText='display:none;margin-top:6px;width:100%;box-sizing:border-box';
     modeloSel.addEventListener('change',()=>{
       modeloInp.style.display=modeloSel.value==='__otro__'?'block':'none';
     });
@@ -3073,7 +3074,7 @@ function makeCompraItemEl(id,data=null,cat=null){
 
   // ── FILA 2: Costo + Precio venta (bien alineados) ──
   const row1b=document.createElement('div');
-  row1b.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start;margin-bottom:12px';
+  row1b.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;margin-bottom:12px;padding-right:54px';
 
   const precEl=inp('number','ci-precio-'+id,'0',{value:data?.precio||'',min:0,step:0.01});
   precEl.addEventListener('input',calcTotalCompra);
@@ -4349,24 +4350,7 @@ function renderStock(){
   function renderEquiposDetalle(containerEl,items){
     const inpSt='background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:4px 6px;font-size:11px;font-family:var(--sans);outline:none;width:100%;box-sizing:border-box';
 
-    // Barra de "aplicar precio a todas las unidades de este modelo"
-    const barraId='pvta-barra-'+Math.random().toString(36).slice(2);
-    const barra=document.createElement('div');
-    barra.style.cssText='display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--accent-dim);border-bottom:1px solid var(--border);flex-wrap:wrap';
-    barra.innerHTML=`
-      <span style="font-size:12px;font-weight:600;color:var(--accent)">💵 Aplicar precio de venta a todas las unidades:</span>
-      <input type="number" id="${barraId}" placeholder="0.00" min="0" step="0.01"
-        style="background:var(--surface);border:1px solid var(--border);border-radius:6px;color:#0ca678;padding:5px 10px;font-size:13px;font-family:var(--mono);outline:none;width:110px;font-weight:700">
-      <button onclick="
-        const val=document.getElementById('${barraId}').value;
-        if(!val)return;
-        this.closest('div').parentElement.querySelectorAll('.se-pvta').forEach(el=>{
-          el.value=val;
-          el.dispatchEvent(new Event('change'));
-        });
-      " style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans)">Aplicar a todas</button>
-    `;
-    containerEl.appendChild(barra);
+
     items.forEach(r=>{
       const ck=r.compraKey,itId=r.itemId;
       let statusTag=r.enCamino?'<span class="tag tag-yellow" style="font-size:10px">🚚</span>':r.disp===0?'<span class="tag tag-red" style="font-size:10px">Vendido</span>':'<span class="tag tag-green" style="font-size:10px">✅</span>';
@@ -4384,7 +4368,10 @@ function renderStock(){
         <td style="font-size:11px;color:var(--text2)">${r.proveedor||'—'}</td>
         <td style="font-size:11px;color:var(--text2)">${r.ref}</td>
         <td><input class="se-costo" data-ck="${ck}" data-itid="${itId}" type="number" value="${r.costo||''}" min="0" step="0.01" style="${inpSt};max-width:75px;color:var(--yellow);font-family:var(--mono)"></td>
-        <td><input class="se-pvta" data-ck="${ck}" data-itid="${itId}" type="number" value="${r.precioVenta||''}" min="0" step="0.01" style="${inpSt};max-width:75px;color:#0ca678;font-family:var(--mono)"></td>
+        <td>
+          <input class="se-pvta" data-ck="${ck}" data-itid="${itId}" type="number" value="${r.precioVenta||''}" min="0" step="0.01" style="${inpSt};max-width:75px;color:#0ca678;font-family:var(--mono)">
+          <div class="pvta-apply-all" style="font-size:10px;color:var(--accent);cursor:pointer;text-decoration:underline;margin-top:2px;white-space:nowrap">Aplicar a todos</div>
+        </td>
         <td><select class="stock-local-sel" data-compra-key="${ck}" data-itid="${itId}" style="${inpSt};max-width:130px">${localOpts}</select></td>
       </tr>`;
     });
@@ -4401,6 +4388,17 @@ function renderStock(){
     tabla.querySelectorAll('.se-bat').forEach(e=>e.addEventListener('change',()=>saveItemField(e.dataset.ck,e.dataset.itid,'bateria',e.value)));
     tabla.querySelectorAll('.se-costo').forEach(e=>e.addEventListener('change',()=>saveItemField(e.dataset.ck,e.dataset.itid,'precio',parseFloat(e.value)||0)));
     tabla.querySelectorAll('.se-pvta').forEach(e=>e.addEventListener('change',()=>saveItemField(e.dataset.ck,e.dataset.itid,'precioVenta',parseFloat(e.value)||0)));
+    // "Aplicar a todos" — copia el precio al resto de filas del mismo grupo
+    tabla.querySelectorAll('.pvta-apply-all').forEach(link=>link.addEventListener('click',()=>{
+      const inp=link.previousElementSibling;
+      if(!inp)return;
+      const val=inp.value;
+      if(!val)return;
+      tabla.querySelectorAll('.se-pvta').forEach(e=>{
+        e.value=val;
+        saveItemField(e.dataset.ck,e.dataset.itid,'precioVenta',parseFloat(val)||0);
+      });
+    }));
     tabla.querySelectorAll('.stock-local-sel').forEach(s=>s.addEventListener('change',()=>{
       const ck2=s.dataset.compraKey,itId2=s.dataset.itid;
       const comp2=S.compras[ck2];if(!comp2)return;
