@@ -1926,8 +1926,10 @@ function checkTrial(userData){
     if($('trial-global-banner'))$('trial-global-banner').style.display='none';
     return true;
   }
-  // Acceso completo SOLO si está marcado como pagado, o si explícitamente trial=false (cuenta manual sin trial)
-  if(userData.pagado===true||userData.trial===false){
+  // Acceso completo si está pagado, suscripción activa vigente, o trial=false
+  const vto=userData.suscripcionVto?new Date(userData.suscripcionVto):null;
+  const suscripcionVigente=userData.suscripcionActiva===true&&(!vto||vto>=new Date());
+  if(userData.pagado===true||userData.trial===false||suscripcionVigente){
     $('trial-banner-sidebar').innerHTML='';
     if($('trial-global-banner'))$('trial-global-banner').style.display='none';
     return true;
@@ -1994,7 +1996,8 @@ onAuthStateChanged(auth, async user=>{
       if(udOwner.negocio)$('negocio-nombre').textContent=udOwner.negocio;
       initApp();
       // Tutorial primera vez
-      if(!udOwner.tutorialVisto)setTimeout(()=>iniciarTutorial('owner',null,dbRef,update,user.uid,ref),1200);
+      const tutKey='vexpro_tutorial_'+user.uid;
+      if(!udOwner.tutorialVisto&&!localStorage.getItem(tutKey))setTimeout(()=>iniciarTutorial('owner',null,dbRef,update,user.uid,ref),1200);
     } else {
       // Puede ser un EMPLEADO — buscar en subUsuarios de algún negocio
       const snapEmp=await get(ref(db,'empleados/'+user.uid));
@@ -2021,7 +2024,8 @@ onAuthStateChanged(auth, async user=>{
       $('negocio-nombre').textContent=udEmp.negocioNombre||'Mi Negocio';
       initApp();
       // Tutorial primera vez para empleado
-      if(!udEmp.tutorialVisto)setTimeout(()=>iniciarTutorial('employee',currentUserPermisos,dbRef,update,user.uid,ref),1200);
+      const tutKeyEmp='vexpro_tutorial_'+user.uid;
+      if(!udEmp.tutorialVisto&&!localStorage.getItem(tutKeyEmp))setTimeout(()=>iniciarTutorial('employee',currentUserPermisos,dbRef,update,user.uid,ref),1200);
     }
   }else{
     currentUser=null;currentUserRole=null;ownerUid=null;currentUserPermisos=null;
@@ -7236,11 +7240,13 @@ function tutorialNext(){
 function cerrarTutorial(){
   document.getElementById('tutorial-overlay').style.display='none';
   document.getElementById('tutorial-spotlight').style.display='none';
-  // Marcar como visto en Firebase usando update global
+  // Marcar como visto en localStorage (inmediato) y Firebase
   try{
-    if(window._tutorialUpdateFn&&window._tutorialUid){
-      const path='usuarios/'+window._tutorialUid;
-      window._tutorialUpdateFn(window._tutorialRefFn(path),{tutorialVisto:true});
+    if(window._tutorialUid){
+      localStorage.setItem('vexpro_tutorial_'+window._tutorialUid,'1');
+    }
+    if(window._tutorialUpdateFn&&window._tutorialUid&&window._tutorialRefFn){
+      window._tutorialUpdateFn(window._tutorialRefFn('usuarios/'+window._tutorialUid),{tutorialVisto:true});
     }
   }catch(e){console.error('tutorial save',e);}
 }
