@@ -3025,9 +3025,11 @@ function stockOptions(exclVK=null,categoriaFiltro=null,localFiltro=null){
   let o='<option value="">— Seleccionar equipo —</option>';
   Object.entries(S.compras).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||'')).forEach(([ck,comp])=>{
     const enCamino=comp.estadoEntrega==='en_camino';
-    if(localFiltro&&(comp.localId||'')!==localFiltro)return; // solo mostrar stock que ingresó a este punto de venta
     comp.items.forEach(it=>{
-      if(categoriaFiltro&&(it.categoria||'iphone')!==categoriaFiltro)return; // solo mostrar equipos de la categoría elegida
+      if(categoriaFiltro&&(it.categoria||'iphone')!==categoriaFiltro)return;
+      // Filtrar por local: usar localId del item primero, luego del lote
+      const itemLocal=it.localId||comp.localId||'';
+      if(localFiltro&&itemLocal!==localFiltro)return;
       const d=getStockDisp(ck,it.modelo,it.capacidad,exclVK,it.itemId);
       const capStr=it.capacidad&&it.capacidad!=='N/A'?' '+it.capacidad:'';
       const tipoStr=it.tipo?' · '+it.tipo:'';
