@@ -1896,6 +1896,7 @@ $('btn-registro').addEventListener('click', async ()=>{
   if(pass.length<6){err.style.display='block';err.textContent='La contraseña debe tener al menos 6 caracteres.';return;}
   if(pass!==pass2){err.style.display='block';err.textContent='Las contraseñas no coinciden.';return;}
   try{
+    _registrando=true;
     const cred=await createUserWithEmailAndPassword(auth,email,pass);
     const uid=cred.user.uid;
     const trialStart=new Date().toISOString();
@@ -1904,6 +1905,7 @@ $('btn-registro').addEventListener('click', async ()=>{
     document.querySelector('.registro-box').style.display='none';
     $('registro-exito').style.display='block';
   }catch(e){
+    _registrando=false;
     err.style.display='block';
     if(e.code==='auth/email-already-in-use')err.textContent='Ese email ya está registrado.';
     else err.textContent='Error al crear la cuenta. Intentá de nuevo.';
@@ -1917,9 +1919,16 @@ $('link-ir-login').addEventListener('click',e=>{
 });
 
 $('btn-ir-al-sistema')?.addEventListener('click',()=>{
+  _registrando=false;
   $('registro-screen').style.display='none';
-  // onAuthStateChanged ya cargó la app, solo la mostramos
-  $('app').style.display='flex';
+  // Disparar onAuthStateChanged manualmente recargando el estado
+  const u=auth.currentUser;
+  if(u)onAuthStateChanged(auth,()=>{});
+  // Forzar recarga del estado de auth
+  signOut(auth).then(()=>{
+    $('login-screen').style.display='flex';
+    $('login-email').value=$('reg-email').value;
+  });
 });
 
 // Link para ir a registro (ya está en HTML)
@@ -1985,7 +1994,10 @@ function checkTrial(userData){
   return true;
 }
 
+let _registrando=false;
+
 onAuthStateChanged(auth, async user=>{
+  if(_registrando)return; // No cargar la app mientras se está registrando
   if(user){
     // 1. Primero buscar si es un dueño (cuenta principal)
     const snapOwner=await get(ref(db,'usuarios/'+user.uid));
