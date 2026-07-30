@@ -1630,7 +1630,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 </div>
 
 <div class="modal-overlay" id="modal-edit-compra">
-  <div class="modal" style="width:700px">
+  <div class="modal" style="max-width:700px;width:100%">
     <h3>✏️ Editar Compra</h3>
     <input type="hidden" id="edit-c-key">
     <div class="form-grid">
@@ -3468,7 +3468,9 @@ function renderCompras(){
   }));
 }
 function editCompra(k){
-  const c=S.compras[k];if(!c)return;
+  const c=S.compras[k];if(!c){console.error('Compra no encontrada:',k);return;}
+  // Cerrar cualquier modal abierto
+  document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));
   $('edit-c-key').value=k;$('edit-c-fecha').value=c.fecha;$('edit-c-proveedor').value=c.proveedor||'';$('edit-c-ref').value=c.ref||'';
   $('edit-c-fecha-entrega').value=c.fechaEntrega||'';$('edit-c-estado-entrega').value=c.estadoEntrega||'en_camino';
   $('edit-c-items').innerHTML='';editCompraItems=[];
@@ -4381,7 +4383,7 @@ function renderStock(){
   function renderEquiposDetalle(containerEl,items){
     const inpSt='background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:4px 6px;font-size:11px;font-family:var(--sans);outline:none;width:100%;box-sizing:border-box';
 
-
+    let rows='';
     items.forEach(r=>{
       const ck=r.compraKey,itId=r.itemId;
       let statusTag=r.enCamino?'<span class="tag tag-yellow" style="font-size:10px">🚚</span>':r.disp===0?'<span class="tag tag-red" style="font-size:10px">Vendido</span>':'<span class="tag tag-green" style="font-size:10px">✅</span>';
