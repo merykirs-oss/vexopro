@@ -951,8 +951,9 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
   <!-- FILTRO + BOTÓN NUEVA REP -->
   <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">
     <button class="btn btn-secondary btn-sm" id="btn-toggle-filtros-tec">🔍 Filtrar <span id="filtros-tec-arrow">▼</span></button>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-secondary" id="btn-nueva-rep-interna">🏪 Nueva reparación interna</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-secondary" id="btn-nueva-rep-interna">🏪 Interna individual</button>
+      <button class="btn btn-secondary" id="btn-nueva-rep-interna-masiva">📦 Interna masiva</button>
       <button class="btn btn-primary" id="btn-nueva-reparacion">🔧 Nueva reparación externa</button>
     </div>
   </div>
@@ -1066,7 +1067,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 <div class="modal-overlay" id="modal-wizard-rep">
   <div class="modal" style="max-width:600px;padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:90vh;width:calc(100vw - 32px)">
     <div class="wiz-header">
-      <button class="wiz-close" id="btn-cerrar-wizard-rep">✕</button>
+      <button class="wiz-close" id="btn-cerrar-wizard-rep" onclick="closeModal('modal-wizard-rep')">✕</button>
       <h3 style="margin:0;font-size:18px;color:#fff">🔧 Nueva Reparación</h3>
       <div class="wiz-steps">
         <div class="wiz-step-dot rwiz" data-rdot="1"></div>
@@ -1088,10 +1089,6 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
           <button class="rep-origen-btn btn" data-origen="externo" style="padding:20px 12px;border:2px solid var(--border);border-radius:12px;background:var(--surface2);font-size:13px;flex-direction:column;gap:6px;height:auto">
             <span style="font-size:28px">🚶</span><span style="font-weight:600">Cliente externo</span>
             <span style="font-size:11px;color:var(--text2)">Equipo no registrado</span>
-          </button>
-          <button class="rep-origen-btn btn" data-origen="masiva" style="padding:20px 12px;border:2px solid var(--border);border-radius:12px;background:var(--surface2);font-size:13px;flex-direction:column;gap:6px;height:auto;grid-column:1/-1">
-            <span style="font-size:28px">📦</span><span style="font-weight:600">Reparación interna masiva</span>
-            <span style="font-size:11px;color:var(--text2)">Varios equipos del stock para el mismo trabajo</span>
           </button>
         </div>
         <div id="rep-alert-1" style="margin-top:12px"></div>
@@ -2419,7 +2416,8 @@ function initApp(){
     $('btn-toggle-nuevo-tecnico').textContent=open?'➕ Nuevo técnico':'✕ Cerrar';
   });
   $('btn-nueva-reparacion')?.addEventListener('click',abrirWizardRep);
-  $('btn-nueva-rep-interna')?.addEventListener('click',abrirRepInterna);
+  $('btn-nueva-rep-interna')?.addEventListener('click',()=>abrirRepInterna(false));
+  $('btn-nueva-rep-interna-masiva')?.addEventListener('click',()=>abrirRepInterna(true));
   $('rep-masiva-buscar')?.addEventListener('input',e=>fillRepMasivaLista(e.target.value));
   $('rep-masiva-sel-todos')?.addEventListener('click',()=>{
     repMasivaEquipos=[];
@@ -6463,7 +6461,18 @@ function fillRIStockSelect(filtro){
   });
 }
 
-function abrirRepInterna(){
+function abrirRepInterna(masiva=false){
+  if(masiva){
+    // Abrir wizard externo pre-configurado para masiva
+    repOrigen='masiva';repVentaSelId=null;repMasivaEquipos=[];
+    if($('rep-fecha'))$('rep-fecha').value=today();
+    if($('rep-costo'))$('rep-costo').value='';
+    if($('rep-problema'))$('rep-problema').value='';
+    document.querySelectorAll('.rep-origen-btn').forEach(b=>{b.style.borderColor='var(--border)';b.style.background='var(--surface2)';});
+    rwizGoTo(2); // ir directo al paso de selección masiva
+    openModal('modal-wizard-rep');
+    return;
+  }
   riPaso=1;riEquipoData=null;
   if($('ri-fecha'))$('ri-fecha').value=today();
   if($('ri-costo'))$('ri-costo').value='';
