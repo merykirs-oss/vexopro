@@ -964,7 +964,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
         <div class="form-group"><label>Estado</label><select id="tf-estado"><option value="">Todos</option><option value="recibido">📥 Recibido</option><option value="enviado">📤 Enviado al técnico</option><option value="en_reparacion">🔧 En reparación</option><option value="listo">✅ Listo</option><option value="entregado">🏠 Entregado al cliente</option></select></div>
         <div class="form-group"><label>Desde</label><input type="date" id="tf-desde"></div>
         <div class="form-group"><label>Hasta</label><input type="date" id="tf-hasta"></div>
-        <div class="form-group"><label>Origen</label><select id="tf-origen"><option value="">Todos</option><option value="interno">🏪 Interno</option><option value="sistema">Del sistema</option><option value="externo">Externo</option><option value="garantia">🛡️ Por garantía</option></select></div>
+        <div class="form-group"><label>Origen</label><select id="tf-origen"><option value="">Todos</option><option value="interno">🏪 Interno</option><option value="sistema">Del sistema</option><option value="externo">Externo</option><option value="masiva">📦 Masiva</option><option value="garantia">🛡️ Por garantía</option></select></div>
       </div>
       <button class="btn btn-secondary btn-sm" id="btn-limpiar-filtro-tec">Limpiar filtros</button>
     </div>
@@ -1073,23 +1073,25 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
         <div class="wiz-step-dot rwiz" data-rdot="2"></div>
         <div class="wiz-step-dot rwiz" data-rdot="3"></div>
       </div>
-      <div class="wiz-labels"><span>Origen</span><span>Equipo</span><span>Técnico</span></div>
+      <div class="wiz-labels"><span>Origen</span><span>Equipos</span><span>Técnico</span></div>
     </div>
     <div class="wiz-body">
 
       <!-- PASO 1: ORIGEN -->
       <div class="wiz-step rwiz-step" data-rwiz-step="1">
         <div class="wiz-step-title"><span class="num">1</span> ¿De dónde viene el equipo?</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px">
-          <button class="rep-origen-btn btn" data-origen="sistema" style="padding:24px 16px;border:2px solid var(--border);border-radius:12px;background:var(--surface2);font-size:14px;flex-direction:column;gap:8px;height:auto">
-            <span style="font-size:32px">📱</span>
-            <span style="font-weight:600">Del sistema</span>
-            <span style="font-size:12px;color:var(--text2)">Equipo vendido por el negocio, sin garantía vigente</span>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
+          <button class="rep-origen-btn btn" data-origen="sistema" style="padding:20px 12px;border:2px solid var(--border);border-radius:12px;background:var(--surface2);font-size:13px;flex-direction:column;gap:6px;height:auto">
+            <span style="font-size:28px">📱</span><span style="font-weight:600">Del sistema</span>
+            <span style="font-size:11px;color:var(--text2)">Equipo vendido por el negocio</span>
           </button>
-          <button class="rep-origen-btn btn" data-origen="externo" style="padding:24px 16px;border:2px solid var(--border);border-radius:12px;background:var(--surface2);font-size:14px;flex-direction:column;gap:8px;height:auto">
-            <span style="font-size:32px">🚶</span>
-            <span style="font-weight:600">Cliente externo</span>
-            <span style="font-size:12px;color:var(--text2)">Equipo no registrado en el sistema</span>
+          <button class="rep-origen-btn btn" data-origen="externo" style="padding:20px 12px;border:2px solid var(--border);border-radius:12px;background:var(--surface2);font-size:13px;flex-direction:column;gap:6px;height:auto">
+            <span style="font-size:28px">🚶</span><span style="font-weight:600">Cliente externo</span>
+            <span style="font-size:11px;color:var(--text2)">Equipo no registrado</span>
+          </button>
+          <button class="rep-origen-btn btn" data-origen="masiva" style="padding:20px 12px;border:2px solid var(--border);border-radius:12px;background:var(--surface2);font-size:13px;flex-direction:column;gap:6px;height:auto;grid-column:1/-1">
+            <span style="font-size:28px">📦</span><span style="font-weight:600">Reparación masiva (stock propio)</span>
+            <span style="font-size:11px;color:var(--text2)">Varios equipos del stock para el mismo trabajo</span>
           </button>
         </div>
         <div id="rep-alert-1" style="margin-top:12px"></div>
@@ -1098,15 +1100,9 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
       <!-- PASO 2A: EQUIPO DEL SISTEMA -->
       <div class="wiz-step rwiz-step" data-rwiz-step="2a" style="display:none">
         <div class="wiz-step-title"><span class="num">2</span> Seleccioná la venta</div>
-        <div class="form-group" style="margin-bottom:12px">
-          <label>Buscar por cliente o equipo</label>
-          <input type="text" id="rep-buscar-venta" placeholder="Escribí para filtrar...">
-        </div>
-        <div class="form-group" style="margin-bottom:12px">
-          <label>Venta</label>
-          <select id="rep-venta-sel" size="6" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px;font-family:var(--sans);font-size:13px">
-            <option value="">— Seleccioná una venta —</option>
-          </select>
+        <div class="form-group" style="margin-bottom:12px"><label>Buscar por cliente o equipo</label><input type="text" id="rep-buscar-venta" placeholder="Escribí para filtrar..."></div>
+        <div class="form-group" style="margin-bottom:12px"><label>Venta</label>
+          <select id="rep-venta-sel" size="6" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px;font-family:var(--sans);font-size:13px"><option value="">— Seleccioná una venta —</option></select>
         </div>
         <div id="rep-venta-preview" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:13px;margin-top:8px"></div>
         <div id="rep-alert-2a" style="margin-top:12px"></div>
@@ -1125,23 +1121,36 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
         <div id="rep-alert-2b" style="margin-top:12px"></div>
       </div>
 
+      <!-- PASO 2C: REPARACIÓN MASIVA -->
+      <div class="wiz-step rwiz-step" data-rwiz-step="2c" style="display:none">
+        <div class="wiz-step-title"><span class="num">2</span> Seleccioná los equipos del stock</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <input type="text" id="rep-masiva-buscar" placeholder="🔍 Filtrar por modelo o IMEI..." style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 12px;font-size:13px;font-family:var(--sans);outline:none">
+          <button class="btn btn-secondary btn-sm" id="rep-masiva-sel-todos">Sel. todos</button>
+        </div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Seleccionados: <strong id="rep-masiva-count">0</strong></div>
+        <div id="rep-masiva-lista" style="max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:8px"></div>
+        <div id="rep-alert-2c" style="margin-top:12px"></div>
+      </div>
+
       <!-- PASO 3: TÉCNICO + PROBLEMA -->
       <div class="wiz-step rwiz-step" data-rwiz-step="3" style="display:none">
         <div class="wiz-step-title"><span class="num">3</span> Técnico y problema</div>
+        <div id="rep-masiva-resumen" style="display:none;background:var(--accent-dim);border:1px solid var(--accent);border-radius:8px;padding:10px 14px;font-size:12px;margin-bottom:12px"></div>
         <div class="form-grid">
           <div class="form-group"><label>Fecha ingreso</label><input type="date" id="rep-fecha"></div>
           <div class="form-group"><label>Técnico *</label><select id="rep-tecnico"><option value="">— Seleccionar —</option></select></div>
-          <div class="form-group"><label>Costo estimado (USD)</label><input type="number" id="rep-costo" placeholder="0.00" min="0" step="0.01"></div>
+          <div class="form-group"><label>Costo estimado total (USD)</label><input type="number" id="rep-costo" placeholder="0.00" min="0" step="0.01"></div>
           <div class="form-group"><label>¿Tiene garantía vigente?</label><select id="rep-en-garantia"><option value="no">No</option><option value="si">Sí</option></select></div>
         </div>
         <div class="form-group" style="margin-bottom:14px">
           <label>Descripción del problema *</label>
-          <textarea id="rep-problema" rows="3" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 12px;font-family:var(--sans);font-size:13px;outline:none;width:100%;resize:vertical;box-sizing:border-box" placeholder="Ej: No enciende, pantalla rota, botón de volumen trabado..."></textarea>
+          <textarea id="rep-problema" rows="3" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 12px;font-family:var(--sans);font-size:13px;outline:none;width:100%;resize:vertical;box-sizing:border-box" placeholder="Ej: Cambio de batería, pantalla rota..."></textarea>
         </div>
         <div id="rep-alert-3" style="margin-top:12px"></div>
       </div>
 
-    </div>
+    </div>    </div>
     <div class="wiz-footer">
       <button class="btn btn-secondary" id="wizRepBack">← Atrás</button>
       <div style="flex:1"></div>
@@ -2411,6 +2420,11 @@ function initApp(){
   });
   $('btn-nueva-reparacion')?.addEventListener('click',abrirWizardRep);
   $('btn-nueva-rep-interna')?.addEventListener('click',abrirRepInterna);
+  $('rep-masiva-buscar')?.addEventListener('input',e=>fillRepMasivaLista(e.target.value));
+  $('rep-masiva-sel-todos')?.addEventListener('click',()=>{
+    repMasivaEquipos=[];
+    $('rep-masiva-lista')?.querySelectorAll('input[type=checkbox]').forEach(cb=>{cb.checked=true;cb.dispatchEvent(new Event('change'));});
+  });
   $('conf-btn-cancelar')?.addEventListener('click',()=>{closeModal('modal-confirmar');if(_confResolve){_confResolve(false);_confResolve=null;}});
   $('conf-btn-confirmar')?.addEventListener('click',()=>{closeModal('modal-confirmar');if(_confResolve){_confResolve(true);_confResolve=null;}});
   $('wizRINext')?.addEventListener('click',riNext);
@@ -6653,7 +6667,7 @@ let repOrigen='sistema';
 let repVentaSelId=null;
 
 function abrirWizardRep(){
-  repOrigen='sistema';repVentaSelId=null;
+  repOrigen='sistema';repVentaSelId=null;repMasivaEquipos=[];
   if($('rep-fecha'))$('rep-fecha').value=today();
   if($('rep-costo'))$('rep-costo').value='';
   if($('rep-problema'))$('rep-problema').value='';
@@ -6673,10 +6687,11 @@ function abrirWizardRep(){
 function rwizGoTo(paso){
   document.querySelectorAll('.rwiz-step').forEach(s=>s.style.display='none');
   if(paso===2){
-    const sub=repOrigen==='sistema'?'2a':'2b';
+    const sub=repOrigen==='sistema'?'2a':repOrigen==='masiva'?'2c':'2b';
     const el=document.querySelector('.rwiz-step[data-rwiz-step="'+sub+'"]');
     if(el)el.style.display='block';
     if(repOrigen==='sistema')fillRepVentaSelect('');
+    if(repOrigen==='masiva')fillRepMasivaLista('');
   }else{
     const el=document.querySelector('.rwiz-step[data-rwiz-step="'+paso+'"]');
     if(el)el.style.display='block';
@@ -6696,6 +6711,13 @@ function rwizGoTo(paso){
     Object.entries(S.tecnicos).forEach(([k,t])=>{
       sel.innerHTML+=`<option value="${k}">${t.nombre}${t.tipo==='externo'?' (Ext)':''}</option>`;
     });
+    // Mostrar resumen de equipos masivos
+    const resumen=$('rep-masiva-resumen');
+    if(repOrigen==='masiva'&&resumen&&repMasivaEquipos.length){
+      resumen.style.display='block';
+      resumen.innerHTML='📦 <strong>'+repMasivaEquipos.length+' equipos seleccionados:</strong> '+
+        repMasivaEquipos.map(e=>e.modelo+(e.capacidad&&e.capacidad!=='N/A'?' '+e.capacidad:'')+(e.imei?' ('+e.imei.slice(-4)+')':'')).join(', ');
+    }else if(resumen)resumen.style.display='none';
   }
 }
 
@@ -6707,6 +6729,8 @@ function repNext(){
   }else if(paso===2){
     if(repOrigen==='sistema'){
       if(!repVentaSelId){showAlert('rep-alert-2a','Seleccioná una venta',false);return;}
+    }else if(repOrigen==='masiva'){
+      if(!repMasivaEquipos.length){showAlert('rep-alert-2c','Seleccioná al menos un equipo',false);return;}
     }else{
       if(!$('rep-ext-nombre')?.value.trim()||!$('rep-ext-modelo')?.value.trim()){
         showAlert('rep-alert-2b','Completá nombre y modelo',false);return;
@@ -6759,6 +6783,46 @@ function onRepVentaChange(){
   if(garantia&&garantia.fechaVencimiento>=hoy&&$('rep-en-garantia'))$('rep-en-garantia').value='si';
 }
 
+let repMasivaEquipos=[];
+
+function fillRepMasivaLista(filtro){
+  const el=$('rep-masiva-lista');if(!el)return;
+  const q=(filtro||'').toLowerCase();
+  const items=[];
+  Object.entries(S.compras).forEach(([ck,comp])=>{
+    comp.items.forEach(it=>{
+      const disp=getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId);
+      if(disp<=0)return;
+      const txt=(it.modelo||'')+(it.capacidad&&it.capacidad!=='N/A'?' '+it.capacidad:'')+(it.imei?' '+it.imei:'');
+      if(q&&!txt.toLowerCase().includes(q))return;
+      items.push({ck,it});
+    });
+  });
+  el.innerHTML=items.length?'':
+    '<div style="padding:20px;text-align:center;color:var(--text2);font-size:13px">Sin equipos disponibles</div>';
+  items.forEach(({ck,it})=>{
+    const row=document.createElement('label');
+    row.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px';
+    const cb=document.createElement('input');cb.type='checkbox';cb.style.cssText='accent-color:var(--accent);width:16px;height:16px;flex-shrink:0';
+    const isSelected=repMasivaEquipos.some(e=>e.itemId===it.itemId&&e.ck===ck);
+    cb.checked=isSelected;
+    cb.addEventListener('change',()=>{
+      if(cb.checked){
+        if(!repMasivaEquipos.some(e=>e.itemId===it.itemId&&e.ck===ck))
+          repMasivaEquipos.push({ck,itemId:it.itemId,modelo:it.modelo,capacidad:it.capacidad,color:it.color,imei:it.imei,grado:it.grado,estado:'recibido'});
+      }else{
+        repMasivaEquipos=repMasivaEquipos.filter(e=>!(e.itemId===it.itemId&&e.ck===ck));
+      }
+      if($('rep-masiva-count'))$('rep-masiva-count').textContent=repMasivaEquipos.length;
+    });
+    const lbl=document.createElement('span');
+    lbl.innerHTML='<strong>'+it.modelo+'</strong>'+(it.capacidad&&it.capacidad!=='N/A'?' <span style="color:var(--text2)">'+it.capacidad+'</span>':'')+(it.color&&it.color!=='Sin asignar'?' · '+it.color:'')+(it.imei?' <span style="font-family:var(--mono);font-size:11px;color:var(--text2)">IMEI '+it.imei+'</span>':'')+(it.grado?' · '+it.grado:'');
+    row.append(cb,lbl);
+    el.appendChild(row);
+  });
+  if($('rep-masiva-count'))$('rep-masiva-count').textContent=repMasivaEquipos.length;
+}
+
 async function guardarReparacion(){
   const fecha=$('rep-fecha')?.value;
   const tecnicoId=$('rep-tecnico')?.value;
@@ -6769,7 +6833,16 @@ async function guardarReparacion(){
   if(!tecnicoId){showAlert('rep-alert-3','Seleccioná un técnico',false);return;}
   if(!problema){showAlert('rep-alert-3','Describí el problema',false);return;}
   let data={fecha,tecnicoId,costo,problema,enGarantia,estado:'recibido',origen:repOrigen};
-  if(repOrigen==='sistema'){
+  if(repOrigen==='masiva'){
+    // Reparación masiva — un solo registro con array de equipos
+    data={...data,
+      origen:'masiva',
+      clienteNombre:'Stock propio',clienteTel:'',
+      modelo:repMasivaEquipos.map(e=>e.modelo+(e.capacidad&&e.capacidad!=='N/A'?' '+e.capacidad:'')).join(', '),
+      equipos:repMasivaEquipos.map(e=>({...e,estado:'recibido'})),
+      cantEquipos:repMasivaEquipos.length
+    };
+  }else if(repOrigen==='sistema'){
     const v=S.ventas[repVentaSelId]||{};
     const cl=S.clientes[v.clienteId]||{};
     const it=(v.items||[])[0]||{};
@@ -6825,7 +6898,13 @@ function renderCtaTecnicos(){
             style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--red);padding:4px 8px;font-size:12px;font-family:var(--mono);width:80px;outline:none"
             data-rep-key="${rk}" class="costo-rep-input">
         </td>
-        <td><button class="btn btn-primary btn-sm pagar-tec-btn" data-rep-key="${rk}" style="font-size:11px;padding:4px 10px">✓ Pagado</button></td>
+        <td>
+          <select class="pago-tec-sel" data-rep-key="${rk}"
+            style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font-size:12px;font-family:var(--sans);cursor:pointer">
+            <option value="pendiente" ${!r.pagadoTecnico?'selected':''}>⏳ Pendiente</option>
+            <option value="pagado" ${r.pagadoTecnico?'selected':''}>✅ Pagado</option>
+          </select>
+        </td>
       </tr>`).join('');
 
     html+=`<div class="table-card" style="margin-bottom:16px">
@@ -6852,11 +6931,14 @@ function renderCtaTecnicos(){
     const val=parseFloat(inp.value)||0;
     update(dbRef('reparaciones/'+inp.dataset.repKey),{costo:val}).then(()=>renderCtaTecnicos());
   }));
-  // Marcar como pagado
-  el.querySelectorAll('.pagar-tec-btn').forEach(btn=>btn.addEventListener('click',async()=>{
-    const okPago=await confirmar({titulo:'¿Marcar como pagada al técnico?',desc:'Esto registrará el pago en caja.',emoji:'💵',btnTexto:'Confirmar pago',btnClase:'btn-primary'});
-    if(okPago)
-      update(dbRef('reparaciones/'+btn.dataset.repKey),{pagadoTecnico:true}).then(()=>renderCtaTecnicos());
+  // Marcar como pagado / pendiente
+  el.querySelectorAll('.pago-tec-sel').forEach(sel=>sel.addEventListener('change',async()=>{
+    const pagado=sel.value==='pagado';
+    if(pagado){
+      const ok=await confirmar({titulo:'¿Marcar como pagada al técnico?',desc:'Esto registrará el pago en caja.',emoji:'💵',btnTexto:'Confirmar pago',btnClase:'btn-primary'});
+      if(!ok){sel.value='pendiente';return;}
+    }
+    update(dbRef('reparaciones/'+sel.dataset.repKey),{pagadoTecnico:pagado}).then(()=>renderCtaTecnicos());
   }));
 }
 
@@ -6937,9 +7019,13 @@ function renderTecnicos(){
       const est=r.estado||'recibido';
       const estOpts=Object.entries(REP_ESTADOS).map(([v,lbl])=>'<option value="'+v+'"'+(v===est?' selected':'')+'>'+lbl+'</option>').join('');
       const garTag=r.enGarantia?'<span class="tag tag-green" style="font-size:10px">🛡️ Garantía</span>':'';
-      const origenTag=r.origen==='garantia'?'<span class="tag tag-purple" style="font-size:10px">🛡️ Garantía</span>':r.origen==='externo'?'<span class="tag tag-yellow" style="font-size:10px">Externo</span>':r.origen==='interno'?'<span class="tag tag-blue" style="font-size:10px">🏪 Interno</span>':'';
-      rows+='<tr><td class="mono" style="font-size:11px">'+fmtD(r.fecha)+'</td>'
-        +'<td><strong>'+(r.modelo||'—')+'</strong>'+(r.capacidad?' <span class="tag tag-blue" style="font-size:10px">'+r.capacidad+'</span>':'')+(r.color?'<div style="font-size:11px;color:var(--text2)">'+r.color+'</div>':'')+(r.imei?'<div style="font-size:10px;color:var(--text3);font-family:var(--mono)">'+r.imei+'</div>':'')+'</td>'
+      const origenTag=r.origen==='garantia'?'<span class="tag tag-purple" style="font-size:10px">🛡️ Garantía</span>':r.origen==='externo'?'<span class="tag tag-yellow" style="font-size:10px">Externo</span>':r.origen==='interno'?'<span class="tag tag-blue" style="font-size:10px">🏪 Interno</span>':r.origen==='masiva'?'<span class="tag tag-green" style="font-size:10px">📦 Masiva</span>':'';
+      const equipoCell=r.origen==='masiva'&&r.equipos?
+        '<strong>'+r.cantEquipos+' equipos</strong><div style="font-size:11px;color:var(--text2)">'+[...new Set(r.equipos.map(e=>e.modelo))].join(', ')+'</div>'+
+        '<button class="btn-link rep-masiva-toggle" data-repk="'+k+'" style="font-size:11px;color:var(--accent);cursor:pointer;border:none;background:none;padding:0;text-decoration:underline">▶ Ver equipos</button>':
+        '<strong>'+(r.modelo||'—')+'</strong>'+(r.capacidad?' <span class="tag tag-blue" style="font-size:10px">'+r.capacidad+'</span>':'')+(r.color?'<div style="font-size:11px;color:var(--text2)">'+r.color+'</div>':'')+(r.imei?'<div style="font-size:10px;color:var(--text3);font-family:var(--mono)">'+r.imei+'</div>':'');
+      rows+='<tr id="rep-row-'+k+'"><td class="mono" style="font-size:11px">'+fmtD(r.fecha)+'</td>'
+        +'<td>'+equipoCell+'</td>'
         +'<td>'+(r.clienteNombre||'—')+(r.clienteTel?'<div style="font-size:11px;color:var(--text2)">'+r.clienteTel+'</div>':'')+'</td>'
         +'<td>'+(t?.nombre||'—')+'</td>'
         +'<td style="font-size:12px;color:var(--text2)">'+(r.problema||'—')+'</td>'
@@ -6947,9 +7033,30 @@ function renderTecnicos(){
         +'<td>'+garTag+' '+origenTag+'</td>'
         +'<td><select class="rep-estado-sel" data-rep-key="'+k+'" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font-size:12px;font-family:var(--sans)">'+estOpts+'</select></td>'
         +'<td><button class="btn btn-danger btn-sm" data-del-rep="'+k+'">🗑</button></td></tr>';
+      // Fila expandible para masiva
+      if(r.origen==='masiva'&&r.equipos){
+        const eqRows=r.equipos.map((e,i)=>{
+          const estOpts2=['recibido','en_proceso','listo','entregado'].map(s=>'<option value="'+s+'"'+(e.estado===s?' selected':'')+'>'+s+'</option>').join('');
+          return '<tr style="background:var(--surface2)"><td></td><td style="font-size:12px;padding-left:20px"><strong>'+(e.modelo||'—')+'</strong>'+(e.capacidad&&e.capacidad!=='N/A'?' '+e.capacidad:'')+(e.color&&e.color!=='Sin asignar'?' · '+e.color:'')+(e.imei?' <span style="font-family:var(--mono);font-size:10px">'+e.imei+'</span>':'')+'</td><td></td><td></td><td></td><td></td><td></td><td><select class="rep-eq-estado" data-repk="'+k+'" data-idx="'+i+'" style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 6px;font-size:11px">'+estOpts2+'</select></td><td></td></tr>';
+        }).join('');
+        rows+='<tr id="rep-masiva-expand-'+k+'" style="display:none"><td colspan="9" style="padding:0"><table style="width:100%">'+eqRows+'</table></td></tr>';
+      }
     });
     elR.innerHTML='<table><thead><tr><th>Fecha</th><th>Equipo</th><th>Cliente</th><th>Técnico</th><th>Problema</th><th>Costo</th><th></th><th>Estado</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
     elR.querySelectorAll('.rep-estado-sel').forEach(sel=>sel.addEventListener('change',()=>update(dbRef('reparaciones/'+sel.dataset.repKey),{estado:sel.value})));
+    elR.querySelectorAll('.rep-masiva-toggle').forEach(btn=>btn.addEventListener('click',()=>{
+      const expandRow=document.getElementById('rep-masiva-expand-'+btn.dataset.repk);
+      if(!expandRow)return;
+      const open=expandRow.style.display!=='none';
+      expandRow.style.display=open?'none':'table-row';
+      btn.textContent=open?'▶ Ver equipos':'▼ Ocultar equipos';
+    }));
+    elR.querySelectorAll('.rep-eq-estado').forEach(sel=>sel.addEventListener('change',()=>{
+      const rep=S.reparaciones[sel.dataset.repk];if(!rep||!rep.equipos)return;
+      const equipos=[...rep.equipos];
+      equipos[+sel.dataset.idx]={...equipos[+sel.dataset.idx],estado:sel.value};
+      update(dbRef('reparaciones/'+sel.dataset.repk),{equipos});
+    }));
     elR.querySelectorAll('.costo-rep-input').forEach(inp=>inp.addEventListener('change',()=>{
       const val=parseFloat(inp.value)||0;
       update(dbRef('reparaciones/'+inp.dataset.repKey),{costo:val});
