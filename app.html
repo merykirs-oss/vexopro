@@ -188,7 +188,7 @@ td,th{vertical-align:middle;padding:10px 14px}
 .wiz-step-dot.active{background:#fff}
 .wiz-step-dot.done{background:rgba(255,255,255,0.7)}
 .wiz-labels{display:flex;justify-content:space-between;margin-top:8px;font-size:11px;opacity:0.85}
-.wiz-body{padding:24px;overflow-y:auto;flex:1}
+.wiz-body{padding:24px;overflow-y:auto;flex:1;min-height:0}
 .wiz-step-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:8px}
 .wiz-step-title .num{background:var(--accent);color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
 .wiz-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
@@ -1067,7 +1067,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 <div class="modal-overlay" id="modal-wizard-rep">
   <div class="modal" style="max-width:600px;padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:90vh;width:calc(100vw - 32px)">
     <div class="wiz-header">
-      <button class="wiz-close" id="btn-cerrar-wizard-rep" onclick="closeModal('modal-wizard-rep')">✕</button>
+      <button class="wiz-close" id="btn-cerrar-wizard-rep" onclick="document.getElementById('modal-wizard-rep').classList.remove('open')" style="z-index:10;position:relative">✕</button>
       <h3 style="margin:0;font-size:18px;color:#fff">🔧 Nueva Reparación</h3>
       <div class="wiz-steps">
         <div class="wiz-step-dot rwiz" data-rdot="1"></div>
