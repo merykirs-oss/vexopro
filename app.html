@@ -2678,7 +2678,7 @@ function showPage(name){
   if(name==='ventas'){renderVentas();refreshClienteSelects();}
   if(name==='stock')renderStock();
   if(name==='cuentacorriente')renderCC();
-  if(name==='garantias'){refreshEmitirGarantiaSelect();$('gconf-dias').value=diasGarantiaConfigurados();renderIngresoGarantias();garSwitchTab('ingresos');garMainSwitchTab('clientes');}
+  if(name==='garantias'){refreshEmitirGarantiaSelect();if($('gconf-dias'))$('gconf-dias').value=diasGarantiaConfigurados();renderIngresoGarantias();garSwitchTab('ingresos');garMainSwitchTab('clientes');}
   if(name==='tecnicos'){renderTecnicos();refreshRepSelects();}
   if(name==='proveedores')renderProveedores();
   if(name==='cc-proveedores')renderCCProveedores();
@@ -4886,7 +4886,7 @@ async function saveConfigGarantia(){
 }
 
 async function saveConfigVentas(){
-  const msg=$('cfg-msg-venta').value.trim();
+  const msg=$('cfg-msg-venta')?.value.trim()||'';
   await update(dbRef('config'),{msgVenta:msg});
   showAlert('cfg-ventas-alert','✅ Configuración de ventas guardada');
 }
@@ -6492,13 +6492,12 @@ function abrirWizardRep(){
   if($('rep-fecha'))$('rep-fecha').value=today();
   if($('rep-costo'))$('rep-costo').value='';
   if($('rep-problema'))$('rep-problema').value='';
-  // Reset step 1 buttons
   document.querySelectorAll('.rep-origen-btn,.rep-subtipo-btn').forEach(b=>{
     b.style.borderColor='var(--border)';b.style.background='var(--surface2)';
   });
-  $('rep-sub-propio').style.display='none';
-  $('rep-sub-cliente').style.display='none';
-  $('rep-alert-1').innerHTML='';
+  if($('rep-sub-propio'))$('rep-sub-propio').style.display='none';
+  if($('rep-sub-cliente'))$('rep-sub-cliente').style.display='none';
+  if($('rep-alert-1'))$('rep-alert-1').innerHTML='';
   rwizGoTo(1);
   openModal('modal-wizard-rep');
 }
@@ -6511,8 +6510,8 @@ function rwizGoTo(paso){
     d.classList.toggle('done',i<paso-1);
   });
   const back=$('wizRepBack'),next=$('wizRepNext');
-  back.style.display=paso===1?'none':'';
-  next.textContent=paso===3?'✅ Guardar':'Siguiente →';
+  if(back)back.style.display=paso===1?'none':'';
+  if(next)next.textContent=paso===3?'✅ Guardar':'Siguiente →';
 
   if(paso===1){
     const s=document.querySelector('.rwiz-step[data-rwiz-step="1"]');
