@@ -1833,6 +1833,7 @@ const showAlert = (id,msg,ok=true) => {
 };
 const openModal = id => $(id).classList.add('open');
 window.openModal=openModal;
+window.doLogout=()=>signOut(auth).then(()=>location.reload()).catch(()=>location.reload());
 // Exporta un array de objetos a un archivo CSV descargable, compatible con Excel
 function exportCSV(filename,headers,rows){
   const esc=v=>{
@@ -2425,7 +2426,6 @@ function initApp(){
   $('btn-nueva-reparacion')?.addEventListener('click',abrirWizardRep);
   $('wizRepBack')?.addEventListener('click',repBack);
   $('wizRepNext')?.addEventListener('click',repNext);
-  $('rep-masiva-buscar')?.addEventListener('input',e=>fillRepMasivaLista(e.target.value));
   $('rep-masiva-sel-todos')?.addEventListener('click',()=>{
     $('rep-masiva-lista')?.querySelectorAll('input[type=checkbox]').forEach(cb=>{if(!cb.checked){cb.checked=true;cb.dispatchEvent(new Event('change'));}});
   });
@@ -2461,19 +2461,14 @@ function initApp(){
     if(v&&prev){const cl=S.clientes[v.clienteId]||{};const it=(v.items||[])[0]||{};prev.style.display='block';prev.innerHTML='<strong>'+(cl.nombre||'—')+'</strong> · '+fmtD(v.fecha)+'<div>'+(it.modelo||'—')+(it.capacidad?' '+it.capacidad:'')+(it.imei?'<span style="font-size:11px;font-family:var(--mono)"> IMEI:'+it.imei+'</span>':'')+'</div>';}
     else if(prev)prev.style.display='none';
   });
-  $('rep-masiva-buscar')?.addEventListener('input',e=>fillRepMasivaLista(e.target.value));
   $('rep-masiva-sel-todos')?.addEventListener('click',()=>{
     repMasivaEquipos=[];
     $('rep-masiva-lista')?.querySelectorAll('input[type=checkbox]').forEach(cb=>{cb.checked=true;cb.dispatchEvent(new Event('change'));});
   });
   $('conf-btn-cancelar')?.addEventListener('click',()=>{closeModal('modal-confirmar');if(_confResolve){_confResolve(false);_confResolve=null;}});
   $('conf-btn-confirmar')?.addEventListener('click',()=>{closeModal('modal-confirmar');if(_confResolve){_confResolve(true);_confResolve=null;}});
-  $('wizRINext')?.addEventListener('click',riNext);
   $('wizRIBack')?.addEventListener('click',()=>{if(riPaso===2)riGoTo(1);});
   $('ri-buscar')?.addEventListener('input',e=>fillRIStockSelect(e.target.value));
-  $('btn-cerrar-wizard-rep')?.addEventListener('click',()=>closeModal('modal-wizard-rep'));
-  $('wizRepNext')?.addEventListener('click',repNext);
-  $('wizRepBack')?.addEventListener('click',repBack);
   document.querySelectorAll('.rep-origen-btn').forEach(btn=>btn.addEventListener('click',()=>{
     repOrigen=btn.dataset.origen;
     document.querySelectorAll('.rep-origen-btn').forEach(b=>{b.style.borderColor='var(--border)';b.style.background='var(--surface2)';});
@@ -5244,6 +5239,8 @@ function abrirModalSusPago(uid,negocio,vtoActual){
   openModal('modal-sus-pago');
 }
 window.abrirModalSusPago=abrirModalSusPago;
+window.descargarPlantillaStock=descargarPlantillaStock;
+window.confirmarImportStock=confirmarImportStock;
 
 async function abrirHistorialSus(uid,negocio,vtoActual){
   $('sus-hist-header').innerHTML='<div style="font-size:16px;font-weight:700">'+negocio+'</div>';
@@ -6708,6 +6705,7 @@ async function guardarReparacion(){
 
 
 function refreshRepSelects(){} // legacy no-op
+function riNext(){repNext();} // legacy alias
 
 function saveTecnico(){
   const nombre=$('tec-nombre')?.value.trim();
