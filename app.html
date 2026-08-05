@@ -952,9 +952,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
   <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">
     <button class="btn btn-secondary btn-sm" id="btn-toggle-filtros-tec">🔍 Filtrar <span id="filtros-tec-arrow">▼</span></button>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-secondary" id="btn-nueva-rep-interna">🏪 Interna individual</button>
-      <button class="btn btn-secondary" id="btn-nueva-rep-interna-masiva">📦 Interna masiva</button>
-      <button class="btn btn-primary" id="btn-nueva-reparacion">🔧 Nueva reparación externa</button>
+      <button class="btn btn-primary" id="btn-nueva-reparacion">🔧 Nueva reparación</button>
     </div>
   </div>
 
@@ -1013,113 +1011,84 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
 
 <!-- MODAL WIZARD NUEVA REPARACIÓN -->
 <!-- MODAL REPARACIÓN INTERNA -->
-<div class="modal-overlay" id="modal-rep-interna">
-  <div class="modal" style="max-width:560px;padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:92vh">
-    <div class="wiz-header">
-      <button class="wiz-close" id="btn-cerrar-rep-interna">✕</button>
-      <h3 style="margin:0;font-size:18px;color:#fff">🏪 Nueva Reparación Interna</h3>
-      <div class="wiz-steps">
-        <div class="wiz-step-dot riwiz" data-rid="1"></div>
-        <div class="wiz-step-dot riwiz" data-rid="2"></div>
-      </div>
-      <div class="wiz-labels"><span>Equipo</span><span>Técnico</span></div>
-    </div>
-    <div class="wiz-body">
-      <!-- PASO 1: BUSCAR EQUIPO EN STOCK -->
-      <div class="riwiz-step" data-riwiz-step="1">
-        <div class="wiz-step-title"><span class="num">1</span> ¿Qué equipo vas a reparar?</div>
-        <div class="form-group" style="margin-bottom:10px">
-          <label>Buscar en stock (modelo o IMEI)</label>
-          <input type="text" id="ri-buscar" placeholder="Escribí para filtrar...">
-        </div>
-        <div class="form-group" style="margin-bottom:12px">
-          <label>Equipo</label>
-          <select id="ri-equipo-sel" size="5" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px;font-family:var(--sans);font-size:13px">
-            <option value="">— Seleccioná un equipo —</option>
-          </select>
-        </div>
-        <div id="ri-equipo-preview" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:13px"></div>
-        <div id="ri-alert-1" style="margin-top:10px"></div>
-      </div>
-      <!-- PASO 2: TÉCNICO + PROBLEMA -->
-      <div class="riwiz-step" data-riwiz-step="2" style="display:none">
-        <div class="wiz-step-title"><span class="num">2</span> Técnico y problema</div>
-        <div class="form-grid">
-          <div class="form-group"><label>Fecha</label><input type="date" id="ri-fecha"></div>
-          <div class="form-group"><label>Técnico *</label><select id="ri-tecnico"><option value="">— Seleccionar —</option></select></div>
-          <div class="form-group"><label>Costo estimado (USD)</label><input type="number" id="ri-costo" placeholder="0.00" min="0" step="0.01"></div>
-        </div>
-        <div class="form-group" style="margin-bottom:14px">
-          <label>Descripción del problema *</label>
-          <textarea id="ri-problema" rows="3" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 12px;font-family:var(--sans);font-size:13px;outline:none;width:100%;resize:vertical;box-sizing:border-box" placeholder="Ej: Cambio de pantalla, batería, etc."></textarea>
-        </div>
-        <div id="ri-alert-2" style="margin-top:10px"></div>
-      </div>
-    </div>
-    <div class="wiz-footer">
-      <button class="btn btn-secondary" id="wizRIBack">← Atrás</button>
-      <div style="flex:1"></div>
-      <button class="btn btn-primary" id="wizRINext">Siguiente →</button>
-    </div>
-  </div>
-</div>
-
 <div class="modal-overlay" id="modal-wizard-rep">
-  <div class="modal" style="max-width:600px;padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:90vh;width:calc(100vw - 32px)">
+  <div class="modal" style="max-width:620px;padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:90vh;width:calc(100vw - 32px)">
     <div class="wiz-header">
-      <button class="wiz-close" id="btn-cerrar-wizard-rep" onclick="document.getElementById('modal-wizard-rep').classList.remove('open')" style="z-index:10;position:relative">✕</button>
+      <button class="wiz-close" onclick="document.getElementById('modal-wizard-rep').classList.remove('open')" style="z-index:10;position:relative">✕</button>
       <h3 style="margin:0;font-size:18px;color:#fff">🔧 Nueva Reparación</h3>
       <div class="wiz-steps">
         <div class="wiz-step-dot rwiz" data-rdot="1"></div>
         <div class="wiz-step-dot rwiz" data-rdot="2"></div>
         <div class="wiz-step-dot rwiz" data-rdot="3"></div>
       </div>
-      <div class="wiz-labels"><span>Origen</span><span>Equipos</span><span>Técnico</span></div>
+      <div class="wiz-labels"><span>Tipo</span><span>Equipo</span><span>Técnico</span></div>
     </div>
     <div class="wiz-body">
 
-      <!-- PASO 1: ORIGEN -->
-      <div class="wiz-step rwiz-step" data-rwiz-step="1">
-        <div class="wiz-step-title"><span class="num">1</span> ¿De dónde viene el equipo?</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
-          <button class="rep-origen-btn btn" data-origen="sistema" style="padding:20px 12px;border:2px solid var(--border);border-radius:12px;background:var(--surface2);font-size:13px;flex-direction:column;gap:6px;height:auto">
-            <span style="font-size:28px">📱</span><span style="font-weight:600">Del sistema</span>
-            <span style="font-size:11px;color:var(--text2)">Equipo vendido por el negocio</span>
+      <!-- PASO 1 -->
+      <div class="rwiz-step" data-rwiz-step="1">
+        <div class="wiz-step-title"><span class="num">1</span> ¿De quién es el equipo?</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+          <button class="rep-origen-btn" data-origen="propio" style="padding:20px 12px;border:2px solid var(--border);border-radius:12px;background:var(--surface2);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px">
+            <span style="font-size:32px">🏪</span>
+            <span style="font-weight:700;font-size:14px;color:var(--text)">Stock propio</span>
+            <span style="font-size:11px;color:var(--text2);text-align:center">Equipos comprados por el negocio</span>
           </button>
-          <button class="rep-origen-btn btn" data-origen="externo" style="padding:20px 12px;border:2px solid var(--border);border-radius:12px;background:var(--surface2);font-size:13px;flex-direction:column;gap:6px;height:auto">
-            <span style="font-size:28px">🚶</span><span style="font-weight:600">Cliente externo</span>
-            <span style="font-size:11px;color:var(--text2)">Equipo no registrado</span>
+          <button class="rep-origen-btn" data-origen="cliente" style="padding:20px 12px;border:2px solid var(--border);border-radius:12px;background:var(--surface2);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px">
+            <span style="font-size:32px">🚶</span>
+            <span style="font-weight:700;font-size:14px;color:var(--text)">De un cliente</span>
+            <span style="font-size:11px;color:var(--text2);text-align:center">Equipo de un cliente, propio o traído</span>
           </button>
+        </div>
+        <div id="rep-sub-propio" style="display:none">
+          <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px">¿Cuántos equipos?</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <button class="rep-subtipo-btn" data-subtipo="propio-individual" style="padding:14px;border:2px solid var(--border);border-radius:10px;background:var(--surface2);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px">
+              <span style="font-size:22px">📱</span>
+              <span style="font-weight:600;font-size:13px;color:var(--text)">Un equipo</span>
+            </button>
+            <button class="rep-subtipo-btn" data-subtipo="propio-masiva" style="padding:14px;border:2px solid var(--border);border-radius:10px;background:var(--surface2);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px">
+              <span style="font-size:22px">📦</span>
+              <span style="font-weight:600;font-size:13px;color:var(--text)">Varios equipos</span>
+            </button>
+          </div>
+        </div>
+        <div id="rep-sub-cliente" style="display:none">
+          <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px">¿Cómo querés buscarlo?</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+            <button class="rep-subtipo-btn" data-subtipo="cliente-sistema" style="padding:14px;border:2px solid var(--border);border-radius:10px;background:var(--surface2);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px">
+              <span style="font-size:22px">🔍</span>
+              <span style="font-weight:600;font-size:12px;color:var(--text);text-align:center">Buscar en el sistema</span>
+            </button>
+            <button class="rep-subtipo-btn" data-subtipo="cliente-nuevo" style="padding:14px;border:2px solid var(--border);border-radius:10px;background:var(--surface2);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px">
+              <span style="font-size:22px">✏️</span>
+              <span style="font-weight:600;font-size:12px;color:var(--text);text-align:center">Cargar datos</span>
+            </button>
+            <button class="rep-subtipo-btn" data-subtipo="cliente-masiva" style="padding:14px;border:2px solid var(--border);border-radius:10px;background:var(--surface2);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px">
+              <span style="font-size:22px">📦</span>
+              <span style="font-weight:600;font-size:12px;color:var(--text);text-align:center">Varios equipos</span>
+            </button>
+          </div>
         </div>
         <div id="rep-alert-1" style="margin-top:12px"></div>
       </div>
 
-      <!-- PASO 2A: EQUIPO DEL SISTEMA -->
-      <div class="wiz-step rwiz-step" data-rwiz-step="2a" style="display:none">
-        <div class="wiz-step-title"><span class="num">2</span> Seleccioná la venta</div>
-        <div class="form-group" style="margin-bottom:12px"><label>Buscar por cliente o equipo</label><input type="text" id="rep-buscar-venta" placeholder="Escribí para filtrar..."></div>
-        <div class="form-group" style="margin-bottom:12px"><label>Venta</label>
-          <select id="rep-venta-sel" size="6" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px;font-family:var(--sans);font-size:13px"><option value="">— Seleccioná una venta —</option></select>
+      <!-- PASO 2A: STOCK PROPIO INDIVIDUAL -->
+      <div class="rwiz-step" data-rwiz-step="2a" style="display:none">
+        <div class="wiz-step-title"><span class="num">2</span> Seleccioná el equipo del stock</div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label>Buscar (modelo, IMEI...)</label>
+          <input type="text" id="ri-buscar" placeholder="Escribí para filtrar...">
         </div>
-        <div id="rep-venta-preview" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:13px;margin-top:8px"></div>
-        <div id="rep-alert-2a" style="margin-top:12px"></div>
+        <select id="ri-equipo-sel" size="6" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px;font-family:var(--sans);font-size:13px;margin-bottom:10px">
+          <option value="">— Seleccioná un equipo —</option>
+        </select>
+        <div id="ri-equipo-preview" style="display:none;background:var(--accent-dim);border:1px solid var(--accent);border-radius:8px;padding:10px 14px;font-size:13px"></div>
+        <div id="rep-alert-2a" style="margin-top:10px"></div>
       </div>
 
-      <!-- PASO 2B: EQUIPO EXTERNO -->
-      <div class="wiz-step rwiz-step" data-rwiz-step="2b" style="display:none">
-        <div class="wiz-step-title"><span class="num">2</span> Datos del cliente y equipo</div>
-        <div class="form-grid">
-          <div class="form-group"><label>Nombre cliente *</label><input type="text" id="rep-ext-nombre" placeholder="Ej: Juan Pérez"></div>
-          <div class="form-group"><label>Teléfono</label><input type="text" id="rep-ext-tel" placeholder="+54 9 11..."></div>
-          <div class="form-group"><label>Modelo equipo *</label><input type="text" id="rep-ext-modelo" placeholder="Ej: iPhone 13 Pro"></div>
-          <div class="form-group"><label>IMEI / Serie</label><input type="text" id="rep-ext-imei" placeholder="Opcional"></div>
-          <div class="form-group"><label>Color</label><input type="text" id="rep-ext-color" placeholder="Ej: Negro"></div>
-        </div>
-        <div id="rep-alert-2b" style="margin-top:12px"></div>
-      </div>
-
-      <!-- PASO 2C: REPARACIÓN MASIVA -->
-      <div class="wiz-step rwiz-step" data-rwiz-step="2c" style="display:none">
+      <!-- PASO 2B: STOCK PROPIO MASIVA -->
+      <div class="rwiz-step" data-rwiz-step="2b" style="display:none">
         <div class="wiz-step-title"><span class="num">2</span> Seleccioná los equipos del stock</div>
         <div style="display:flex;gap:8px;margin-bottom:10px">
           <input type="text" id="rep-masiva-buscar" placeholder="🔍 Filtrar por modelo o IMEI..." style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 12px;font-size:13px;font-family:var(--sans);outline:none">
@@ -1127,18 +1096,55 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
         </div>
         <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Seleccionados: <strong id="rep-masiva-count">0</strong></div>
         <div id="rep-masiva-lista" style="max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:8px"></div>
+        <div id="rep-alert-2b" style="margin-top:12px"></div>
+      </div>
+
+      <!-- PASO 2C: CLIENTE - BUSCAR EN SISTEMA -->
+      <div class="rwiz-step" data-rwiz-step="2c" style="display:none">
+        <div class="wiz-step-title"><span class="num">2</span> Buscá la venta en el sistema</div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label>Buscar por cliente, modelo o IMEI</label>
+          <input type="text" id="rep-buscar-venta" placeholder="Escribí para filtrar...">
+        </div>
+        <select id="rep-venta-sel" size="6" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px;font-family:var(--sans);font-size:13px">
+          <option value="">— Seleccioná una venta —</option>
+        </select>
+        <div id="rep-venta-preview" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:13px;margin-top:8px"></div>
         <div id="rep-alert-2c" style="margin-top:12px"></div>
       </div>
 
+      <!-- PASO 2D: CLIENTE NUEVO -->
+      <div class="rwiz-step" data-rwiz-step="2d" style="display:none">
+        <div class="wiz-step-title"><span class="num">2</span> Datos del cliente y equipo</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Nombre cliente</label><input type="text" id="rep-ext-nombre" placeholder="Ej: Juan Pérez"></div>
+          <div class="form-group"><label>Teléfono</label><input type="text" id="rep-ext-tel" placeholder="+54 9 11..."></div>
+          <div class="form-group"><label>Modelo equipo *</label><input type="text" id="rep-ext-modelo" placeholder="Ej: iPhone 13 Pro"></div>
+          <div class="form-group"><label>IMEI / Serie</label><input type="text" id="rep-ext-imei" placeholder="Opcional"></div>
+          <div class="form-group"><label>Color</label><input type="text" id="rep-ext-color" placeholder="Ej: Negro"></div>
+          <div class="form-group"><label>% Batería</label><input type="number" id="rep-ext-bat" placeholder="%" min="0" max="100"></div>
+        </div>
+        <div id="rep-alert-2d" style="margin-top:12px"></div>
+      </div>
+
+      <!-- PASO 2E: CLIENTE MASIVA -->
+      <div class="rwiz-step" data-rwiz-step="2e" style="display:none">
+        <div class="wiz-step-title"><span class="num">2</span> Cargá los equipos de clientes</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Cada equipo puede ser de un cliente distinto.</div>
+        <div id="rep-cli-masiva-lista" style="max-height:240px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:8px"></div>
+        <button class="btn btn-secondary btn-sm" id="rep-cli-masiva-agregar" style="margin-top:10px">➕ Agregar equipo</button>
+        <div id="rep-alert-2e" style="margin-top:12px"></div>
+      </div>
+
       <!-- PASO 3: TÉCNICO + PROBLEMA -->
-      <div class="wiz-step rwiz-step" data-rwiz-step="3" style="display:none">
+      <div class="rwiz-step" data-rwiz-step="3" style="display:none">
         <div class="wiz-step-title"><span class="num">3</span> Técnico y problema</div>
         <div id="rep-masiva-resumen" style="display:none;background:var(--accent-dim);border:1px solid var(--accent);border-radius:8px;padding:10px 14px;font-size:12px;margin-bottom:12px"></div>
         <div class="form-grid">
           <div class="form-group"><label>Fecha ingreso</label><input type="date" id="rep-fecha"></div>
           <div class="form-group"><label>Técnico *</label><select id="rep-tecnico"><option value="">— Seleccionar —</option></select></div>
-          <div class="form-group"><label>Costo estimado total (USD)</label><input type="number" id="rep-costo" placeholder="0.00" min="0" step="0.01"></div>
-          <div class="form-group"><label>¿Tiene garantía vigente?</label><select id="rep-en-garantia"><option value="no">No</option><option value="si">Sí</option></select></div>
+          <div class="form-group"><label>Costo estimado (USD)</label><input type="number" id="rep-costo" placeholder="0.00" min="0" step="0.01"></div>
+          <div class="form-group"><label>¿Tiene garantía?</label><select id="rep-en-garantia"><option value="no">No</option><option value="si">Sí</option></select></div>
         </div>
         <div class="form-group" style="margin-bottom:14px">
           <label>Descripción del problema *</label>
@@ -1147,7 +1153,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
         <div id="rep-alert-3" style="margin-top:12px"></div>
       </div>
 
-    </div>    </div>
+    </div>
     <div class="wiz-footer">
       <button class="btn btn-secondary" id="wizRepBack">← Atrás</button>
       <div style="flex:1"></div>
@@ -1155,6 +1161,7 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
     </div>
   </div>
 </div>
+
 
 
 
@@ -2416,8 +2423,44 @@ function initApp(){
     $('btn-toggle-nuevo-tecnico').textContent=open?'➕ Nuevo técnico':'✕ Cerrar';
   });
   $('btn-nueva-reparacion')?.addEventListener('click',abrirWizardRep);
-  $('btn-nueva-rep-interna')?.addEventListener('click',()=>abrirRepInterna(false));
-  $('btn-nueva-rep-interna-masiva')?.addEventListener('click',()=>abrirRepInterna(true));
+  $('wizRepBack')?.addEventListener('click',repBack);
+  $('wizRepNext')?.addEventListener('click',repNext);
+  $('rep-masiva-buscar')?.addEventListener('input',e=>fillRepMasivaLista(e.target.value));
+  $('rep-masiva-sel-todos')?.addEventListener('click',()=>{
+    $('rep-masiva-lista')?.querySelectorAll('input[type=checkbox]').forEach(cb=>{if(!cb.checked){cb.checked=true;cb.dispatchEvent(new Event('change'));}});
+  });
+  $('rep-cli-masiva-agregar')?.addEventListener('click',agregarRepCliMasiva);
+  // Paso 1 — origen
+  document.querySelectorAll('.rep-origen-btn').forEach(btn=>btn.addEventListener('click',()=>{
+    document.querySelectorAll('.rep-origen-btn').forEach(b=>{b.style.borderColor='var(--border)';b.style.background='var(--surface2)';});
+    btn.style.borderColor='var(--accent)';btn.style.background='var(--accent-dim)';
+    repSubtipo='';
+    document.querySelectorAll('.rep-subtipo-btn').forEach(b=>{b.style.borderColor='var(--border)';b.style.background='var(--surface2)';});
+    $('rep-sub-propio').style.display=btn.dataset.origen==='propio'?'block':'none';
+    $('rep-sub-cliente').style.display=btn.dataset.origen==='cliente'?'block':'none';
+  }));
+  // Paso 1 — subtipo
+  document.querySelectorAll('.rep-subtipo-btn').forEach(btn=>btn.addEventListener('click',()=>{
+    document.querySelectorAll('.rep-subtipo-btn').forEach(b=>{b.style.borderColor='var(--border)';b.style.background='var(--surface2)';});
+    btn.style.borderColor='var(--accent)';btn.style.background='var(--accent-dim)';
+    repSubtipo=btn.dataset.subtipo;
+  }));
+  // Paso 2A — buscar stock individual
+  $('ri-buscar')?.addEventListener('input',e=>fillRIStockSelect(e.target.value));
+  $('ri-equipo-sel')?.addEventListener('change',e=>{
+    try{riEquipoData=e.target.value?JSON.parse(e.target.value):null;}catch{riEquipoData=null;}
+    const prev=$('ri-equipo-preview');
+    if(riEquipoData&&prev){prev.style.display='block';prev.innerHTML='<strong>'+riEquipoData.modelo+'</strong> '+riEquipoData.capacidad+(riEquipoData.color?' · '+riEquipoData.color:'')+(riEquipoData.imei?'<div style="font-size:11px;font-family:var(--mono)">IMEI: '+riEquipoData.imei+'</div>':'');}
+    else if(prev)prev.style.display='none';
+  });
+  // Paso 2C — buscar venta
+  $('rep-buscar-venta')?.addEventListener('input',e=>fillRepVentaSelect(e.target.value));
+  $('rep-venta-sel')?.addEventListener('change',e=>{
+    repVentaSelId=e.target.value||null;
+    const prev=$('rep-venta-preview'),v=repVentaSelId?S.ventas[repVentaSelId]:null;
+    if(v&&prev){const cl=S.clientes[v.clienteId]||{};const it=(v.items||[])[0]||{};prev.style.display='block';prev.innerHTML='<strong>'+(cl.nombre||'—')+'</strong> · '+fmtD(v.fecha)+'<div>'+(it.modelo||'—')+(it.capacidad?' '+it.capacidad:'')+(it.imei?'<span style="font-size:11px;font-family:var(--mono)"> IMEI:'+it.imei+'</span>':'')+'</div>';}
+    else if(prev)prev.style.display='none';
+  });
   $('rep-masiva-buscar')?.addEventListener('input',e=>fillRepMasivaLista(e.target.value));
   $('rep-masiva-sel-todos')?.addEventListener('click',()=>{
     repMasivaEquipos=[];
@@ -6440,396 +6483,183 @@ function generarCertificadoPDF({codigo,cliente,item,fechaCompra,vencimiento,dias
 }
 
 // ─── REPARACIÓN INTERNA ──────────────────────────────────────
-let riPaso=1;
-let riEquipoData=null;
-
-function fillRIStockSelect(filtro){
-  const sel=$('ri-equipo-sel');if(!sel)return;
-  sel.innerHTML='<option value="">— Seleccioná un equipo —</option>';
-  const q=(filtro||'').toLowerCase();
-  Object.entries(S.compras).forEach(([ck,comp])=>{
-    comp.items.forEach(it=>{
-      const disp=getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId);
-      if(disp<=0)return;
-      const txt=(it.modelo||'')+(it.capacidad&&it.capacidad!=='N/A'?' '+it.capacidad:'')+(it.color&&it.color!=='Sin asignar'?' · '+it.color:'')+(it.imei?' · IMEI:'+it.imei:'');
-      if(q&&!txt.toLowerCase().includes(q))return;
-      const op=document.createElement('option');
-      op.value=JSON.stringify({compraKey:ck,itemId:it.itemId||'',modelo:it.modelo,capacidad:it.capacidad,color:it.color,imei:it.imei,grado:it.grado,bateria:it.bateria});
-      op.textContent=txt;
-      sel.appendChild(op);
-    });
-  });
-}
-
-function abrirRepInterna(masiva=false){
-  if(masiva){
-    // Abrir wizard externo pre-configurado para masiva
-    repOrigen='masiva';repVentaSelId=null;repMasivaEquipos=[];
-    if($('rep-fecha'))$('rep-fecha').value=today();
-    if($('rep-costo'))$('rep-costo').value='';
-    if($('rep-problema'))$('rep-problema').value='';
-    document.querySelectorAll('.rep-origen-btn').forEach(b=>{b.style.borderColor='var(--border)';b.style.background='var(--surface2)';});
-    rwizGoTo(2); // ir directo al paso de selección masiva
-    openModal('modal-wizard-rep');
-    return;
-  }
-  riPaso=1;riEquipoData=null;
-  if($('ri-fecha'))$('ri-fecha').value=today();
-  if($('ri-costo'))$('ri-costo').value='';
-  if($('ri-problema'))$('ri-problema').value='';
-  if($('ri-buscar'))$('ri-buscar').value='';
-  if($('ri-equipo-preview'))$('ri-equipo-preview').style.display='none';
-  // Fill tecnicos
-  const sel=$('ri-tecnico');
-  if(sel){sel.innerHTML='<option value="">— Seleccionar —</option>';Object.entries(S.tecnicos).forEach(([k,t])=>sel.innerHTML+=`<option value="${k}">${t.nombre}${t.tipo==='externo'?' (Ext)':''}</option>`);}
-  riGoTo(1);
-  fillRIStockSelect('');
-  openModal('modal-rep-interna');
-}
-
-function riGoTo(paso){
-  riPaso=paso;
-  document.querySelectorAll('.riwiz-step').forEach(s=>s.style.display='none');
-  document.querySelector(`.riwiz-step[data-riwiz-step="${paso}"]`).style.display='block';
-  document.querySelectorAll('.wiz-step-dot.riwiz').forEach(d=>{
-    const dn=+d.dataset.rid;
-    d.classList.remove('active','done');
-    if(dn===paso)d.classList.add('active');
-    else if(dn<paso)d.classList.add('done');
-  });
-  $('wizRIBack').style.visibility=paso===1?'hidden':'visible';
-  $('wizRINext').textContent=paso===2?'✅ Guardar':'Siguiente →';
-}
-
-function riNext(){
-  if(riPaso===1){
-    const v=$('ri-equipo-sel')?.value;
-    if(!v){showAlert('ri-alert-1','Seleccioná un equipo del stock',false);return;}
-    try{riEquipoData=JSON.parse(v);}catch(e){return;}
-    const d=riEquipoData;
-    const prev=$('ri-equipo-preview');
-    prev.style.display='block';
-    prev.innerHTML='<strong>'+(d.modelo||'—')+'</strong>'+(d.capacidad&&d.capacidad!=='N/A'?' '+d.capacidad:'')+(d.color&&d.color!=='Sin asignar'?' · '+d.color:'')+(d.imei?' · IMEI: '+d.imei:'')+(d.grado?' · Grado: '+d.grado:'')+(d.bateria?' · 🔋'+d.bateria+'%':'');
-    riGoTo(2);
-  }else{
-    guardarRepInterna();
-  }
-}
-
-async function guardarRepInterna(){
-  const tecnicoId=$('ri-tecnico')?.value;
-  const problema=$('ri-problema')?.value.trim();
-  const costo=parseFloat($('ri-costo')?.value)||0;
-  const fecha=$('ri-fecha')?.value||today();
-  if(!tecnicoId){showAlert('ri-alert-2','Seleccioná un técnico',false);return;}
-  if(!problema){showAlert('ri-alert-2','Describí el problema',false);return;}
-  const eq=riEquipoData;
-  await push(dbRef('reparaciones'),{
-    fecha,tecnicoId,costo,problema,enGarantia:false,
-    estado:'recibido',origen:'interno',
-    clienteNombre:'Stock propio',clienteTel:'',
-    modelo:eq.modelo||'',capacidad:eq.capacidad||'',
-    color:eq.color||'',imei:eq.imei||'',
-    compraKey:eq.compraKey,itemId:eq.itemId
-  });
-  closeModal('modal-rep-interna');
-}
-
-// ─── IMPORTAR STOCK DESDE EXCEL ──────────────────────────────
-let importStockData=[];
-
-function descargarPlantillaStock(){
-  // Redirigir a descarga de plantilla en GitHub
-  const a=document.createElement('a');
-  a.href='https://vexoprosolutions.com/plantilla_stock_vexpro.xlsx';
-  a.download='plantilla_stock_vexpro.xlsx';
-  a.click();
-}
-
-async function procesarArchivoStock(file){
-  if(!file)return;
-  $('import-stock-filename').style.display='block';
-  $('import-stock-filename').textContent='📄 '+file.name+' ('+Math.round(file.size/1024)+'KB)';
-  try{
-    // Leer con SheetJS
-    const {read,utils}=await import('https://cdn.sheetjs.com/xlsx-0.20.0/package/xlsx.mjs');
-    const buf=await file.arrayBuffer();
-    const wb=read(buf);
-    const ws=wb.Sheets[wb.SheetNames[0]];
-    const rows=utils.sheet_to_json(ws,{header:1,raw:false});
-    // Fila 1 = headers, fila 2 = ejemplos, fila 3+ = datos
-    const dataRows=rows.slice(2).filter(r=>r[0]&&String(r[0]).trim());
-    if(!dataRows.length){showAlert('import-stock-alert','No se encontraron equipos. Revisá que hayas completado desde la fila 3.',false);return;}
-    // Parsear filas
-    importStockData=dataRows.map((r,i)=>({
-      modelo:String(r[0]||'').trim(),
-      capacidad:String(r[1]||'').trim()||'N/A',
-      color:String(r[2]||'').trim()||'Sin asignar',
-      estado:String(r[3]||'Sellado').trim(),
-      grado:String(r[4]||'').trim(),
-      imei:String(r[5]||'').trim(),
-      bateria:String(r[6]||'').trim(),
-      precio:parseFloat(String(r[7]||'0').replace(/[^0-9.]/g,''))||0,
-      precioVenta:parseFloat(String(r[8]||'0').replace(/[^0-9.]/g,''))||0,
-      proveedor:String(r[9]||'Importación').trim()||'Importación',
-      fecha:parseFecha(String(r[10]||'')),
-      categoria:String(r[11]||'iphone').trim().toLowerCase()||'iphone',
-      _fila:i+3
-    }));
-    // Validar
-    const errores=importStockData.filter(r=>!r.modelo||r.precio<0||r.precioVenta<0);
-    const elErr=$('import-errores');
-    if(errores.length){
-      elErr.style.display='block';
-      elErr.innerHTML='⚠️ <strong>'+errores.length+' fila'+(errores.length>1?'s con':' con')+'</strong> datos incompletos (fila '+errores.map(r=>r._fila).join(', ')+') — se importarán igual, revisalos después.';
-    }else elErr.style.display='none';
-    // Stats
-    const proveedores=[...new Set(importStockData.map(r=>r.proveedor))];
-    $('import-preview-stats').innerHTML=
-      '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:700;color:var(--accent)">'+importStockData.length+'</div><div style="font-size:11px;color:var(--text2)">Equipos</div></div>'+
-      '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:700;color:var(--accent)">'+proveedores.length+'</div><div style="font-size:11px;color:var(--text2)">Proveedor'+(proveedores.length>1?'es':'')+'</div></div>'+
-      '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#0ca678">$'+importStockData.reduce((s,r)=>s+r.precioVenta,0).toLocaleString()+'</div><div style="font-size:11px;color:var(--text2)">Valor total</div></div>';
-    // Preview tabla
-    const preview=importStockData.slice(0,5);
-    $('import-preview-tabla').innerHTML='<table style="font-size:11px;width:100%"><thead><tr><th>Modelo</th><th>Cap.</th><th>Color</th><th>Estado</th><th>IMEI</th><th>Costo</th><th>P.Venta</th><th>Proveedor</th></tr></thead><tbody>'+
-      preview.map(r=>'<tr><td><strong>'+r.modelo+'</strong></td><td>'+r.capacidad+'</td><td>'+r.color+'</td><td>'+r.estado+'</td><td style="font-family:var(--mono)">'+(r.imei||'—')+'</td><td class="mono" style="color:var(--yellow)">$'+r.precio+'</td><td class="mono" style="color:#0ca678">$'+r.precioVenta+'</td><td>'+r.proveedor+'</td></tr>').join('')+
-      '</tbody></table>'+(importStockData.length>5?'<div style="font-size:11px;color:var(--text2);margin-top:6px">... y '+(importStockData.length-5)+' más</div>':'');
-    $('import-paso-1').style.display='none';
-    $('import-paso-2').style.display='block';
-    $('btn-confirmar-import-stock').style.display='';
-  }catch(e){showAlert('import-stock-alert','Error leyendo el archivo. Asegurate de que sea .xlsx',false);console.error(e);}
-}
-
-function parseFecha(str){
-  if(!str)return today();
-  // DD/MM/AAAA
-  const m=str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if(m)return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');
-  // AAAA-MM-DD
-  if(/^\d{4}-\d{2}-\d{2}$/.test(str))return str;
-  return today();
-}
-
-async function confirmarImportStock(){
-  if(!importStockData.length)return;
-  $('btn-confirmar-import-stock').style.display='none';
-  $('import-progress').style.display='block';
-  $('import-progress').textContent='⏳ Importando equipos...';
-  // Agrupar por proveedor+fecha → una compra por grupo
-  const grupos={};
-  importStockData.forEach(r=>{
-    const key=r.proveedor+'||'+r.fecha;
-    if(!grupos[key])grupos[key]={proveedor:r.proveedor,fecha:r.fecha,items:[]};
-    grupos[key].items.push({
-      itemId:uid(),modelo:r.modelo,capacidad:r.capacidad,color:r.color,
-      estado:r.estado,grado:r.grado,imei:r.imei,bateria:r.bateria,
-      cantidad:1,precio:r.precio,precioVenta:r.precioVenta,
-      categoria:r.categoria,tipo:''
-    });
-  });
-  let count=0;
-  for(const g of Object.values(grupos)){
-    const total=g.items.reduce((s,i)=>s+i.precio,0);
-    await push(dbRef('compras'),{
-      fecha:g.fecha,proveedor:g.proveedor,ref:'IMPORT-'+g.fecha,
-      items:g.items,totalUSD:total,condicionPago:'pagado',
-      estadoEntrega:'recibido',localId:'',esImportacion:true
-    });
-    // Auto-agregar proveedor
-    const yaExiste=Object.values(S.proveedores||{}).some(p=>(p.nombre||'').toLowerCase()===g.proveedor.toLowerCase());
-    if(!yaExiste)push(dbRef('proveedores'),{nombre:g.proveedor,fechaAlta:g.fecha,categoria:'celulares',notas:'',contacto:'',tel:'',email:'',pais:''});
-    count+=g.items.length;
-    $('import-progress').textContent='⏳ Importando... '+count+'/'+importStockData.length;
-  }
-  $('import-progress').textContent='✅ '+importStockData.length+' equipos importados correctamente.';
-  setTimeout(()=>{closeModal('modal-importar-stock');importStockData=[];},1500);
-}
-
-// ─── MODAL DE CONFIRMACIÓN ───────────────────────────────────
-let _confResolve=null;
-function confirmar({titulo='¿Eliminás esto?',desc='Esta acción no se puede deshacer.',detalle='',emoji='🗑️',btnTexto='Eliminar',btnClase='btn-danger'}={}){
-  return new Promise(resolve=>{
-    _confResolve=resolve;
-    $('conf-emoji').textContent=emoji;
-    $('conf-titulo').textContent=titulo;
-    $('conf-desc').textContent=desc;
-    const det=$('conf-detalle');
-    if(detalle){det.innerHTML=detalle;det.style.display='block';}
-    else det.style.display='none';
-    $('conf-btn-confirmar').textContent=btnTexto;
-    $('conf-btn-confirmar').className='btn '+btnClase;
-    openModal('modal-confirmar');
-  });
-}
-window.confirmar=confirmar;
-
-// ─── REPARACIONES ────────────────────────────────────────────
-const REP_ESTADOS={
-  recibido:'📥 Recibido',
-  enviado:'📤 Enviado al técnico',
-  en_reparacion:'🔧 En reparación',
-  listo:'✅ Listo — Volvió a oficina',
-  entregado:'🏠 Entregado al cliente'
-};
-
-let repOrigen='sistema';
+// ─── REPARACIONES — WIZARD UNIFICADO ─────────────────────────
+let repSubtipo='';      // propio-individual|propio-masiva|cliente-sistema|cliente-nuevo|cliente-masiva
 let repVentaSelId=null;
+let repMasivaEquipos=[];
+let riEquipoData=null;
+let repCliMasiva=[];    // para masiva de clientes
 
 function abrirWizardRep(){
-  repOrigen='sistema';repVentaSelId=null;repMasivaEquipos=[];
+  repSubtipo='';repVentaSelId=null;repMasivaEquipos=[];riEquipoData=null;repCliMasiva=[];
   if($('rep-fecha'))$('rep-fecha').value=today();
   if($('rep-costo'))$('rep-costo').value='';
   if($('rep-problema'))$('rep-problema').value='';
-  if($('rep-en-garantia'))$('rep-en-garantia').value='no';
-  if($('rep-buscar-venta'))$('rep-buscar-venta').value='';
-  if($('rep-venta-preview'))$('rep-venta-preview').style.display='none';
-  if($('rep-ext-nombre'))$('rep-ext-nombre').value='';
-  if($('rep-ext-tel'))$('rep-ext-tel').value='';
-  if($('rep-ext-modelo'))$('rep-ext-modelo').value='';
-  if($('rep-ext-imei'))$('rep-ext-imei').value='';
-  if($('rep-ext-color'))$('rep-ext-color').value='';
-  document.querySelectorAll('.rep-origen-btn').forEach(b=>{b.style.borderColor='var(--border)';b.style.background='var(--surface2)';});
+  // Reset step 1 buttons
+  document.querySelectorAll('.rep-origen-btn,.rep-subtipo-btn').forEach(b=>{
+    b.style.borderColor='var(--border)';b.style.background='var(--surface2)';
+  });
+  $('rep-sub-propio').style.display='none';
+  $('rep-sub-cliente').style.display='none';
+  $('rep-alert-1').innerHTML='';
   rwizGoTo(1);
   openModal('modal-wizard-rep');
 }
 
 function rwizGoTo(paso){
   document.querySelectorAll('.rwiz-step').forEach(s=>s.style.display='none');
-  if(paso===2){
-    const sub=repOrigen==='sistema'?'2a':repOrigen==='masiva'?'2c':'2b';
-    const el=document.querySelector('.rwiz-step[data-rwiz-step="'+sub+'"]');
-    if(el)el.style.display='block';
-    if(repOrigen==='sistema')fillRepVentaSelect('');
-    if(repOrigen==='masiva')fillRepMasivaLista('');
-  }else{
-    const el=document.querySelector('.rwiz-step[data-rwiz-step="'+paso+'"]');
-    if(el)el.style.display='block';
-  }
-  document.querySelectorAll('.wiz-step-dot.rwiz').forEach(d=>{
-    const dn=+d.dataset.rdot;
-    d.classList.remove('active','done');
-    if(dn===paso)d.classList.add('active');
-    else if(dn<paso)d.classList.add('done');
+  // Update dots
+  document.querySelectorAll('.wiz-step-dot.rwiz').forEach((d,i)=>{
+    d.classList.toggle('active',i<paso);
+    d.classList.toggle('done',i<paso-1);
   });
   const back=$('wizRepBack'),next=$('wizRepNext');
-  if(back)back.style.visibility=paso===1?'hidden':'visible';
-  if(next)next.textContent=paso===3?'✅ Guardar':'Siguiente →';
-  if(paso===3){
+  back.style.display=paso===1?'none':'';
+  next.textContent=paso===3?'✅ Guardar':'Siguiente →';
+
+  if(paso===1){
+    const s=document.querySelector('.rwiz-step[data-rwiz-step="1"]');
+    if(s)s.style.display='block';
+  }else if(paso===2){
+    const map={
+      'propio-individual':'2a','propio-masiva':'2b',
+      'cliente-sistema':'2c','cliente-nuevo':'2d','cliente-masiva':'2e'
+    };
+    const sub=map[repSubtipo]||'2a';
+    const s=document.querySelector('.rwiz-step[data-rwiz-step="'+sub+'"]');
+    if(s)s.style.display='block';
+    if(repSubtipo==='propio-individual')fillRIStockSelect('');
+    if(repSubtipo==='propio-masiva')fillRepMasivaLista('');
+    if(repSubtipo==='cliente-sistema')fillRepVentaSelect('');
+    if(repSubtipo==='cliente-masiva')renderCliMasivaLista();
+  }else if(paso===3){
+    const s=document.querySelector('.rwiz-step[data-rwiz-step="3"]');
+    if(s)s.style.display='block';
     const sel=$('rep-tecnico');if(!sel)return;
     sel.innerHTML='<option value="">— Seleccionar —</option>';
-    Object.entries(S.tecnicos).forEach(([k,t])=>{
-      sel.innerHTML+=`<option value="${k}">${t.nombre}${t.tipo==='externo'?' (Ext)':''}</option>`;
-    });
-    // Mostrar resumen de equipos masivos
-    const resumen=$('rep-masiva-resumen');
-    if(repOrigen==='masiva'&&resumen&&repMasivaEquipos.length){
-      resumen.style.display='block';
-      resumen.innerHTML='📦 <strong>'+repMasivaEquipos.length+' equipos seleccionados:</strong> '+
-        repMasivaEquipos.map(e=>e.modelo+(e.capacidad&&e.capacidad!=='N/A'?' '+e.capacidad:'')+(e.imei?' ('+e.imei.slice(-4)+')':'')).join(', ');
-    }else if(resumen)resumen.style.display='none';
+    Object.entries(S.tecnicos).forEach(([k,t])=>{sel.innerHTML+=`<option value="${k}">${t.nombre}${t.tipo==='externo'?' (Ext)':''}</option>`;});
+    // Resumen masiva
+    const res=$('rep-masiva-resumen');
+    if(res&&(repSubtipo==='propio-masiva'||repSubtipo==='cliente-masiva')){
+      const lista=repSubtipo==='propio-masiva'?repMasivaEquipos:repCliMasiva;
+      res.style.display='block';
+      res.innerHTML='📦 <strong>'+lista.length+' equipo'+(lista.length!==1?'s':'')+'</strong>: '+
+        lista.slice(0,5).map(e=>e.modelo||'—').join(', ')+(lista.length>5?'...':'');
+    }else if(res)res.style.display='none';
   }
 }
 
 function repNext(){
-  const paso=+document.querySelector('.rwiz-step:not([style*="display: none"],[style*="display:none"])')?.dataset?.rwizStep?.replace('a','').replace('b','')||1;
+  const paso=parseInt(document.querySelector('.rwiz-step[style*="block"]')?.dataset.rwizStep)||1;
   if(paso===1){
-    if(!repOrigen){showAlert('rep-alert-1','Seleccioná el origen',false);return;}
+    if(!repSubtipo){showAlert('rep-alert-1','Seleccioná el tipo de reparación',false);return;}
     rwizGoTo(2);
   }else if(paso===2){
-    if(repOrigen==='sistema'){
-      if(!repVentaSelId){showAlert('rep-alert-2a','Seleccioná una venta',false);return;}
-    }else if(repOrigen==='masiva'){
-      if(!repMasivaEquipos.length){showAlert('rep-alert-2c','Seleccioná al menos un equipo',false);return;}
-    }else{
-      if(!$('rep-ext-nombre')?.value.trim()||!$('rep-ext-modelo')?.value.trim()){
-        showAlert('rep-alert-2b','Completá nombre y modelo',false);return;
-      }
+    if(repSubtipo==='propio-individual'){
+      if(!riEquipoData){showAlert('rep-alert-2a','Seleccioná un equipo',false);return;}
+    }else if(repSubtipo==='propio-masiva'){
+      if(!repMasivaEquipos.length){showAlert('rep-alert-2b','Seleccioná al menos un equipo',false);return;}
+    }else if(repSubtipo==='cliente-sistema'){
+      if(!repVentaSelId){showAlert('rep-alert-2c','Seleccioná una venta',false);return;}
+    }else if(repSubtipo==='cliente-nuevo'){
+      if(!$('rep-ext-modelo')?.value.trim()){showAlert('rep-alert-2d','Ingresá el modelo del equipo',false);return;}
+    }else if(repSubtipo==='cliente-masiva'){
+      if(!repCliMasiva.length){showAlert('rep-alert-2e','Agregá al menos un equipo',false);return;}
     }
     rwizGoTo(3);
-  }else{
+  }else if(paso===3){
     guardarReparacion();
   }
 }
 
 function repBack(){
-  const visible=document.querySelector('.rwiz-step:not([style*="display: none"],[style*="display:none"])');
-  const s=visible?.dataset?.rwizStep||'1';
-  if(s==='2a'||s==='2b')rwizGoTo(1);
-  else if(s==='3')rwizGoTo(2);
+  const paso=parseInt(document.querySelector('.rwiz-step[style*="block"]')?.dataset.rwizStep)||2;
+  if(paso===2||paso==='2a'||paso==='2b'||paso==='2c'||paso==='2d'||paso==='2e')rwizGoTo(1);
+  else rwizGoTo(2);
 }
 
-function fillRepVentaSelect(filtro){
-  const sel=$('rep-venta-sel');if(!sel)return;
-  sel.innerHTML='<option value="">— Seleccioná una venta —</option>';
+function fillRIStockSelect(filtro){
+  const sel=$('ri-equipo-sel');if(!sel)return;
   const q=(filtro||'').toLowerCase();
-  Object.entries(S.ventas)
-    .sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||''))
-    .forEach(([k,v])=>{
-      const cl=S.clientes[v.clienteId];
-      const equipos=v.items.map(i=>i.modelo+(i.capacidad&&i.capacidad!=='N/A'?' '+i.capacidad:'')).join(', ');
-      const txt=fmtD(v.fecha)+' · '+(cl?.nombre||'—')+' · '+equipos;
-      if(q&&!txt.toLowerCase().includes(q))return;
-      const op=document.createElement('option');op.value=k;op.textContent=txt;sel.appendChild(op);
+  sel.innerHTML='<option value="">— Seleccioná un equipo —</option>';
+  Object.entries(S.compras).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||'')).forEach(([ck,comp])=>{
+    comp.items.forEach(it=>{
+      if(getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId)<=0)return;
+      const txt=[(it.modelo||''),(it.capacidad||''),(it.color||''),(it.imei||'')].join(' ').toLowerCase();
+      if(q&&!txt.includes(q))return;
+      const o=document.createElement('option');
+      o.value=JSON.stringify({ck,itemId:it.itemId,modelo:it.modelo,capacidad:it.capacidad,color:it.color,imei:it.imei,grado:it.grado});
+      o.textContent=[it.modelo,it.capacidad,it.color,it.grado,it.imei?'IMEI:'+it.imei:''].filter(Boolean).join(' · ');
+      sel.appendChild(o);
     });
+  });
 }
-
-function onRepVentaChange(){
-  const k=$('rep-venta-sel')?.value;
-  repVentaSelId=k||null;
-  const preview=$('rep-venta-preview');
-  if(!k||!preview){if(preview)preview.style.display='none';return;}
-  const v=S.ventas[k];if(!v){preview.style.display='none';return;}
-  const cl=S.clientes[v.clienteId];
-  const equipos=v.items.map(i=>'<strong>'+i.modelo+'</strong>'+(i.capacidad&&i.capacidad!=='N/A'?' '+i.capacidad:'')+(i.color?' · '+i.color:'')+(i.imei?' · IMEI '+i.imei:'')+(i.bateria?' · 🔋'+i.bateria+'%':'')).join('<br>');
-  const garantia=Object.values(S.garantias).find(g=>g.ventaId===k);
-  const hoy=today();
-  const garTag=garantia?(garantia.fechaVencimiento>=hoy?
-    '<span class="tag tag-green">✅ Garantía vigente hasta '+fmtD(garantia.fechaVencimiento)+'</span>':
-    '<span class="tag tag-red">❌ Garantía vencida '+fmtD(garantia.fechaVencimiento)+'</span>'):
-    '<span class="tag tag-yellow">Sin certificado de garantía</span>';
-  preview.style.display='block';
-  preview.innerHTML='<div style="margin-bottom:6px"><strong>'+(cl?.nombre||'—')+'</strong>'+(cl?.tel?' · '+cl.tel:'')+'</div><div style="margin-bottom:6px">'+equipos+'</div><div>'+garTag+'</div>';
-  if(garantia&&garantia.fechaVencimiento>=hoy&&$('rep-en-garantia'))$('rep-en-garantia').value='si';
-}
-
-let repMasivaEquipos=[];
 
 function fillRepMasivaLista(filtro){
   const el=$('rep-masiva-lista');if(!el)return;
   const q=(filtro||'').toLowerCase();
-  const items=[];
-  Object.entries(S.compras).forEach(([ck,comp])=>{
+  el.innerHTML='';
+  let count=0;
+  Object.entries(S.compras).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||'')).forEach(([ck,comp])=>{
     comp.items.forEach(it=>{
-      const disp=getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId);
-      if(disp<=0)return;
-      const txt=(it.modelo||'')+(it.capacidad&&it.capacidad!=='N/A'?' '+it.capacidad:'')+(it.imei?' '+it.imei:'');
-      if(q&&!txt.toLowerCase().includes(q))return;
-      items.push({ck,it});
+      if(getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId)<=0)return;
+      const txt=[(it.modelo||''),(it.capacidad||''),(it.imei||'')].join(' ').toLowerCase();
+      if(q&&!txt.includes(q))return;
+      count++;
+      const row=document.createElement('label');
+      row.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px';
+      const cb=document.createElement('input');cb.type='checkbox';
+      cb.style.cssText='accent-color:var(--accent);width:16px;height:16px;flex-shrink:0';
+      cb.checked=repMasivaEquipos.some(e=>e.itemId===it.itemId&&e.ck===ck);
+      cb.addEventListener('change',()=>{
+        if(cb.checked){if(!repMasivaEquipos.some(e=>e.itemId===it.itemId&&e.ck===ck))repMasivaEquipos.push({ck,itemId:it.itemId,modelo:it.modelo,capacidad:it.capacidad,color:it.color,imei:it.imei,grado:it.grado,estado:'recibido'});}
+        else repMasivaEquipos=repMasivaEquipos.filter(e=>!(e.itemId===it.itemId&&e.ck===ck));
+        if($('rep-masiva-count'))$('rep-masiva-count').textContent=repMasivaEquipos.length;
+      });
+      const lbl=document.createElement('span');
+      lbl.innerHTML='<strong>'+(it.modelo||'—')+'</strong>'+(it.capacidad&&it.capacidad!=='N/A'?' <span style="color:var(--text2)">'+it.capacidad+'</span>':'')+(it.color&&it.color!=='Sin asignar'?' · '+it.color:'')+(it.imei?' <span style="font-size:11px;color:var(--text3);font-family:var(--mono)"> '+it.imei+'</span>':'');
+      row.append(cb,lbl);el.appendChild(row);
     });
   });
-  el.innerHTML=items.length?'':
-    '<div style="padding:20px;text-align:center;color:var(--text2);font-size:13px">Sin equipos disponibles</div>';
-  items.forEach(({ck,it})=>{
-    const row=document.createElement('label');
-    row.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px';
-    const cb=document.createElement('input');cb.type='checkbox';cb.style.cssText='accent-color:var(--accent);width:16px;height:16px;flex-shrink:0';
-    const isSelected=repMasivaEquipos.some(e=>e.itemId===it.itemId&&e.ck===ck);
-    cb.checked=isSelected;
-    cb.addEventListener('change',()=>{
-      if(cb.checked){
-        if(!repMasivaEquipos.some(e=>e.itemId===it.itemId&&e.ck===ck))
-          repMasivaEquipos.push({ck,itemId:it.itemId,modelo:it.modelo,capacidad:it.capacidad,color:it.color,imei:it.imei,grado:it.grado,estado:'recibido'});
-      }else{
-        repMasivaEquipos=repMasivaEquipos.filter(e=>!(e.itemId===it.itemId&&e.ck===ck));
-      }
-      if($('rep-masiva-count'))$('rep-masiva-count').textContent=repMasivaEquipos.length;
-    });
-    const lbl=document.createElement('span');
-    lbl.innerHTML='<strong>'+it.modelo+'</strong>'+(it.capacidad&&it.capacidad!=='N/A'?' <span style="color:var(--text2)">'+it.capacidad+'</span>':'')+(it.color&&it.color!=='Sin asignar'?' · '+it.color:'')+(it.imei?' <span style="font-family:var(--mono);font-size:11px;color:var(--text2)">IMEI '+it.imei+'</span>':'')+(it.grado?' · '+it.grado:'');
-    row.append(cb,lbl);
+  if(!count)el.innerHTML='<div style="padding:20px;text-align:center;color:var(--text2);font-size:13px">Sin equipos disponibles en stock</div>';
+  if($('rep-masiva-count'))$('rep-masiva-count').textContent=repMasivaEquipos.length;
+}
+
+function fillRepVentaSelect(filtro){
+  const sel=$('rep-venta-sel');if(!sel)return;
+  const q=(filtro||'').toLowerCase();
+  sel.innerHTML='<option value="">— Seleccioná una venta —</option>';
+  Object.entries(S.ventas).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||'')).forEach(([vk,v])=>{
+    const cl=S.clientes[v.clienteId]||{};
+    const it=(v.items||[])[0]||{};
+    const txt=[cl.nombre||'',it.modelo||'',it.imei||'',v.fecha||''].join(' ').toLowerCase();
+    if(q&&!txt.includes(q))return;
+    const o=document.createElement('option');o.value=vk;
+    o.textContent=fmtD(v.fecha)+' — '+(cl.nombre||'—')+' — '+(it.modelo||'—')+(it.capacidad?' '+it.capacidad:'');
+    sel.appendChild(o);
+  });
+}
+
+let _repCliId=0;
+function renderCliMasivaLista(){
+  const el=$('rep-cli-masiva-lista');if(!el)return;
+  el.innerHTML=repCliMasiva.length?'':'<div style="color:var(--text2);font-size:12px;padding:8px">Todavía no agregaste equipos.</div>';
+  repCliMasiva.forEach((item,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px';
+    row.innerHTML='<span style="flex:1"><strong>'+(item.modelo||'—')+'</strong>'+(item.nombre?' · '+item.nombre:'')+'</span>'+
+      '<button onclick="repCliMasiva.splice('+i+',1);renderCliMasivaLista()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px">🗑</button>';
     el.appendChild(row);
   });
-  if($('rep-masiva-count'))$('rep-masiva-count').textContent=repMasivaEquipos.length;
+}
+
+function agregarRepCliMasiva(){
+  const modelo=prompt('Modelo del equipo:');if(!modelo)return;
+  const nombre=prompt('Nombre del cliente (opcional):');
+  const tel=prompt('Teléfono (opcional):');
+  const imei=prompt('IMEI (opcional):');
+  repCliMasiva.push({modelo,nombre:nombre||'',tel:tel||'',imei:imei||'',color:'',estado:'recibido'});
+  renderCliMasivaLista();
 }
 
 async function guardarReparacion(){
@@ -6841,37 +6671,41 @@ async function guardarReparacion(){
   if(!fecha){showAlert('rep-alert-3','Ingresá la fecha',false);return;}
   if(!tecnicoId){showAlert('rep-alert-3','Seleccioná un técnico',false);return;}
   if(!problema){showAlert('rep-alert-3','Describí el problema',false);return;}
-  let data={fecha,tecnicoId,costo,problema,enGarantia,estado:'recibido',origen:repOrigen};
-  if(repOrigen==='masiva'){
-    // Reparación masiva — un solo registro con array de equipos
-    data={...data,
-      origen:'masiva',
-      clienteNombre:'Stock propio',clienteTel:'',
+
+  let data={fecha,tecnicoId,costo,problema,enGarantia,estado:'recibido'};
+
+  if(repSubtipo==='propio-individual'){
+    data={...data,origen:'interno',clienteNombre:'Stock propio',clienteTel:'',
+      modelo:riEquipoData.modelo||'',capacidad:riEquipoData.capacidad||'',
+      color:riEquipoData.color||'',imei:riEquipoData.imei||'',
+      compraKey:riEquipoData.ck,itemId:riEquipoData.itemId};
+  }else if(repSubtipo==='propio-masiva'){
+    data={...data,origen:'masiva',clienteNombre:'Stock propio',clienteTel:'',
       modelo:repMasivaEquipos.map(e=>e.modelo+(e.capacidad&&e.capacidad!=='N/A'?' '+e.capacidad:'')).join(', '),
-      equipos:repMasivaEquipos.map(e=>({...e,estado:'recibido'})),
-      cantEquipos:repMasivaEquipos.length
-    };
-  }else if(repOrigen==='sistema'){
+      equipos:repMasivaEquipos.map(e=>({...e,estado:'recibido'})),cantEquipos:repMasivaEquipos.length};
+  }else if(repSubtipo==='cliente-sistema'){
     const v=S.ventas[repVentaSelId]||{};
     const cl=S.clientes[v.clienteId]||{};
     const it=(v.items||[])[0]||{};
-    data={...data,ventaId:repVentaSelId,clienteNombre:cl.nombre||'—',clienteTel:cl.tel||'',
+    data={...data,origen:'sistema',ventaId:repVentaSelId,clienteNombre:cl.nombre||'—',clienteTel:cl.tel||'',
       modelo:it.modelo||'',capacidad:it.capacidad||'',color:it.color||'',imei:it.imei||''};
-    const gar=Object.entries(S.garantias).find(([,g])=>g.ventaId===repVentaSelId);
+    const gar=Object.entries(S.garantias||{}).find(([,g])=>g.ventaId===repVentaSelId);
     if(gar)data.garantiaId=gar[0];
-  }else{
-    data={...data,
-      clienteNombre:$('rep-ext-nombre')?.value.trim()||'',
-      clienteTel:$('rep-ext-tel')?.value.trim()||'',
-      modelo:$('rep-ext-modelo')?.value.trim()||'',
-      imei:$('rep-ext-imei')?.value.trim()||'',
-      color:$('rep-ext-color')?.value.trim()||''};
+  }else if(repSubtipo==='cliente-nuevo'){
+    data={...data,origen:'externo',
+      clienteNombre:$('rep-ext-nombre')?.value.trim()||'',clienteTel:$('rep-ext-tel')?.value.trim()||'',
+      modelo:$('rep-ext-modelo')?.value.trim()||'',imei:$('rep-ext-imei')?.value.trim()||'',
+      color:$('rep-ext-color')?.value.trim()||'',bateria:$('rep-ext-bat')?.value||''};
+  }else if(repSubtipo==='cliente-masiva'){
+    data={...data,origen:'masiva-cliente',
+      modelo:repCliMasiva.map(e=>e.modelo).join(', '),
+      equipos:repCliMasiva.map(e=>({...e,estado:'recibido'})),cantEquipos:repCliMasiva.length};
   }
+
   await push(dbRef('reparaciones'),data);
-  closeModal('modal-wizard-rep');
+  document.getElementById('modal-wizard-rep').classList.remove('open');
 }
 
-function refreshRepSelects(){} // legacy — no-op
 
 function saveTecnico(){
   const nombre=$('tec-nombre')?.value.trim();
