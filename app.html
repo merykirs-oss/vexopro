@@ -601,27 +601,55 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
           <button class="cat-btn" data-cat="accesorio"><span class="cat-icon">🔌</span>Accesorios</button>
           <button class="cat-btn" data-cat="otro"><span class="cat-icon">📦</span>Personalizado</button>
         </div>
-        <div id="v-items-container"></div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn btn-add" id="btn-add-venta-item" style="flex:1">＋ Agregar unidad</button>
-          <button class="btn btn-add" id="btn-add-venta-lote" style="flex:1;color:var(--blue);border-color:rgba(26,111,255,0.3);display:none">📦 Agregar lote / Mayorista</button>
+
+        <!-- SELECTOR DE MODO -->
+        <div style="margin:14px 0 10px;display:flex;gap:8px">
+          <button class="v-modo-btn" data-modo="unidad" style="flex:1;padding:10px 8px;border:2px solid var(--accent);border-radius:10px;background:var(--accent-dim);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <span style="font-size:18px">📱</span><span style="font-size:11px;font-weight:700;color:var(--accent)">Por unidad</span>
+          </button>
+          <button class="v-modo-btn" data-modo="parcial" style="flex:1;padding:10px 8px;border:2px solid var(--border);border-radius:10px;background:var(--surface2);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <span style="font-size:18px">🔢</span><span style="font-size:11px;font-weight:700;color:var(--text2)">Parcial</span>
+          </button>
+          <button class="v-modo-btn" data-modo="lote" style="flex:1;padding:10px 8px;border:2px solid var(--border);border-radius:10px;background:var(--surface2);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <span style="font-size:18px">📦</span><span style="font-size:11px;font-weight:700;color:var(--text2)">Lote completo</span>
+          </button>
         </div>
-        <!-- Panel selector de lote (colapsable) -->
-        <div id="v-lote-panel" style="display:none;margin-top:10px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
-          <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px">Seleccionar lote</div>
+
+        <!-- MODO UNIDAD: equipo por equipo -->
+        <div id="v-modo-unidad">
+          <div id="v-items-container"></div>
+          <button class="btn btn-add" id="btn-add-venta-item" style="margin-top:8px;width:100%">＋ Agregar unidad</button>
+        </div>
+
+        <!-- MODO PARCIAL: seleccionar lote + cantidad -->
+        <div id="v-modo-parcial" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:4px">
           <div class="form-grid" style="margin-bottom:10px">
             <div class="form-group">
               <label>Lote / Pedido</label>
-              <select id="v-lote-sel"><option value="">— Seleccioná un lote —</option></select>
+              <select id="v-parcial-lote-sel"><option value="">— Seleccioná un lote —</option></select>
             </div>
             <div class="form-group">
-              <label>Unidades a vender</label>
-              <input type="number" id="v-lote-cant" placeholder="0" min="1" style="max-width:120px">
+              <label>Cantidad a vender</label>
+              <input type="number" id="v-parcial-cant" placeholder="0" min="1" style="max-width:120px">
             </div>
           </div>
-          <div id="v-lote-preview" style="display:none;font-size:12px;color:var(--text2);margin-bottom:10px"></div>
-          <button class="btn btn-primary btn-sm" id="btn-agregar-lote">Cargar unidades del lote</button>
+          <div id="v-parcial-preview" style="display:none;font-size:12px;color:var(--text2);margin-bottom:10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px"></div>
+          <div id="v-parcial-checkboxes" style="display:none;max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-bottom:10px"></div>
+          <button class="btn btn-primary btn-sm" id="btn-parcial-cargar">Cargar unidades</button>
+          <div id="v-parcial-alert" style="margin-top:8px"></div>
         </div>
+
+        <!-- MODO LOTE: lote completo -->
+        <div id="v-modo-lote" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:4px">
+          <div class="form-group" style="margin-bottom:10px">
+            <label>Lote / Pedido</label>
+            <select id="v-lote-completo-sel"><option value="">— Seleccioná un lote —</option></select>
+          </div>
+          <div id="v-lote-completo-preview" style="display:none;font-size:12px;color:var(--text2);margin-bottom:10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px"></div>
+          <button class="btn btn-primary btn-sm" id="btn-lote-completo-cargar">Cargar lote completo</button>
+          <div id="v-lote-completo-alert" style="margin-top:8px"></div>
+        </div>
+
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-top:14px;padding:14px 16px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
           <div class="form-group"><label>Descuento (%)</label><input type="number" id="v-descuento" placeholder="0" min="0" max="100"></div>
           <div class="form-group"><label>Comisión vendedor (%)</label><input type="number" id="v-comision" placeholder="0" min="0"></div>
@@ -2193,7 +2221,12 @@ function initApp(){
       ventaItems=[];
     });
   });
-  $('btn-add-venta-item').addEventListener('click',()=>addVentaItem());
+  // Modo selector ventas
+  document.querySelectorAll('.v-modo-btn').forEach(btn=>btn.addEventListener('click',()=>setVentaModo(btn.dataset.modo)));
+  $('v-parcial-lote-sel')?.addEventListener('change',e=>renderLotePreview(e.target.value,'v-parcial-preview'));
+  $('v-lote-completo-sel')?.addEventListener('change',e=>renderLotePreview(e.target.value,'v-lote-completo-preview'));
+  $('btn-parcial-cargar')?.addEventListener('click',cargarParcial);
+  $('btn-lote-completo-cargar')?.addEventListener('click',cargarLoteCompleto);
   $('btn-add-venta-lote')?.addEventListener('click',()=>{
     const p=$('v-lote-panel');
     const open=p.style.display!=='none';
@@ -3954,7 +3987,107 @@ function calcTotalVenta(){
   ventaItems.forEach(id=>calcItem(id));
 }
 // ─── WIZARD DE VENTA ───────────────────────────────────────
+// ─── WIZARD VENTAS — SELECTOR DE MODO ────────────────────────
+let ventaModo='unidad'; // 'unidad' | 'parcial' | 'lote'
+
+function setVentaModo(modo){
+  ventaModo=modo;
+  document.querySelectorAll('.v-modo-btn').forEach(b=>{
+    const active=b.dataset.modo===modo;
+    b.style.borderColor=active?'var(--accent)':'var(--border)';
+    b.style.background=active?'var(--accent-dim)':'var(--surface2)';
+    b.querySelector('span:last-child').style.color=active?'var(--accent)':'var(--text2)';
+  });
+  $('v-modo-unidad').style.display=modo==='unidad'?'block':'none';
+  $('v-modo-parcial').style.display=modo==='parcial'?'block':'none';
+  $('v-modo-lote').style.display=modo==='lote'?'block':'none';
+  if(modo==='parcial')fillVentaLoteSelect('v-parcial-lote-sel');
+  if(modo==='lote')fillVentaLoteSelect('v-lote-completo-sel');
+}
+
+function fillVentaLoteSelect(selId){
+  const sel=$(selId);if(!sel)return;
+  const cat=document.querySelector('#v-cat-selector .cat-btn.selected')?.dataset.cat||null;
+  const localFiltro=$('v-local')?.value||null;
+  sel.innerHTML='<option value="">— Seleccioná un lote —</option>';
+  Object.entries(S.compras).sort((a,b)=>(b[1].fecha||'').localeCompare(a[1].fecha||'')).forEach(([ck,comp])=>{
+    if(comp.estadoEntrega==='en_camino')return;
+    const disp=comp.items.filter(it=>{
+      if(cat&&(it.categoria||'iphone')!==cat)return false;
+      if(localFiltro&&(it.localId||comp.localId||'')!==localFiltro)return false;
+      return getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId)>0;
+    });
+    if(!disp.length)return;
+    const modelos=[...new Set(disp.map(it=>it.modelo))].join(', ');
+    const o=document.createElement('option');
+    o.value=ck;
+    o.textContent=fmtD(comp.fecha)+' — '+(comp.proveedor||'—')+' — '+modelos+' ('+disp.length+' disp.)';
+    sel.appendChild(o);
+  });
+}
+
+function renderLotePreview(ck,previewId){
+  const el=$(previewId);if(!el)return;
+  const comp=S.compras[ck];if(!comp){el.style.display='none';return;}
+  const cat=document.querySelector('#v-cat-selector .cat-btn.selected')?.dataset.cat||null;
+  const localFiltro=$('v-local')?.value||null;
+  const disp=comp.items.filter(it=>{
+    if(cat&&(it.categoria||'iphone')!==cat)return false;
+    if(localFiltro&&(it.localId||comp.localId||'')!==localFiltro)return false;
+    return getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId)>0;
+  });
+  const modelos=[...new Set(disp.map(it=>it.modelo+(it.capacidad&&it.capacidad!=='N/A'?' '+it.capacidad:'')))];
+  el.style.display='block';
+  el.innerHTML='<strong>'+disp.length+' equipos disponibles</strong> · '+modelos.join(', ')+'<div style="font-size:11px;margin-top:4px">Proveedor: '+comp.proveedor+' · Ingresó: '+fmtD(comp.fecha)+'</div>';
+}
+
+function cargarParcial(){
+  const ck=$('v-parcial-lote-sel')?.value;if(!ck){showAlert('v-parcial-alert','Seleccioná un lote',false);return;}
+  const cant=parseInt($('v-parcial-cant')?.value)||0;if(!cant){showAlert('v-parcial-alert','Ingresá la cantidad',false);return;}
+  const comp=S.compras[ck];if(!comp)return;
+  const cat=document.querySelector('#v-cat-selector .cat-btn.selected')?.dataset.cat||null;
+  const localFiltro=$('v-local')?.value||null;
+  const disponibles=comp.items.filter(it=>{
+    if(cat&&(it.categoria||'iphone')!==cat)return false;
+    if(localFiltro&&(it.localId||comp.localId||'')!==localFiltro)return false;
+    return getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId)>0;
+  });
+  if(cant>disponibles.length){showAlert('v-parcial-alert','Solo hay '+disponibles.length+' equipos disponibles',false);return;}
+  // Auto-seleccionar primeros N
+  const seleccionados=disponibles.slice(0,cant);
+  // Limpiar items actuales y agregar los seleccionados
+  $('v-items-container').innerHTML='';ventaItems=[];
+  setVentaModo('unidad');
+  seleccionados.forEach(it=>{
+    const stockVal=JSON.stringify({ck,itemId:it.itemId||'',modelo:it.modelo,capacidad:it.capacidad,color:it.color,imei:it.imei,grado:it.grado,precioVenta:it.precioVenta});
+    addVentaItem(stockVal);
+  });
+  showAlert('v-parcial-alert','✅ '+cant+' equipos cargados');
+}
+
+function cargarLoteCompleto(){
+  const ck=$('v-lote-completo-sel')?.value;if(!ck){showAlert('v-lote-completo-alert','Seleccioná un lote',false);return;}
+  const comp=S.compras[ck];if(!comp)return;
+  const cat=document.querySelector('#v-cat-selector .cat-btn.selected')?.dataset.cat||null;
+  const localFiltro=$('v-local')?.value||null;
+  const disponibles=comp.items.filter(it=>{
+    if(cat&&(it.categoria||'iphone')!==cat)return false;
+    if(localFiltro&&(it.localId||comp.localId||'')!==localFiltro)return false;
+    return getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId)>0;
+  });
+  if(!disponibles.length){showAlert('v-lote-completo-alert','No hay equipos disponibles en este lote',false);return;}
+  $('v-items-container').innerHTML='';ventaItems=[];
+  setVentaModo('unidad');
+  disponibles.forEach(it=>{
+    const stockVal=JSON.stringify({ck,itemId:it.itemId||'',modelo:it.modelo,capacidad:it.capacidad,color:it.color,imei:it.imei,grado:it.grado,precioVenta:it.precioVenta});
+    addVentaItem(stockVal);
+  });
+  showAlert('v-lote-completo-alert','✅ Lote completo cargado ('+disponibles.length+' equipos)');
+}
+
 function abrirWizardVenta(){
+  ventaModo='unidad';
+  setVentaModo('unidad');
   $('v-post-guardado').style.display='none';
   openModal('modal-wizard-venta');
   wizVentaGoTo(1);
