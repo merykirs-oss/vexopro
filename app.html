@@ -2446,7 +2446,6 @@ function initApp(){
     repSubtipo=btn.dataset.subtipo;
   }));
   // Paso 2A — buscar stock individual
-  $('ri-buscar')?.addEventListener('input',e=>fillRIStockSelect(e.target.value));
   $('ri-equipo-sel')?.addEventListener('change',e=>{
     try{riEquipoData=e.target.value?JSON.parse(e.target.value):null;}catch{riEquipoData=null;}
     const prev=$('ri-equipo-preview');
@@ -2465,17 +2464,25 @@ function initApp(){
     repMasivaEquipos=[];
     $('rep-masiva-lista')?.querySelectorAll('input[type=checkbox]').forEach(cb=>{cb.checked=true;cb.dispatchEvent(new Event('change'));});
   });
+// ─── MODAL DE CONFIRMACIÓN ───────────────────────────────────
+let _confResolve=null;
+function confirmar({titulo='¿Eliminás esto?',desc='Esta acción no se puede deshacer.',detalle='',emoji='🗑️',btnTexto='Eliminar',btnClase='btn-danger'}={}){
+  return new Promise(resolve=>{
+    _confResolve=resolve;
+    const cel=$('conf-emoji');if(cel)cel.textContent=emoji;
+    const ct=$('conf-titulo');if(ct)ct.textContent=titulo;
+    const cd=$('conf-desc');if(cd)cd.textContent=desc;
+    const det=$('conf-detalle');
+    if(det){if(detalle){det.innerHTML=detalle;det.style.display='block';}else det.style.display='none';}
+    const cb=$('conf-btn-confirmar');if(cb){cb.textContent=btnTexto;cb.className='btn '+btnClase;}
+    openModal('modal-confirmar');
+  });
+}
+window.confirmar=confirmar;
+
   $('conf-btn-cancelar')?.addEventListener('click',()=>{closeModal('modal-confirmar');if(_confResolve){_confResolve(false);_confResolve=null;}});
   $('conf-btn-confirmar')?.addEventListener('click',()=>{closeModal('modal-confirmar');if(_confResolve){_confResolve(true);_confResolve=null;}});
-  $('wizRIBack')?.addEventListener('click',()=>{if(riPaso===2)riGoTo(1);});
-  $('ri-buscar')?.addEventListener('input',e=>fillRIStockSelect(e.target.value));
-  document.querySelectorAll('.rep-origen-btn').forEach(btn=>btn.addEventListener('click',()=>{
-    repOrigen=btn.dataset.origen;
-    document.querySelectorAll('.rep-origen-btn').forEach(b=>{b.style.borderColor='var(--border)';b.style.background='var(--surface2)';});
-    btn.style.borderColor='var(--accent)';btn.style.background='var(--accent-dim)';
-  }));
   $('rep-buscar-venta')?.addEventListener('input',e=>fillRepVentaSelect(e.target.value));
-  $('rep-venta-sel')?.addEventListener('change',onRepVentaChange);
 
   // Modal pago
   // Admin tabs
@@ -5238,6 +5245,84 @@ function abrirModalSusPago(uid,negocio,vtoActual){
   calcSusPagoVto(vtoActual);
   openModal('modal-sus-pago');
 }
+// ─── IMPORTAR STOCK ──────────────────────────────────────────
+let importStockData=[];
+
+function descargarPlantillaStock(){
+  const a=document.createElement('a');
+  a.href='https://vexoprosolutions.com/plantilla_stock_vexpro.xlsx';
+  a.download='plantilla_stock_vexpro.xlsx';
+  a.click();
+}
+
+function parseFechaImport(str){
+  if(!str)return today();
+  const m=str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if(m)return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');
+  if(/^\d{4}-\d{2}-\d{2}$/.test(str))return str;
+  return today();
+}
+
+async function procesarArchivoStock(file){
+  if(!file)return;
+  if($('import-stock-filename')){$('import-stock-filename').style.display='block';$('import-stock-filename').textContent='📄 '+file.name+' ('+Math.round(file.size/1024)+'KB)';}
+  try{
+    const {read,utils}=await import('https://cdn.sheetjs.com/xlsx-0.20.0/package/xlsx.mjs');
+    const buf=await file.arrayBuffer();
+    const wb=read(buf);
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=utils.sheet_to_json(ws,{header:1,raw:false});
+    const dataRows=rows.slice(2).filter(r=>r[0]&&String(r[0]).trim());
+    if(!dataRows.length){showAlert('import-stock-alert','No se encontraron equipos.',false);return;}
+    importStockData=dataRows.map((r,i)=>({
+      modelo:String(r[0]||'').trim(),capacidad:String(r[1]||'').trim()||'N/A',
+      color:String(r[2]||'').trim()||'Sin asignar',estado:String(r[3]||'Sellado').trim(),
+      grado:String(r[4]||'').trim(),imei:String(r[5]||'').trim(),bateria:String(r[6]||'').trim(),
+      precio:parseFloat(String(r[7]||'0').replace(/[^0-9.]/g,''))||0,
+      precioVenta:parseFloat(String(r[8]||'0').replace(/[^0-9.]/g,''))||0,
+      proveedor:String(r[9]||'Importación').trim()||'Importación',
+      fecha:parseFechaImport(String(r[10]||'')),
+      categoria:String(r[11]||'iphone').trim().toLowerCase()||'iphone',_fila:i+3
+    }));
+    const provs=[...new Set(importStockData.map(r=>r.proveedor))];
+    if($('import-preview-stats'))$('import-preview-stats').innerHTML=
+      '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:700;color:var(--accent)">'+importStockData.length+'</div><div style="font-size:11px;color:var(--text2)">Equipos</div></div>'+
+      '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:700;color:var(--accent)">'+provs.length+'</div><div style="font-size:11px;color:var(--text2)">Proveedores</div></div>'+
+      '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#0ca678">$'+importStockData.reduce((s,r)=>s+r.precioVenta,0).toLocaleString()+'</div><div style="font-size:11px;color:var(--text2)">Valor total</div></div>';
+    if($('import-preview-tabla'))$('import-preview-tabla').innerHTML='<table style="font-size:11px;width:100%"><thead><tr><th>Modelo</th><th>Cap.</th><th>Costo</th><th>P.Venta</th><th>Proveedor</th></tr></thead><tbody>'+
+      importStockData.slice(0,5).map(r=>'<tr><td><strong>'+r.modelo+'</strong></td><td>'+r.capacidad+'</td><td>$'+r.precio+'</td><td style="color:#0ca678">$'+r.precioVenta+'</td><td>'+r.proveedor+'</td></tr>').join('')+'</tbody></table>';
+    if($('import-paso-1'))$('import-paso-1').style.display='none';
+    if($('import-paso-2'))$('import-paso-2').style.display='block';
+    if($('btn-confirmar-import-stock'))$('btn-confirmar-import-stock').style.display='';
+  }catch(e){showAlert('import-stock-alert','Error leyendo el archivo.',false);console.error(e);}
+}
+
+async function confirmarImportStock(){
+  if(!importStockData.length)return;
+  if($('btn-confirmar-import-stock'))$('btn-confirmar-import-stock').style.display='none';
+  if($('import-progress')){$('import-progress').style.display='block';$('import-progress').textContent='⏳ Importando equipos...';}
+  const grupos={};
+  importStockData.filter(r=>r.modelo).forEach(r=>{
+    const key=r.proveedor+'||'+r.fecha;
+    if(!grupos[key])grupos[key]={proveedor:r.proveedor,fecha:r.fecha,items:[]};
+    grupos[key].items.push({itemId:uid(),modelo:r.modelo,capacidad:r.capacidad,color:r.color,
+      estado:r.estado,grado:r.grado,imei:r.imei,bateria:r.bateria,
+      cantidad:1,precio:r.precio,precioVenta:r.precioVenta,categoria:r.categoria,tipo:''});
+  });
+  let count=0;
+  for(const g of Object.values(grupos)){
+    const total=g.items.reduce((s,i)=>s+i.precio,0);
+    await push(dbRef('compras'),{fecha:g.fecha,proveedor:g.proveedor,ref:'IMPORT-'+g.fecha,
+      items:g.items,totalUSD:total,condicionPago:'pagado',estadoEntrega:'recibido',localId:'',esImportacion:true});
+    const yaExiste=Object.values(S.proveedores||{}).some(p=>(p.nombre||'').toLowerCase()===g.proveedor.toLowerCase());
+    if(!yaExiste)push(dbRef('proveedores'),{nombre:g.proveedor,fechaAlta:g.fecha,categoria:'celulares',notas:'',contacto:'',tel:'',email:'',pais:''});
+    count+=g.items.length;
+    if($('import-progress'))$('import-progress').textContent='⏳ Importando... '+count+'/'+importStockData.length;
+  }
+  if($('import-progress'))$('import-progress').textContent='✅ '+importStockData.length+' equipos importados.';
+  setTimeout(()=>{closeModal('modal-importar-stock');importStockData=[];},1500);
+}
+
 window.abrirModalSusPago=abrirModalSusPago;
 window.descargarPlantillaStock=descargarPlantillaStock;
 window.confirmarImportStock=confirmarImportStock;
