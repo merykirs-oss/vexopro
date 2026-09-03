@@ -634,6 +634,10 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
             </div>
           </div>
           <div id="v-parcial-preview" style="display:none;font-size:12px;color:var(--text2);margin-bottom:10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px"></div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label>Precio de venta c/u (USD) <span style="font-size:11px;color:var(--text2)">— se aplica a todos los equipos cargados</span></label>
+            <input type="number" id="v-parcial-precio" placeholder="0.00" min="0" step="0.01" style="max-width:160px">
+          </div>
           <div id="v-parcial-checkboxes" style="display:none;max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-bottom:10px"></div>
           <button class="btn btn-primary btn-sm" id="btn-parcial-cargar">Cargar unidades</button>
           <div id="v-parcial-alert" style="margin-top:8px"></div>
@@ -646,6 +650,10 @@ document.addEventListener('dblclick',e=>{if(e.target.closest('#app'))e.preventDe
             <select id="v-lote-completo-sel"><option value="">— Seleccioná un lote —</option></select>
           </div>
           <div id="v-lote-completo-preview" style="display:none;font-size:12px;color:var(--text2);margin-bottom:10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px"></div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label>Precio de venta c/u (USD) <span style="font-size:11px;color:var(--text2)">— se aplica a todos</span></label>
+            <input type="number" id="v-lote-precio" placeholder="0.00" min="0" step="0.01" style="max-width:160px">
+          </div>
           <button class="btn btn-primary btn-sm" id="btn-lote-completo-cargar">Cargar lote completo</button>
           <div id="v-lote-completo-alert" style="margin-top:8px"></div>
         </div>
@@ -4053,16 +4061,16 @@ function cargarParcial(){
     return getStockDisp(ck,it.modelo,it.capacidad,null,it.itemId)>0;
   });
   if(cant>disponibles.length){showAlert('v-parcial-alert','Solo hay '+disponibles.length+' equipos disponibles',false);return;}
-  // Auto-seleccionar primeros N
+  const precioOverride=parseFloat($('v-parcial-precio')?.value)||null;
   const seleccionados=disponibles.slice(0,cant);
-  // Limpiar items actuales y agregar los seleccionados
   $('v-items-container').innerHTML='';ventaItems=[];
   setVentaModo('unidad');
   seleccionados.forEach(it=>{
-    const stockVal=JSON.stringify({ck,itemId:it.itemId||'',modelo:it.modelo,capacidad:it.capacidad,color:it.color,imei:it.imei,grado:it.grado,precioVenta:it.precioVenta});
+    const pv=precioOverride!==null?precioOverride:(it.precioVenta||0);
+    const stockVal=JSON.stringify({ck,itemId:it.itemId||'',modelo:it.modelo,capacidad:it.capacidad,color:it.color,imei:it.imei,grado:it.grado,precioVenta:pv});
     addVentaItem(stockVal);
   });
-  showAlert('v-parcial-alert','✅ '+cant+' equipos cargados');
+  showAlert('v-parcial-alert','✅ '+cant+' equipos cargados. Tocá Siguiente para continuar.');
 }
 
 function cargarLoteCompleto(){
@@ -4078,11 +4086,13 @@ function cargarLoteCompleto(){
   if(!disponibles.length){showAlert('v-lote-completo-alert','No hay equipos disponibles en este lote',false);return;}
   $('v-items-container').innerHTML='';ventaItems=[];
   setVentaModo('unidad');
+  const precioLote=parseFloat($('v-lote-precio')?.value)||null;
   disponibles.forEach(it=>{
-    const stockVal=JSON.stringify({ck,itemId:it.itemId||'',modelo:it.modelo,capacidad:it.capacidad,color:it.color,imei:it.imei,grado:it.grado,precioVenta:it.precioVenta});
+    const pv=precioLote!==null?precioLote:(it.precioVenta||0);
+    const stockVal=JSON.stringify({ck,itemId:it.itemId||'',modelo:it.modelo,capacidad:it.capacidad,color:it.color,imei:it.imei,grado:it.grado,precioVenta:pv});
     addVentaItem(stockVal);
   });
-  showAlert('v-lote-completo-alert','✅ Lote completo cargado ('+disponibles.length+' equipos)');
+  showAlert('v-lote-completo-alert','✅ Lote completo cargado ('+disponibles.length+' equipos). Tocá Siguiente para continuar.');
 }
 
 function abrirWizardVenta(){
@@ -4191,6 +4201,9 @@ function validarPasoWizardVenta(n){
     if(clienteVal==='__nuevo__'&&!$('v-nuevo-nombre').value.trim()){showAlert('v-alert','Ingresá el nombre del cliente nuevo',false);return false;}
   }
   if(n===2){
+    // En modo parcial o lote, cargarParcial/cargarLoteCompleto ya agrega items — verificar que haya
+    if(ventaModo==='parcial'&&!ventaItems.length){showAlert('v-parcial-alert','Tocá "Cargar unidades" antes de continuar',false);return false;}
+    if(ventaModo==='lote'&&!ventaItems.length){showAlert('v-lote-completo-alert','Tocá "Cargar lote completo" antes de continuar',false);return false;}
     const hayEquipoValido=ventaItems.some(id=>$('vi-eq-'+id)?.value);
     if(!hayEquipoValido){showAlert('v-alert','Elegí al menos un equipo del stock',false);return false;}
   }
