@@ -4062,15 +4062,22 @@ function cargarParcial(){
   });
   if(cant>disponibles.length){showAlert('v-parcial-alert','Solo hay '+disponibles.length+' equipos disponibles',false);return;}
   const precioOverride=parseFloat($('v-parcial-precio')?.value)||null;
-  const seleccionados=disponibles.slice(0,cant);
+  // Mezclar al azar y tomar N
+  const mezclados=[...disponibles].sort(()=>Math.random()-0.5).slice(0,cant);
   $('v-items-container').innerHTML='';ventaItems=[];
-  setVentaModo('unidad');
-  seleccionados.forEach(it=>{
+  mezclados.forEach(it=>{
     const pv=precioOverride!==null?precioOverride:(it.precioVenta||0);
     const stockVal=JSON.stringify({ck,itemId:it.itemId||'',modelo:it.modelo,capacidad:it.capacidad,color:it.color,imei:it.imei,grado:it.grado,precioVenta:pv});
     addVentaItem(stockVal);
   });
-  showAlert('v-parcial-alert','✅ '+cant+' equipos cargados. Tocá Siguiente para continuar.');
+  // Mostrar resumen sin cambiar de modo
+  const alert=$('v-parcial-alert');
+  if(alert){
+    const modelos=[...new Set(mezclados.map(e=>e.modelo+(e.capacidad&&e.capacidad!=='N/A'?' '+e.capacidad:'')))];
+    alert.innerHTML='<div style="background:var(--accent-dim);border:1px solid var(--accent);border-radius:8px;padding:10px 14px;font-size:13px">'+
+      '✅ <strong>'+cant+' equipos listos</strong> · '+modelos.join(', ')+'<br>'+
+      '<span style="font-size:11px;color:var(--text2)">Tocá <strong>Siguiente →</strong> para continuar</span></div>';
+  }
 }
 
 function cargarLoteCompleto(){
@@ -4085,14 +4092,19 @@ function cargarLoteCompleto(){
   });
   if(!disponibles.length){showAlert('v-lote-completo-alert','No hay equipos disponibles en este lote',false);return;}
   $('v-items-container').innerHTML='';ventaItems=[];
-  setVentaModo('unidad');
   const precioLote=parseFloat($('v-lote-precio')?.value)||null;
   disponibles.forEach(it=>{
     const pv=precioLote!==null?precioLote:(it.precioVenta||0);
     const stockVal=JSON.stringify({ck,itemId:it.itemId||'',modelo:it.modelo,capacidad:it.capacidad,color:it.color,imei:it.imei,grado:it.grado,precioVenta:pv});
     addVentaItem(stockVal);
   });
-  showAlert('v-lote-completo-alert','✅ Lote completo cargado ('+disponibles.length+' equipos). Tocá Siguiente para continuar.');
+  const alertL=$('v-lote-completo-alert');
+  if(alertL){
+    const modelos=[...new Set(disponibles.map(e=>e.modelo+(e.capacidad&&e.capacidad!=='N/A'?' '+e.capacidad:'')))];
+    alertL.innerHTML='<div style="background:var(--accent-dim);border:1px solid var(--accent);border-radius:8px;padding:10px 14px;font-size:13px">'+
+      '✅ <strong>'+disponibles.length+' equipos listos</strong> · '+modelos.join(', ')+'<br>'+
+      '<span style="font-size:11px;color:var(--text2)">Tocá <strong>Siguiente →</strong> para continuar</span></div>';
+  }
 }
 
 function abrirWizardVenta(){
