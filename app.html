@@ -4213,9 +4213,10 @@ function validarPasoWizardVenta(n){
     if(clienteVal==='__nuevo__'&&!$('v-nuevo-nombre').value.trim()){showAlert('v-alert','Ingresá el nombre del cliente nuevo',false);return false;}
   }
   if(n===2){
-    // En modo parcial o lote, cargarParcial/cargarLoteCompleto ya agrega items — verificar que haya
     if(ventaModo==='parcial'&&!ventaItems.length){showAlert('v-parcial-alert','Tocá "Cargar unidades" antes de continuar',false);return false;}
     if(ventaModo==='lote'&&!ventaItems.length){showAlert('v-lote-completo-alert','Tocá "Cargar lote completo" antes de continuar',false);return false;}
+    // En modo parcial/lote los items están en el DOM oculto — si ventaItems tiene datos es válido
+    if((ventaModo==='parcial'||ventaModo==='lote')&&ventaItems.length>0)return true;
     const hayEquipoValido=ventaItems.some(id=>$('vi-eq-'+id)?.value);
     if(!hayEquipoValido){showAlert('v-alert','Elegí al menos un equipo del stock',false);return false;}
   }
